@@ -1,0 +1,42 @@
+
+class report_unit_test():
+    
+    
+    @staticmethod
+    def report(location : str = "" ,message : str = "", error : bool = False):
+        
+        if message != "" and location != "":
+            
+            test_path = constants.SQLALCHEMY_DATABASE_URI
+            engine = create_engine(test_path, echo = True)            
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            
+            Unittest = 0 
+            
+            if not error:
+                
+                Unittest = unit_tests_and_errors(id = location, error = error, error_code = "NA")
+                                    
+                session.add(Unittest)
+                
+                session.commit()
+            else:
+                                
+
+
+                Unittest = unit_tests_and_errors(id = location, error = error, error_code = message )
+                
+                session.add(Unittest)
+                
+                session.commit()
+                
+            session.add(Unittest)
+            
+            session.commit()
+    
+if __name__ == "__main__":      
+    
+    x = report_unit_test()
+    # test raport 
+    x.report(location="core_report", error = False)

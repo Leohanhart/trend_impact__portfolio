@@ -1,0 +1,1 @@
+in this file there will be options to retreive the avalible sectors, stocks, analyses, details.
