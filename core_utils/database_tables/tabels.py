@@ -4,7 +4,7 @@ Created on Mon Apr 11 16:09:54 2022
 
 @author: Gebruiker
 """
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy import create_engine
@@ -372,3 +372,45 @@ class Analyses_trend_kamal_performance(Base):
     total_sharp_y5 = Column(Float)
     total_sharp_all = Column(Float)
     profible_profile = Column(Integer, nullable=True)
+
+
+class portfolio(Base):
+    __tablename__ = 'portfolio'
+    id = Column(Integer, primary_key=True)
+    portfolio_id = Column(String, nullable=False)
+    portfolio_strategy = Column(String, nullable=False)
+    list_of_tickers = Column(JSON, nullable=False)
+    list_of_balances = Column(JSON, nullable=False)
+    list_of_sides = Column(JSON, nullable=False)
+    list_of_performance = Column(JSON, nullable=False)
+    total_expected_return = Column(Float)
+    total_sharp_y2 = Column(Float)
+    total_volatility_y2 = Column(Float)
+
+
+class trading_portfolio(Base):
+    __tablename__ = 'trading_portfolio'
+    id = Column(Integer, primary_key=True)
+    portfolio_id = Column(String, nullable=False)
+    portfolio_strategy = Column(String, nullable=False)
+    list_of_tickers = Column(JSON, nullable=False)
+    list_of_balances = Column(JSON, nullable=False)
+    list_of_sides = Column(JSON, nullable=False)
+    list_of_performance = Column(JSON, nullable=False)
+    total_expected_return = Column(Float)
+    total_sharp_y2 = Column(Float)
+    total_volatility_y2 = Column(Float)
+
+
+class closed_portfolio(Base):
+    __tablename__ = 'closed_portfolio'
+    id = Column(Integer, primary_key=True)
+    portfolio_id = Column(String, nullable=False)
+    portfolio_strategy = Column(String, nullable=False)
+    list_of_tickers = Column(JSON, nullable=False)
+    list_of_balances = Column(JSON, nullable=False)
+    list_of_sides = Column(JSON, nullable=False)
+    list_of_performance = Column(JSON, nullable=False)
+    total_expected_return = Column(Float)
+    total_sharp_y2 = Column(Float)
+    total_volatility_y2 = Column(Float)

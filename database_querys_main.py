@@ -367,7 +367,7 @@ class database_querys:
             # return frame.
             return df
 
-        def update_analyses_trend_kamal(model):
+    def update_analyses_trend_kamal(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=True  # , check_same_thread=True

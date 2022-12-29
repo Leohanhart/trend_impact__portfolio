@@ -1527,6 +1527,7 @@ if __name__ == "__main__":
 
     # archive
     try:
+
         """
         print("Starting up ...")
 
@@ -1544,15 +1545,16 @@ if __name__ == "__main__":
 
         print("END")
         """
+
         #tickers = ['ABM', 'PYCR', 'MBINP', 'TWIN', 'IDA', 'ICD', 'OHI', 'ADC', 'ALX', 'ESNT', 'ABNB', 'CWH', 'UTSI', 'QLYS', 'SEIC', 'VLYPP', 'VRAR', 'SNPS', 'AGTI', 'RYAN', 'HEQ', 'DSGN', 'MCHP', 'CNM', 'CD']
         #ding_ = create_correlation_matrix(tickers)
         # print(ding_.data)
 
         #obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = update_trend_kamal_portfolio_selection()
+        #x = update_trend_kamal_portfolio_selection()
 
-        # update_kaufman_kalman_analyses.update_full_analyses()
+        update_kaufman_kalman_analyses.update_full_analyses()
 
        # update_trend_performance("AAPL", "D")
 
