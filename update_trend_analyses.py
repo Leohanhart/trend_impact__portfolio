@@ -1030,7 +1030,9 @@ class update_trend_kamal_portfolio_selection:
             options = list(combinations(tickers_out, 5))
 
             # adds those to list.
-            res = [list(ele) for ele in options]
+            # this options out commanded is fuckt because of wrong python version.
+            #res = [list(ele) for ele in options]
+            res = [list(ele) for i, ele in enumerate(options)]
             list_of_options.extend(res)
 
             # optionally there needs to be a efficiency impementation here.
@@ -1202,7 +1204,23 @@ class portfolio_constructor_manager:
     max_sharp: float = None
     avg_sharp: float = None
 
-    def __init__(self, data, name_strategie: str = "undefined", periode=60, days_untill_ex: int = 21):
+    # min vol
+    # 2 year return
+    min_vol_y2_return: float = None
+    # 2 year max drawdown
+    min_vol_y2_max_drawdown: float = None
+    # 2 year expected return
+    min_vol_y2_expected_return: float = None
+
+    # max sharp
+    # 2 year return
+    max_sharp_y2_return: float = None
+    # 2 year max drawdown
+    max_sharp_y2_max_drawdown: float = None
+    # 2 year expected return
+    max_sharp_y2_expected_return: float = None
+
+    def __init__(self, data, name_strategie: str = "undefined", periode=500, days_untill_ex: int = 21):
         """
         Insert data in the format needed for financial quant.
 
@@ -1253,7 +1271,111 @@ class portfolio_constructor_manager:
         # set matrix
         self.set_matrix()
 
+        ####
+
+        # create stock_data details for low vol.
+        balances_low_vol = list(self.low_vol_frame.balance.to_dict().values())
+        # sets data balanced
+        low_volatile_data = data * balances_low_vol
+        low_volatile_summed = low_volatile_data.sum(axis=1)
+
+        # create 2 year frame low/high
+        ts_low_vol = low_volatile_data.sum(axis=1).pct_change().cumsum()
+
+        # setting up dataframe for drawdown functions
+        ts_low_df = pd.DataFrame(low_volatile_summed)
+        ts_low_df.rename(
+            columns={ts_low_df.columns[0]: 'Adj Close'}, inplace=True)
+
+        low_vol_max_drawdown = self.return_max_drawdown(ts_low_df)
+        low_vol_expected_return = low_volatile_summed.pct_change().mean() * 100
+
+        self.min_vol_y2_expected_return = low_vol_expected_return
+        self.min_vol_y2_max_drawdown = low_vol_max_drawdown
+        self.min_vol_y2_return = round(((float(low_volatile_summed.tail(
+            1)) - float(low_volatile_summed.head(1))) / float(low_volatile_summed.tail(1)))*100, 2)
+        #####
+
+        # create stock_data details for high sharp.
+        balances_high_sharp = list(
+            self.high_sharp_frame.balance.to_dict().values())
+        # sets data balanced
+        high_sharp_data = data * balances_high_sharp
+        high_sharp_summed = high_sharp_data.sum(axis=1)
+
+        """
+        the rest of the names is unchanged for purpose chill.
+        """
+        # create 2 year frame low/high
+        ts_low_vol = high_sharp_data.sum(axis=1).pct_change().cumsum()
+
+        # setting up dataframe for drawdown functions
+        ts_low_df = pd.DataFrame(high_sharp_summed)
+        ts_low_df.rename(
+            columns={ts_low_df.columns[0]: 'Adj Close'}, inplace=True)
+
+        low_vol_max_drawdown = self.return_max_drawdown(ts_low_df)
+        low_vol_expected_return = low_volatile_summed.pct_change().mean() * 100
+
+        self.max_sharp_y2_expected_return = low_vol_expected_return
+        self.max_sharp_y2_max_drawdown = low_vol_max_drawdown
+        self.max_sharp_y2_return = round(((float(high_sharp_summed.tail(
+            1)) - float(high_sharp_summed.head(1))) / float(high_sharp_summed.tail(1)))*100, 2)
+
         return
+
+    def return_max_drawdown(self, stock__data__frame=None, position_side: int = 1, return_time_serie: bool = False):
+        """
+        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python        
+
+        Parameters
+        ----------
+        data_input_stock_data : TYPE, optional
+            DESCRIPTION. The default is None.
+        filterd_data : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        window = len(stock__data__frame)
+
+        if position_side == 1:
+
+            # Calculate the max drawdown in the past window days for each day in the series.
+            # Use min_periods=1 if you want to let the first 252 days data have an expanding window
+            Roll_Max = stock__data__frame['Adj Close'].rolling(
+                window, min_periods=1).max()
+            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+
+            # Next we calculate the minimum (negative) daily drawdown in that window.
+            # Again, use min_periods=1 if you want to allow the expanding window
+            Max_Daily_Drawdown = Daily_Drawdown.rolling(
+                window, min_periods=1).min()
+
+            # return in right format,
+            if not return_time_serie:
+                return round(float(Max_Daily_Drawdown.min()*100), 3)
+            else:
+                return Max_Daily_Drawdown
+
+        else:
+            Roll_Max = stock__data__frame['Adj Close'].rolling(
+                window, min_periods=1).min()
+            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Dd_test = Daily_Drawdown * -1
+
+            # Next we calculate the minimum (negative) daily drawdown in that window.
+            # Again, use min_periods=1 if you want to allow the expanding window
+            Max_Daily_Drawdown = Dd_test.rolling(window, min_periods=1).min()
+            # return in right format,
+            if not return_time_serie:
+                return round(float(Max_Daily_Drawdown.min()*100), 3)
+            else:
+                return Max_Daily_Drawdown
 
     def set_matrix(self):
 
@@ -1552,10 +1674,10 @@ if __name__ == "__main__":
 
         #obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        #x = update_trend_kamal_portfolio_selection()
+        x = update_trend_kamal_portfolio_selection()
 
-        update_kaufman_kalman_analyses.update_full_analyses()
-
+        # update_kaufman_kalman_analyses.update_full_analyses()
+       # update_kaufman_kalman_analyses.update_all()
        # update_trend_performance("AAPL", "D")
 
     except Exception as e:
