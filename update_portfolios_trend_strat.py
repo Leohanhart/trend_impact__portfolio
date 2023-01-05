@@ -39,8 +39,8 @@ class update_trend_kamal_portfolio_selection:
 
         if methode_one:
 
-            """ 
-            Methode one is basicly filterd on winrate, cutted and 
+            """
+            Methode one is basicly filterd on winrate, cutted and
             """
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
@@ -72,7 +72,7 @@ class update_trend_kamal_portfolio_selection:
             # create correlation matrix
             correlations_tickers = create_correlation_matrix(
                 tickers=tickers_for_portfolio)
-            
+
             # one way to create a dataframe
             df = pd.DataFrame(correlations_tickers.data)
 
@@ -92,7 +92,7 @@ class update_trend_kamal_portfolio_selection:
 
             # adds those to list.
             # this options out commanded is fuckt because of wrong python version.
-            #res = [list(ele) for ele in options]
+            # res = [list(ele) for ele in options]
             res = [list(ele) for i, ele in enumerate(options)]
             list_of_options.extend(res)
 
@@ -334,6 +334,13 @@ class portfolio_constructor_manager:
         # set matrix
         self.set_matrix()
 
+        # sets high sharp to data
+        x_data = opt_res[1:2]
+        sharp_dict = x_data.to_dict(orient="records")
+        self.Imax_sharp_volatility = round(sharp_dict[0]["Volatility"], 2)
+        self.Imax_sharp_expected_return = round(
+            sharp_dict[0]['Expected Return'], 2)
+        self.Imax_sharp_sharp_ratio = round(sharp_dict[0]['Sharpe Ratio'], 2)
         ####
 
         # create stock_data details for low vol.
@@ -389,7 +396,7 @@ class portfolio_constructor_manager:
 
     def return_max_drawdown(self, stock__data__frame=None, position_side: int = 1, return_time_serie: bool = False):
         """
-        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python        
+        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python
 
         Parameters
         ----------
@@ -720,7 +727,7 @@ class create_kko_portfolios:
 
         # adds those to list.
         # this options out commanded is fuckt because of wrong python version.
-        #res = [list(ele) for ele in options]
+        # res = [list(ele) for ele in options]
         res = [list(ele) for i, ele in enumerate(options)]
         list_of_options.extend(res)
 
@@ -805,11 +812,50 @@ class add_kko_portfolio:
         # create an UUID,
         model.portfolio_id = str(uuid.uuid1())
 
+        model.portfolio_strategy = "TREND_STRAT_KKO_HS"
+        # create amount
+        model.portfolio_amount = int(
+            len(portfolio.high_sharp_frame.ticker.to_list()))
+
         tickers = portfolio.high_sharp_frame.ticker.to_list()
         serialized_list_of_tickers = json.dumps(tickers)
 
+        # set tickers
         model.list_of_tickers = serialized_list_of_tickers
+
+        balances = portfolio.high_sharp_frame.balance.to_list()
+        serialized_list_balances = json.dumps(balances)
+
+        # set balances
+        model.list_of_balances = serialized_list_balances
+
+        sides_list = []
+        # set sides.
+        for i in tickers:
+
+            data = database_querys.database_querys.get_trend_kalman(i)
+
+            trend = int(data.trend)
+
+            sides_list.append(trend)
+
+        serialized_list_of_sides = json.dumps(tickers)
+        model.list_of_sides = serialized_list_of_sides
+
+        # perfomnace data =
+        performance_data = {trend: "Leo_Was_Here"}
+        serialized_list_of_perfomance_data = json.dumps(tickers)
+        model.list_of_performance = serialized_list_of_perfomance_data
+
         # create an
+        total_expected_return = round(
+            portfolio.max_sharp_y2_expected_return, 2)
+        model.total_expected_return = total_expected_return
+
+        total_sharp = round(portfolio.max_sharp_y2_return, 2)
+        model.total_sharp_y2 = total_sharp
+
+        model.total_volatility_y2
 
         # get sides.
         # get amount,
@@ -847,6 +893,7 @@ class create_kko_tickers_selection:
 
             """
             # gets data
+
             df = database_querys.database_querys.get_trend_kalman_performance(
                 periode="D")
 
@@ -1028,11 +1075,11 @@ if __name__ == "__main__":
         print("END")
         """
 
-        #tickers = ['ABM', 'PYCR', 'MBINP', 'TWIN', 'IDA', 'ICD', 'OHI', 'ADC', 'ALX', 'ESNT', 'ABNB', 'CWH', 'UTSI', 'QLYS', 'SEIC', 'VLYPP', 'VRAR', 'SNPS', 'AGTI', 'RYAN', 'HEQ', 'DSGN', 'MCHP', 'CNM', 'CD']
-        #ding_ = create_correlation_matrix(tickers)
+        # tickers = ['ABM', 'PYCR', 'MBINP', 'TWIN', 'IDA', 'ICD', 'OHI', 'ADC', 'ALX', 'ESNT', 'ABNB', 'CWH', 'UTSI', 'QLYS', 'SEIC', 'VLYPP', 'VRAR', 'SNPS', 'AGTI', 'RYAN', 'HEQ', 'DSGN', 'MCHP', 'CNM', 'CD']
+        # ding_ = create_correlation_matrix(tickers)
         # print(ding_.data)
 
-        #obj = create_time_serie_with_kamalstrategie("IDA")
+        # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
         x = kko_portfolio_update_manager()
 
