@@ -330,7 +330,7 @@ class database_querys:
     def get_trend_kalman_performance(periode: str = "D", as_pandas: bool = True):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -367,6 +367,50 @@ class database_querys:
             # return frame.
             return df
 
+    def get_portfolio(id_: str = "", strategy: str = ""):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == model.portfolio_id,
+        ).first()
+
+        query_string: str
+
+        if id_:
+
+            query_string = session.query(Portfolio).filter(
+                Portfolio.portfolio_id == id_,
+            ).statement.compile()
+
+        elif strategy:
+
+            query_string = session.query(Portfolio).filter(
+                Portfolio.portfolio_strategy == strategy
+            ).statement.compile()
+
+        elif id_ and strategy:
+            query_string = session.query(Portfolio).filter(
+                Portfolio.portfolio_strategy == strategy,
+                Portfolio.portfolio_id == id_
+            ).statement.compile()
+
+        else:
+
+            query_string = session.query(Portfolio).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -383,7 +427,7 @@ class database_querys:
             Analyses = Portfolio(
                 portfolio_id=model.portfolio_id,
                 portfolio_strategy=model.portfolio_strategy,
-                portfolio_amount=model.portfolio_amount
+                portfolio_amount=model.portfolio_amount,
                 list_of_tickers=model.list_of_tickers,
                 list_of_balances=model.list_of_balances,
                 list_of_sides=model.list_of_sides,
@@ -725,6 +769,31 @@ class database_querys:
         session.close()
         return
 
+    def delete_portfolio_with_id(id_: str):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == model.portfolio_id,
+        ).first()
+
+        # check if ticker exsists
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
+        session.close()
+
     def delete_analyses_trend_kamal_archive(model):
         """
 
@@ -956,11 +1025,11 @@ if __name__ == "__main__":
 
         model = kko_strat_model()
 
-        model.portfolio_id = "1faf1"
+        model.portfolio_id = "POA123"
         model.portfolio_strategy = "LEOSBALSOFSTEAL"
 
         list_tickers = ["AAPL", "BABA", "META"]
-        list_of_balances = [33, 33, 33]
+        list_of_balances = [25, 33, 33]
         list_of_sides = [1, 1, 1]
         list_of_performance = {}
 
@@ -969,6 +1038,7 @@ if __name__ == "__main__":
         serialized_list_of_sides = json.dumps(list_of_sides)
         serialized_list_of_performance = json.dumps(list_of_performance)
 
+        model.portfolio_amount = 3
         model.list_of_tickers = serialized_list_of_tickers
         model.list_of_balances = serialized_list_of_balances
         model.list_of_sides = serialized_list_of_sides
@@ -979,7 +1049,9 @@ if __name__ == "__main__":
         model.createdAt = "14-01-2023"
 
         global x
-        x = database_querys.update_portfolio(model)
+        x = database_querys.get_portfolio(strategy="LEOSBALSOFSTEAL")
+        print(x)
+        #x = database_querys.delete_portfolio_with_id(model.portfolio_id)
 
         print("END")
 
