@@ -268,7 +268,7 @@ class database_querys:
 
     def get_trend_kalman(ticker: str = None):
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
