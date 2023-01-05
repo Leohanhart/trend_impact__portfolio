@@ -61,14 +61,17 @@ class update_trend_kamal_portfolio_selection:
 
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
-            df = df.head(25)
+
+            # removed because tail values
+            # df = df.head(25)
             #
             tickers_for_portfolio = list(df.id.values)
 
+            """
             # create correlation matrix
             correlations_tickers = create_correlation_matrix(
                 tickers=tickers_for_portfolio)
-
+            
             # one way to create a dataframe
             df = pd.DataFrame(correlations_tickers.data)
 
@@ -77,7 +80,8 @@ class update_trend_kamal_portfolio_selection:
             # this one creates tickers
 
             tickers_out = correlations_tickers.ticker
-
+            """
+            tickers_out = tickers_for_portfolio
             # create function that creates all kind off ticker combinations
             # 5 - 10.
             list_of_options = []
@@ -677,6 +681,92 @@ class create_time_serie_with_kamalstrategie:
         return df
 
 
+class create_kko_portfolios:
+
+    def __init__(self, list_of_stocks: list, amount_of_stocks: int):
+
+        tickers_out = list_of_stocks
+        # create function that creates all kind off ticker combinations
+        # 5 - 10.
+        list_of_options = []
+
+        # gets all posible moves. 5 IS 42k
+        options = list(combinations(tickers_out, 5))
+
+        # adds those to list.
+        # this options out commanded is fuckt because of wrong python version.
+        #res = [list(ele) for ele in options]
+        res = [list(ele) for i, ele in enumerate(options)]
+        list_of_options.extend(res)
+
+        # optionally there needs to be a efficiency impementation here.
+        # that could be a loop that gets all data and puts it in a dict
+        # and gets it out, so it will work way faster.
+        ticker_options = {}
+
+        # loops true
+        for i in tickers_out:
+
+            ts_data = create_time_serie_with_kamalstrategie(i)
+
+            ticker_options[i] = ts_data.data
+
+        # create dataframes that can be tested.
+        for i in range(0, len(list_of_options)):
+
+            tickers_selected = list_of_options[i]
+
+            data = self.create_data_frame_of_tickers(
+                tickers_selected, ticker_options)
+
+            portfolio = portfolio_constructor_manager(data)
+
+
+class create_kko_tickers_selection:
+
+    def __init__(self, methode_one: bool = True):
+
+        if methode_one:
+
+            """ 
+            Methode one is basicly filterd on winrate, cutted and 
+            """
+            # gets data
+            df = database_querys.database_querys.get_trend_kalman_performance(
+                periode="D")
+
+            # first select half of amount of trades.
+            df = df.loc[df['amount_of_trades_y2'] >
+                        df["amount_of_trades_y2"].median()]
+
+            # high winrates, takes higest BEST 82,5%
+            p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
+                                                             df.total_profitible_trades_y2.mean()) / 4)
+
+            #
+            df = df.loc[df['total_profitible_trades_y2'] > p]
+
+            df = df.sort_values(
+                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+
+            # opoinaly remove. if there are more than 25 the system chrashs haha
+            # it takes ages for the correlation matrix.
+
+            # removed because tail values
+            # df = df.head(25)
+            #
+            tickers_for_portfolio = list(df.id.values)
+
+            return tickers_for_portfolio
+
+
+class kko_portfolio_gardian:
+
+    def __init__(self, created_portfolio):
+
+        if created_portfolio
+
+
 class portfolio_kamal:
 
     tickers: list
@@ -704,18 +794,20 @@ class portfolio_kamal:
 class kko_strat_model:
     """
     k stands for kaufman.
-    k stands for kamal. 
+    k stands for kamal.
     o stands for optimzed
 
     """
     portfolio_id: str
     portfolio_strategy: str
+    portfolio_amount: int
     list_of_tickers: str
     list_of_balances: str
     list_of_sides: str
+    list_of_performance: str
     total_expected_return: float
     total_sharp_y2: float
-    total_volatilty: float
+    total_volatility_y2: float
     createdAt: str
 
 
