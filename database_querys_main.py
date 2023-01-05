@@ -25,7 +25,7 @@ TASKS TO DO:
 
 import constants
 
-from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, Analyses_archive_kamal, Analyses_trend_kamal_performance
+from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio
 
 import pandas as pd
 
@@ -367,6 +367,71 @@ class database_querys:
             # return frame.
             return df
 
+    def update_portfolio(model):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == model.portfolio_id,
+        ).first()
+
+        if x == None:
+            Analyses = Portfolio(
+                portfolio_id=model.portfolio_id,
+                portfolio_strategy=model.portfolio_strategy,
+                portfolio_amount=model.portfolio_amount
+                list_of_tickers=model.list_of_tickers,
+                list_of_balances=model.list_of_balances,
+                list_of_sides=model.list_of_sides,
+                list_of_performance=model.list_of_performance,
+                total_expected_return=model.total_expected_return,
+                total_sharp_y2=model.total_sharp_y2,
+                total_volatility_y2=model.total_volatility_y2,
+                createdAt=model.createdAt)
+
+            session.add(Analyses)
+            session.commit()
+            session.close()
+
+        else:
+
+            if x.portfolio_id != model.portfolio_id:
+                x.portfolio_id = model.portfolio_id
+
+            if x.portfolio_strategy != model.portfolio_strategy:
+                x.portfolio_strategy = model.portfolio_strategy
+
+            if x.list_of_tickers != model.list_of_tickers:
+                x.list_of_tickers = model.list_of_tickers
+
+            if x.list_of_balances != model.list_of_balances:
+                x.list_of_balances = model.list_of_balances
+
+            if x.list_of_sides != model.list_of_sides:
+                x.list_of_sides = model.list_of_sides
+
+            if x.list_of_performance != model.list_of_performance:
+                x.list_of_performance = model.list_of_performance
+
+            if x.total_expected_return != model.total_expected_return:
+                x.total_expected_return = model.total_expected_return
+
+            if x.total_sharp_y2 != model.total_sharp_y2:
+                x.total_sharp_y2 = model.total_sharp_y2
+
+            if x.total_volatility_y2 != model.total_volatility_y2:
+                x.total_volatility_y2 = model.total_volatility_y2
+
+            session.commit()
+            session.close()
+
+        session.close()
+        return
+
     def update_analyses_trend_kamal(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -384,7 +449,7 @@ class database_querys:
         if x == None:
 
             Analyses = Analyses_trend_kamal(
-                #id = 1,
+                # id = 1,
                 id=model.ticker,
                 periode=model.periode,
                 trend=model.trend,
@@ -472,8 +537,8 @@ class database_querys:
             add_report["status"] = "NEW"
 
             Analyses = Analyses_archive_kamal(
-                #id = 1,
-                #id = model.ticker,
+                # id = 1,
+                # id = model.ticker,
                 ticker=model.ticker,
                 year_start=model.year_start,
                 month_start=model.month_start,
@@ -587,7 +652,7 @@ class database_querys:
         if x == None:
 
             Analyses = Analyses_trend_kamal_performance(
-                #id = 1,
+                # id = 1,
                 id=model.ticker,
                 periode=model.periode,
                 amount_of_trades_y2=model.amount_of_trades_y2,
@@ -814,11 +879,11 @@ class database_querys:
 
 class database_querys_support:
 
-    @staticmethod
+    @ staticmethod
     def check_incomming_vars():
         pass
 
-    @staticmethod
+    @ staticmethod
     def unpack_all_tickers(tickers):
 
         tickers_list = []
@@ -828,7 +893,7 @@ class database_querys_support:
 
         return tickers_list
 
-    @staticmethod
+    @ staticmethod
     def unpack_all_sectors(tickers):
 
         sector_list = []
@@ -849,7 +914,7 @@ class database_querys_support:
 
         return sector_list
 
-    @staticmethod
+    @ staticmethod
     def unpack_all_industrys(tickers):
 
         industry_list = []
@@ -870,29 +935,52 @@ if __name__ == "__main__":
 
         print("START")
 
-        # x = database_querys.get_analyses_flows_and_impact( )
-        # global pandanas_pf
-        # pandanas_pf = database_querys.get_all_stocks_with_industry(name_industry="Consumer Electronics")
-        # x = database_querys.get_all_active_tickers()
-        # database_querys.update_analyses_liquidity(ticker_id = "XLE", periode ="W", profile =None, profile_rate_of_change= 5, rate_of_change = 5, last = 10.00, last_signal =5, periode_since_signal=0)
-        # database_querys.update_analyses_sector(id_in=  "Homos", last_mon = 2)
-        # x = database_querys.get_analyses_liquidity(as_pandas=True,daily=True)
+        class kko_strat_model:
+            """
+            k stands for kaufman.
+            k stands for kamal.
+            o stands for optimzed
+
+            """
+            portfolio_id: str
+            portfolio_strategy: str
+            portfolio_amount: int
+            list_of_tickers: str
+            list_of_balances: str
+            list_of_sides: str
+            list_of_performance: str
+            total_expected_return: float
+            total_sharp_y2: float
+            total_volatility_y2: float
+            createdAt: str
+
+        model = kko_strat_model()
+
+        model.portfolio_id = "1faf1"
+        model.portfolio_strategy = "LEOSBALSOFSTEAL"
+
+        list_tickers = ["AAPL", "BABA", "META"]
+        list_of_balances = [33, 33, 33]
+        list_of_sides = [1, 1, 1]
+        list_of_performance = {}
+
+        serialized_list_of_tickers = json.dumps(list_tickers)
+        serialized_list_of_balances = json.dumps(list_of_balances)
+        serialized_list_of_sides = json.dumps(list_of_sides)
+        serialized_list_of_performance = json.dumps(list_of_performance)
+
+        model.list_of_tickers = serialized_list_of_tickers
+        model.list_of_balances = serialized_list_of_balances
+        model.list_of_sides = serialized_list_of_sides
+        model.list_of_performance = serialized_list_of_performance
+        model.total_expected_return = 10
+        model.total_sharp_y2 = 5
+        model.total_volatility_y2 = 20
+        model.createdAt = "14-01-2023"
+
         global x
-        # x = database_querys.get_analyses_industry(as_pandas=True)
-        x = database_querys.get_analyses_flow_impact_archive(
-            ticker="CSCO", periode="W")
+        x = database_querys.update_portfolio(model)
 
-        # print("  \n\n Score = ", x.Score.sum())
-        # global list_industry
-
-        # database_querys.log_item_get()
-        # database_querys.log_item(12313,"test for no")
-        # list_industry = database_querys.get_all_active_industrys()
-
-        # global ticker_industry
-
-        # ticker_industry = database_querys.get_all_stocks_with_industry( list_industry[8])
-        print(x.tail(30))
         print("END")
 
     except Exception as e:
