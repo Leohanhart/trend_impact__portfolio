@@ -4,6 +4,32 @@ Created on Fri Dec 30 20:20:32 2022
 
 @author: Gebruiker
 """
+import constants
+import database_querys_main as database_querys
+import stock_analyses_with_ticker_main as stock_analyses_with_ticker
+from core_scripts.stock_data_download import power_stock_object as stock_object
+from core_update.update_analyses import update_support
+from datetime import datetime, timedelta
+
+import time
+import numpy as np
+import pandas as pd
+import os
+import datetime
+from pykalman import KalmanFilter
+from pykalman import KalmanFilter as KF
+import math
+from collections import Counter
+from math import sqrt
+from itertools import combinations
+
+from finquant.portfolio import build_portfolio
+from finquant.efficient_frontier import EfficientFrontier
+
+from statsmodels.tsa.vector_ar.vecm import coint_johansen
+
+from collections import ChainMap
+import uuid
 
 
 class update_trend_kamal_portfolio_selection:
@@ -673,6 +699,24 @@ class portfolio_kamal:
     maximum_vol_weight: float
     minimum_sharp_weight: float
     maximum_sharp_weight: float
+
+
+class kko_strat_model:
+    """
+    k stands for kaufman.
+    k stands for kamal. 
+    o stands for optimzed
+
+    """
+    portfolio_id: str
+    portfolio_strategy: str
+    list_of_tickers: str
+    list_of_balances: str
+    list_of_sides: str
+    total_expected_return: float
+    total_sharp_y2: float
+    total_volatilty: float
+    createdAt: str
 
 
 if __name__ == "__main__":
