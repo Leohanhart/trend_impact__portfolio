@@ -30,6 +30,7 @@ from statsmodels.tsa.vector_ar.vecm import coint_johansen
 
 from collections import ChainMap
 import uuid
+import json
 
 
 class update_trend_kamal_portfolio_selection:
@@ -279,6 +280,8 @@ class portfolio_constructor_manager:
     max_sharp_y2_max_drawdown: float = None
     # 2 year expected return
     max_sharp_y2_expected_return: float = None
+
+    # amount of stocks
 
     def __init__(self, data, name_strategie: str = "undefined", periode=500, days_untill_ex: int = 21):
         """
@@ -688,16 +691,9 @@ class create_kko_portfolios:
         tickers_out = list_of_stocks
         # create function that creates all kind off ticker combinations
         # 5 - 10.
+
+        tickers_out = xg = tickers_out[1:10]
         list_of_options = []
-
-        # gets all posible moves. 5 IS 42k
-        options = list(combinations(tickers_out, 5))
-
-        # adds those to list.
-        # this options out commanded is fuckt because of wrong python version.
-        #res = [list(ele) for ele in options]
-        res = [list(ele) for i, ele in enumerate(options)]
-        list_of_options.extend(res)
 
         # optionally there needs to be a efficiency impementation here.
         # that could be a loop that gets all data and puts it in a dict
@@ -707,9 +703,26 @@ class create_kko_portfolios:
         # loops true
         for i in tickers_out:
 
-            ts_data = create_time_serie_with_kamalstrategie(i)
+            try:
 
-            ticker_options[i] = ts_data.data
+                ts_data = create_time_serie_with_kamalstrategie(i)
+
+                ticker_options[i] = ts_data.data
+            except:
+
+                tickers_out.remove(i)
+
+        # get the keys so only good stocks will stay ther
+        tickers_out = list(ticker_options.keys())
+
+        # gets all posible moves. 5 IS 42k
+        options = list(combinations(tickers_out, 5))
+
+        # adds those to list.
+        # this options out commanded is fuckt because of wrong python version.
+        #res = [list(ele) for ele in options]
+        res = [list(ele) for i, ele in enumerate(options)]
+        list_of_options.extend(res)
 
         # create dataframes that can be tested.
         for i in range(0, len(list_of_options)):
@@ -721,15 +734,117 @@ class create_kko_portfolios:
 
             portfolio = portfolio_constructor_manager(data)
 
+            allowd_to_add = kko_portfolio_gardian(portfolio)
+
+            if not allowd_to_add.allowd:
+
+                execute = add_kko_portfolio(portfolio)
+
+        return
+
+    def create_data_frame_of_tickers(self, tickers: list, data: dict):
+        """
+
+        r_data.mean(axis=1).pct_change().cumsum().plot()
+
+        r_data.pct_change().cumsum().plot()
+
+
+        Parameters
+        ----------
+        tickers : list
+            DESCRIPTION.
+        data : dict
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        first: bool = True
+        r_data = 0
+        for i in tickers:
+
+            #
+            sdata = data[i]
+
+            # select data from dict
+            df = sdata
+
+            df = df.tail(520)
+            # first column selected
+            first_column = df.iloc[:, 0]
+
+            # set to frame
+            xdf = first_column.to_frame()
+
+            # rename to ticker
+            xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
+
+            if first:
+
+                r_data = xdf
+                first = False
+
+            else:
+
+                r_data = pd.concat([r_data, xdf], axis=1)
+
+        return r_data
+
+
+class add_kko_portfolio:
+
+    model = None
+
+    def __init__(self, portfolio):
+
+        model = kko_strat_model()
+        # create an UUID,
+        model.portfolio_id = str(uuid.uuid1())
+
+        tickers = portfolio.high_sharp_frame.ticker.to_list()
+        serialized_list_of_tickers = json.dumps(tickers)
+
+        model.list_of_tickers = serialized_list_of_tickers
+        # create an
+
+        # get sides.
+        # get amount,
+
 
 class create_kko_tickers_selection:
 
-    def __init__(self, methode_one: bool = True):
+    selected_tickers: list
+
+    def __init__(self, methode_one: bool = False, methode_two: bool = False):
+        """
+        VERY important
+        - First method is kind of created to make small lists of stocks. 
+        -second method is more pragmatish without caring about rest. 
+
+        Parameters
+        ----------
+        methode_one : bool, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
 
         if methode_one:
 
             """ 
             Methode one is basicly filterd on winrate, cutted and 
+
+            its very hard to say why this method is chosen, because it takes the median of the 
+
+
+
             """
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
@@ -757,14 +872,98 @@ class create_kko_tickers_selection:
             #
             tickers_for_portfolio = list(df.id.values)
 
-            return tickers_for_portfolio
+            self.selected_tickers = tickers_for_portfolio
+            return
+
+        if methode_two:
+
+            """ 
+            Methode one is basicly filterd on winrate, cutted and 
+
+            its very hard to say why this method is chosen, because it takes the median of the 
+
+
+
+            """
+            # gets data
+            df = database_querys.database_querys.get_trend_kalman_performance(
+                periode="D")
+
+            # first select half of amount of trades.
+            df = df.loc[df['amount_of_trades_y2'] > 13]
+
+            df = df.loc[df['total_profitible_trades_y2'] > 95]
+
+            df = df.sort_values(
+                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+
+            # opoinaly remove. if there are more than 25 the system chrashs haha
+            # it takes ages for the correlation matrix.
+
+            # removed because tail values
+            # df = df.head(25)
+            #
+            tickers_for_portfolio = list(df.id.values)
+
+            self.selected_tickers = tickers_for_portfolio
+            return
 
 
 class kko_portfolio_gardian:
 
-    def __init__(self, created_portfolio):
+    allowd: bool = False
 
-        if created_portfolio
+    # allows portfolio's that have one stock that les than 50 of average.
+    lower_boundery = 50
+
+    def __init__(self, portfolio):
+        """
+        Criteria:
+            - mainly build for max sharp.
+
+        checks 
+        - 1 if the stocks are equal balanced.
+
+        Parameters
+        ----------
+        portfolio : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # implement logic here.
+        amount_stocks = self.return_amount_of_stocks(portfolio)
+        boundery_low = 100/amount_stocks * (self.lower_boundery / 100)
+
+        min_shapr = portfolio.min_sharp * 100
+
+        if min_shapr < self.lower_boundery:
+            self.allowd = False
+            return
+
+        self.allowd = True
+
+        return
+
+    def return_amount_of_stocks(self, p):
+        amount = len(p.portfolio_strat_high_sharp_stocks)
+        return amount
+
+
+class kko_portfolio_update_manager:
+
+    def __init__(self):
+
+        # get the tickers
+        selection = create_kko_tickers_selection(methode_one=True)
+
+        # this will be threaded, 5 for portfolio of 5
+        insert = create_kko_portfolios(selection.selected_tickers, 5)
+        # the rest one I guess.
 
 
 class portfolio_kamal:
@@ -818,19 +1017,14 @@ if __name__ == "__main__":
 
         """
         print("Starting up ...")
-
         power_object = stock_object.power_stock_object(stock_ticker = "ACRX", simplyfied_load = True, periode_weekly = True)
-
         x = update_kaufman_support.return_kaufman_ma_frame(stock__data__frame=power_object.stock_data)   
         print(x)
         z = update_kaufman_support.add_kalman_filter_to_data(x)
         print(z)
         y = update_kaufman_support.return_profiles_data(z,10,False,power_object.stock_data)
         print(y)
-
         print("Finnished")
-
-
         print("END")
         """
 
@@ -840,7 +1034,7 @@ if __name__ == "__main__":
 
         #obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = update_trend_kamal_portfolio_selection()
+        x = kko_portfolio_update_manager()
 
         # update_kaufman_kalman_analyses.update_full_analyses()
        # update_kaufman_kalman_analyses.update_all()
