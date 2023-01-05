@@ -266,6 +266,26 @@ class database_querys:
 
         return ticker
 
+    def get_trend_kalman(ticker: str = None):
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string = session.query(Analyses_trend_kamal).filter(
+            Analyses_trend_kamal.id == ticker,
+
+
+        ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def get_trend_kalman_data(ticker: str = None,
                               periode: str = "D",
                               year: int = None,
@@ -275,7 +295,8 @@ class database_querys:
                               as_pandas=True):
         """
 
-        Returns
+
+        Returns archive data, not up to date.
         -------
         None.
 
@@ -283,9 +304,24 @@ class database_querys:
 
         # creates database engine.
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
+
+        query_string = session.query(Analyses_archive_kamal).filter(
+            Analyses_archive_kamal.ticker == ticker,
+            Analyses_archive_kamal.periode == periode
+
+
+        ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
 
         if type(ticker) == str:
 
@@ -1049,8 +1085,8 @@ if __name__ == "__main__":
         model.createdAt = "14-01-2023"
 
         global x
-        x = database_querys.get_portfolio(strategy="LEOSBALSOFSTEAL")
-        print(x)
+        x = database_querys.get_trend_kalman(ticker="AACG")
+        print(int(x.trend))
         #x = database_querys.delete_portfolio_with_id(model.portfolio_id)
 
         print("END")
