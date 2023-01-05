@@ -153,8 +153,9 @@ def initialization():
     class portfolio(Base):
         __tablename__ = 'portfolio'
         id = Column(Integer, primary_key=True)
-        portfolio_id = Column(String, nullable=False)
+        portfolio_id = Column(String, nullable=False, unique=True)
         portfolio_strategy = Column(String, nullable=False)
+        portfolio_amount = Column(Integer)
         list_of_tickers = Column(JSON, nullable=False)
         list_of_balances = Column(JSON, nullable=False)
         list_of_sides = Column(JSON, nullable=False)
@@ -162,6 +163,7 @@ def initialization():
         total_expected_return = Column(Float)
         total_sharp_y2 = Column(Float)
         total_volatility_y2 = Column(Float)
+        createdAt = Column(String, nullable=False)
 
     class trading_portfolio(Base):
         __tablename__ = 'trading_portfolio'
