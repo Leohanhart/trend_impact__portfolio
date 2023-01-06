@@ -379,6 +379,8 @@ class portfolio_constructor_manager:
         # create stock_data details for high sharp.
         balances_high_sharp = list(
             self.high_sharp_frame.balance.to_dict().values())
+        # round the values
+        balances_high_sharp = [round(num, 2) for num in balances_high_sharp]
         # sets data balanced
         high_sharp_data = data * balances_high_sharp
         high_sharp_summed = high_sharp_data.sum(axis=1)
@@ -702,8 +704,16 @@ class create_time_serie_with_kamalstrategie:
 
 
 class create_kko_portfolios:
+    """
+    On 06-01 this class is not longer be maintained anymore, 
+    main function is 
 
-    def __init__(self, list_of_stocks: list, amount_of_stocks: int):
+    """
+
+    def __init__(self):
+        return
+
+    def create_all_options(self, list_of_stocks: list, amount_of_stocks: int):
 
         tickers_out = list_of_stocks
         # create function that creates all kind off ticker combinations
@@ -837,6 +847,8 @@ class add_kko_portfolio:
         model.list_of_tickers = serialized_list_of_tickers
 
         balances = portfolio.high_sharp_frame.balance.to_list()
+        balances = [round(num, 2) for num in balances]
+
         serialized_list_balances = json.dumps(balances)
 
         # set balances
@@ -984,7 +996,7 @@ class kko_portfolio_gardian:
     def __init__(self, portfolio):
         """
         Criteria:
-            - mainly build for max sharp.
+            - mainly build for max sharp, correlation balance in portfolio, and high expected return
 
         checks 
         - 1 if the stocks are equal balanced.
@@ -1011,8 +1023,9 @@ class kko_portfolio_gardian:
 
         if min_balance > boundery_low:
             if portfolio.Imax_sharp_sharp_ratio > 2.99:
-                self.allowd = True
-                return
+                if portfolio.Imax_sharp_expected_return > 0.15:
+                    self.allowd = True
+                    return
 
         return
 
@@ -1029,8 +1042,157 @@ class kko_portfolio_update_manager:
         selection = create_kko_tickers_selection(methode_one=True)
 
         # this will be threaded, 5 for portfolio of 5
-        insert = create_kko_portfolios(selection.selected_tickers, 5)
+        insert = create_kko_portfolios()
+        insert.create_all_options(selection.selected_tickers, 5)
+
+        """
         # the rest one I guess.
+        # function with different parameters
+        thread1 = threading.Thread(target=self.print_squares,
+                                   args=("thread1", [1, 2, 3, 4, 5]))
+
+        thread2 = thread_2 = Thread(target=self.task_2)
+
+        thread3 = threading.Thread(target=self.task_3,
+                                   args=())
+        threads = []
+        # Start the threads
+        thread1.start()
+        thread2.start()
+        thread3.start()
+
+        threads.append(thread1)
+        threads.append(thread2)
+        threads.append(thread3)
+
+        # Join the threads before
+        loop:  bool = True
+        while loop:
+            for thread in threads:
+                if not thread.is_alive():
+                    print("Doden threads")
+
+                    thread.join()
+                    self.kill_switch = True
+                    loop = False
+                    break
+
+        # moving further
+        thread1.join()
+        thread2.join()
+        thread3.join()
+        """
+
+        def create_all_options(self, list_of_stocks: list, amount_of_stocks: int):
+
+            tickers_out = list_of_stocks
+            # create function that creates all kind off ticker combinations
+            # 5 - 10.
+
+            list_of_options = []
+
+            # optionally there needs to be a efficiency impementation here.
+            # that could be a loop that gets all data and puts it in a dict
+            # and gets it out, so it will work way faster.
+            ticker_options = {}
+
+            # loops true
+            for i in tickers_out:
+
+                try:
+
+                    ts_data = create_time_serie_with_kamalstrategie(i)
+
+                    ticker_options[i] = ts_data.data
+                except:
+
+                    tickers_out.remove(i)
+
+            # get the keys so only good stocks will stay ther
+            tickers_out = list(ticker_options.keys())
+
+            # gets all posible moves. 5 IS 42k
+            options = list(combinations(tickers_out, 5))
+
+            # adds those to list.
+            # this options out commanded is fuckt because of wrong python version.
+            # res = [list(ele) for ele in options]
+            res = [list(ele) for i, ele in enumerate(options)]
+            list_of_options.extend(res)
+
+            round_ = 0
+            # create dataframes that can be tested.
+            for i in range(0, len(list_of_options)):
+
+                round_ += 1
+                print("we are running itteration ", round_)
+
+                tickers_selected = list_of_options[i]
+
+                data = self.create_data_frame_of_tickers(
+                    tickers_selected, ticker_options)
+
+                portfolio = portfolio_constructor_manager(data)
+
+                allowd_to_add = kko_portfolio_gardian(portfolio)
+
+                if allowd_to_add.allowd:
+
+                    execute = add_kko_portfolio(portfolio)
+
+            return
+
+        def create_data_frame_of_tickers(self, tickers: list, data: dict):
+            """
+
+            r_data.mean(axis=1).pct_change().cumsum().plot()
+
+            r_data.pct_change().cumsum().plot()
+
+
+            Parameters
+            ----------
+            tickers : list
+                DESCRIPTION.
+            data : dict
+                DESCRIPTION.
+
+            Returns
+            -------
+            None.
+
+            """
+
+            first: bool = True
+            r_data = 0
+            for i in tickers:
+
+                #
+                sdata = data[i]
+
+                # select data from dict
+                df = sdata
+
+                df = df.tail(520)
+                # first column selected
+                first_column = df.iloc[:, 0]
+
+                # set to frame
+                xdf = first_column.to_frame()
+
+                # rename to ticker
+                xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
+
+                if first:
+
+                    r_data = xdf
+                    first = False
+
+                else:
+
+                    r_data = pd.concat([r_data, xdf], axis=1)
+
+            return r_data
 
 
 class portfolio_kamal:
