@@ -9,8 +9,7 @@ import database_querys_main as database_querys
 import stock_analyses_with_ticker_main as stock_analyses_with_ticker
 from core_scripts.stock_data_download import power_stock_object as stock_object
 from core_update.update_analyses import update_support
-from datetime import datetime, timedelta
-
+from datetime import datetime, timedelta, date
 import time
 import numpy as np
 import pandas as pd
@@ -22,15 +21,26 @@ import math
 from collections import Counter
 from math import sqrt
 from itertools import combinations
-
 from finquant.portfolio import build_portfolio
 from finquant.efficient_frontier import EfficientFrontier
-
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
-
 from collections import ChainMap
 import uuid
 import json
+from time import sleep
+from threading import Thread, Event
+import threading
+from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
+from concurrent.futures import wait
+from concurrent.futures import FIRST_EXCEPTION
+
+# custom target function
+
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 
 class update_trend_kamal_portfolio_selection:
@@ -699,7 +709,6 @@ class create_kko_portfolios:
         # create function that creates all kind off ticker combinations
         # 5 - 10.
 
-        tickers_out = xg = tickers_out[1:10]
         list_of_options = []
 
         # optionally there needs to be a efficiency impementation here.
@@ -731,8 +740,12 @@ class create_kko_portfolios:
         res = [list(ele) for i, ele in enumerate(options)]
         list_of_options.extend(res)
 
+        round_ = 0
         # create dataframes that can be tested.
         for i in range(0, len(list_of_options)):
+
+            round_ += 1
+            print("we are running itteration ", round_)
 
             tickers_selected = list_of_options[i]
 
@@ -743,7 +756,7 @@ class create_kko_portfolios:
 
             allowd_to_add = kko_portfolio_gardian(portfolio)
 
-            if not allowd_to_add.allowd:
+            if allowd_to_add.allowd:
 
                 execute = add_kko_portfolio(portfolio)
 
@@ -839,26 +852,31 @@ class add_kko_portfolio:
 
             sides_list.append(trend)
 
-        serialized_list_of_sides = json.dumps(tickers)
+        serialized_list_of_sides = json.dumps(sides_list)
         model.list_of_sides = serialized_list_of_sides
 
         # perfomnace data =
         performance_data = {trend: "Leo_Was_Here"}
-        serialized_list_of_perfomance_data = json.dumps(tickers)
+        serialized_list_of_perfomance_data = json.dumps(performance_data)
         model.list_of_performance = serialized_list_of_perfomance_data
 
         # create an
         total_expected_return = round(
             portfolio.max_sharp_y2_expected_return, 2)
-        model.total_expected_return = total_expected_return
+        model.total_expected_return = portfolio.Imax_sharp_expected_return
 
         total_sharp = round(portfolio.max_sharp_y2_return, 2)
-        model.total_sharp_y2 = total_sharp
+        model.total_sharp_y2 = portfolio.Imax_sharp_sharp_ratio
 
-        model.total_volatility_y2
+        model.total_volatility_y2 = portfolio.Imax_sharp_volatility
 
-        # get sides.
-        # get amount,
+        today = date.today()
+        d1 = today.strftime("%d-%m-%Y")
+
+        model.createdAt = d1
+
+        database_querys.database_querys.update_portfolio(model)
+        return
 
 
 class create_kko_tickers_selection:
@@ -982,16 +1000,23 @@ class kko_portfolio_gardian:
 
         """
 
+        print(portfolio.Imax_sharp_sharp_ratio,
+              portfolio.Imax_sharp_expected_return)
+
         # implement logic here.
         amount_stocks = self.return_amount_of_stocks(portfolio)
         boundery_low = 100/amount_stocks * (self.lower_boundery / 100)
 
         min_shapr = portfolio.min_sharp * 100
 
-        if min_shapr < self.lower_boundery:
-            self.allowd = False
-            return
+        if portfolio.Imax_sharp_sharp_ratio > 3.5:
 
+            self.allowd = True
+            return
+        else:
+            self.allowd = False
+
+            return
         self.allowd = True
 
         return
