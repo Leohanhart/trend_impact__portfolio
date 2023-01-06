@@ -1036,14 +1036,44 @@ class kko_portfolio_gardian:
 
 class kko_portfolio_update_manager:
 
+    kill_switch: bool = False
+
     def __init__(self):
 
         # get the tickers
         selection = create_kko_tickers_selection(methode_one=True)
 
+        items = self.create_data_and_filter_tickers(
+            selection.selected_tickers, amount_of_lists=5)
+
         # this will be threaded, 5 for portfolio of 5
-        insert = create_kko_portfolios()
-        insert.create_all_options(selection.selected_tickers, 5)
+        lists_ = self.return_equal_lists(
+            selection.selected_tickers, amount_of_lists=5)
+
+        #self.create_all_options(selection.selected_tickers, 5)
+
+        thread1 = threading.Thread(target=self.create_all_options,
+                                   args=(lists_[0], 5))
+        thread2 = threading.Thread(target=self.create_all_options,
+                                   args=(lists_[1], 5))
+        thread3 = threading.Thread(target=self.create_all_options,
+                                   args=(lists_[2], 5))
+        thread4 = threading.Thread(target=self.create_all_options,
+                                   args=(lists_[3], 5))
+        thread5 = threading.Thread(target=self.create_all_options,
+                                   args=(lists_[4], 5))
+
+        thread1.start()
+        thread2.start()
+        thread3.start()
+        thread4.start()
+        thread5.start()
+
+        thread1.join()
+        thread2.join()
+        thread3.join()
+        thread4.join()
+        thread5.join()
 
         """
         # the rest one I guess.
@@ -1083,116 +1113,157 @@ class kko_portfolio_update_manager:
         thread3.join()
         """
 
-        def create_all_options(self, list_of_stocks: list, amount_of_stocks: int):
+    def create_all_options(self, list_of_stocks: list, amount_of_stocks: int):
 
-            tickers_out = list_of_stocks
-            # create function that creates all kind off ticker combinations
-            # 5 - 10.
+        tickers_out = list_of_stocks
+        # create function that creates all kind off ticker combinations
+        # 5 - 10.
 
-            list_of_options = []
+        list_of_options = []
 
-            # optionally there needs to be a efficiency impementation here.
-            # that could be a loop that gets all data and puts it in a dict
-            # and gets it out, so it will work way faster.
-            ticker_options = {}
+        # optionally there needs to be a efficiency impementation here.
+        # that could be a loop that gets all data and puts it in a dict
+        # and gets it out, so it will work way faster.
+        ticker_options = {}
 
-            # loops true
-            for i in tickers_out:
+        # loops true
+        for i in tickers_out:
 
-                try:
+            try:
 
-                    ts_data = create_time_serie_with_kamalstrategie(i)
+                ts_data = create_time_serie_with_kamalstrategie(i)
 
-                    ticker_options[i] = ts_data.data
-                except:
+                ticker_options[i] = ts_data.data
+            except:
 
-                    tickers_out.remove(i)
+                tickers_out.remove(i)
 
-            # get the keys so only good stocks will stay ther
-            tickers_out = list(ticker_options.keys())
+        # get the keys so only good stocks will stay ther
+        tickers_out = list(ticker_options.keys())
 
-            # gets all posible moves. 5 IS 42k
-            options = list(combinations(tickers_out, 5))
+        # gets all posible moves. 5 IS 42k
+        options = list(combinations(tickers_out, 5))
 
-            # adds those to list.
-            # this options out commanded is fuckt because of wrong python version.
-            # res = [list(ele) for ele in options]
-            res = [list(ele) for i, ele in enumerate(options)]
-            list_of_options.extend(res)
+        # adds those to list.
+        # this options out commanded is fuckt because of wrong python version.
+        # res = [list(ele) for ele in options]
+        res = [list(ele) for i, ele in enumerate(options)]
+        list_of_options.extend(res)
 
-            round_ = 0
-            # create dataframes that can be tested.
-            for i in range(0, len(list_of_options)):
+        round_ = 0
+        # create dataframes that can be tested.
+        for i in range(0, len(list_of_options)):
 
-                round_ += 1
-                print("we are running itteration ", round_)
+            round_ += 1
+            print("we are running itteration ", round_)
 
-                tickers_selected = list_of_options[i]
+            tickers_selected = list_of_options[i]
 
-                data = self.create_data_frame_of_tickers(
-                    tickers_selected, ticker_options)
+            data = self.create_data_frame_of_tickers(
+                tickers_selected, ticker_options)
 
-                portfolio = portfolio_constructor_manager(data)
+            portfolio = portfolio_constructor_manager(data)
 
-                allowd_to_add = kko_portfolio_gardian(portfolio)
+            allowd_to_add = kko_portfolio_gardian(portfolio)
 
-                if allowd_to_add.allowd:
+            if allowd_to_add.allowd:
 
-                    execute = add_kko_portfolio(portfolio)
+                execute = add_kko_portfolio(portfolio)
 
-            return
+        return
 
-        def create_data_frame_of_tickers(self, tickers: list, data: dict):
-            """
+    def create_data_and_filter_tickers(self, list_of_stocks: list, amount_of_stocks: int):
+        tickers_out = list_of_stocks
+        # create function that creates all kind off ticker combinations
+        # 5 - 10.
 
-            r_data.mean(axis=1).pct_change().cumsum().plot()
+        list_of_options = []
 
-            r_data.pct_change().cumsum().plot()
+        # optionally there needs to be a efficiency impementation here.
+        # that could be a loop that gets all data and puts it in a dict
+        # and gets it out, so it will work way faster.
+        ticker_options = {}
+
+        # loops true
+        for i in tickers_out:
+
+            try:
+
+                ts_data = create_time_serie_with_kamalstrategie(i)
+
+                ticker_options[i] = ts_data.data
+            except:
+
+                tickers_out.remove(i)
+
+        # get the keys so only good stocks will stay ther
+        tickers_out = list(ticker_options.keys())
+
+        # gets all posible moves. 5 IS 42k
+        options = list(combinations(tickers_out, 5))
+
+        return[options, ticker_options]
+
+    def create_data_frame_of_tickers(self, tickers: list, data: dict):
+        """
+
+        r_data.mean(axis=1).pct_change().cumsum().plot()
+
+        r_data.pct_change().cumsum().plot()
 
 
-            Parameters
-            ----------
-            tickers : list
-                DESCRIPTION.
-            data : dict
-                DESCRIPTION.
+        Parameters
+        ----------
+        tickers : list
+            DESCRIPTION.
+        data : dict
+            DESCRIPTION.
 
-            Returns
-            -------
-            None.
+        Returns
+        -------
+        None.
 
-            """
+        """
 
-            first: bool = True
-            r_data = 0
-            for i in tickers:
+        first: bool = True
+        r_data = 0
+        for i in tickers:
 
-                #
-                sdata = data[i]
+            #
+            sdata = data[i]
 
-                # select data from dict
-                df = sdata
+            # select data from dict
+            df = sdata
 
-                df = df.tail(520)
-                # first column selected
-                first_column = df.iloc[:, 0]
+            df = df.tail(520)
+            # first column selected
+            first_column = df.iloc[:, 0]
 
-                # set to frame
-                xdf = first_column.to_frame()
+            # set to frame
+            xdf = first_column.to_frame()
 
-                # rename to ticker
-                xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
+            # rename to ticker
+            xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
 
-                if first:
+            if first:
 
-                    r_data = xdf
-                    first = False
+                r_data = xdf
+                first = False
 
-                else:
+            else:
 
-                    r_data = pd.concat([r_data, xdf], axis=1)
+                r_data = pd.concat([r_data, xdf], axis=1)
 
-            return r_data
+        return r_data
+
+    def return_equal_lists(self, data, amount_of_lists=3):
+
+        amount_per_list = int(round(len(data)/amount_of_lists))
+
+        chunks = [data[x:x+amount_per_list]
+                  for x in range(0, len(data), amount_per_list)]
+
+        return chunks
 
 
 class portfolio_kamal:
