@@ -1006,18 +1006,13 @@ class kko_portfolio_gardian:
         # implement logic here.
         amount_stocks = self.return_amount_of_stocks(portfolio)
         boundery_low = 100/amount_stocks * (self.lower_boundery / 100)
-
+        min_balance = round((portfolio.min_sharp * 100), 2)
         min_shapr = portfolio.min_sharp * 100
 
-        if portfolio.Imax_sharp_sharp_ratio > 3.5:
-
-            self.allowd = True
-            return
-        else:
-            self.allowd = False
-
-            return
-        self.allowd = True
+        if min_balance > boundery_low:
+            if portfolio.Imax_sharp_sharp_ratio > 2.99:
+                self.allowd = True
+                return
 
         return
 
