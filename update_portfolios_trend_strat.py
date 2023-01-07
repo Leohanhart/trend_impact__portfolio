@@ -1041,33 +1041,55 @@ class kko_portfolio_update_manager:
     def __init__(self):
 
         # get the tickers
-        selection = create_kko_tickers_selection(methode_one=True)
-
+        selection = create_kko_tickers_selection(methode_two=True)
+        print("this is the new len", .selected_tickers)
+        time.sleep(2)
         items = self.create_data_and_filter_tickers(
-            selection.selected_tickers, amount_of_lists=5)
+            selection.selected_tickers, 5)
 
         # this will be threaded, 5 for portfolio of 5
         lists_ = self.return_equal_lists(
-            selection.selected_tickers, amount_of_lists=5)
+            items[0], amount_of_lists=5)
 
+        #self.create_single_options(items[1], lists_[0], "thread Leo")
         #self.create_all_options(selection.selected_tickers, 5)
 
-        thread1 = threading.Thread(target=self.create_all_options,
-                                   args=(lists_[0], 5))
-        thread2 = threading.Thread(target=self.create_all_options,
-                                   args=(lists_[1], 5))
-        thread3 = threading.Thread(target=self.create_all_options,
-                                   args=(lists_[2], 5))
-        thread4 = threading.Thread(target=self.create_all_options,
-                                   args=(lists_[3], 5))
-        thread5 = threading.Thread(target=self.create_all_options,
-                                   args=(lists_[4], 5))
+        thread1 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_[0], "thread 1"))
+        thread2 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_[1], "thread 2"))
+        thread3 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_[2], "thread 3"))
+        thread4 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_[3], "thread 4"))
+        thread5 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_[4], "thread 5"))
+
+        threads = []
 
         thread1.start()
         thread2.start()
         thread3.start()
         thread4.start()
         thread5.start()
+
+        threads.append(thread1)
+        threads.append(thread2)
+        threads.append(thread3)
+        threads.append(thread4)
+        threads.append(thread5)
+
+        # Join the threads before
+        loop:  bool = True
+        while loop:
+            for thread in threads:
+                if not thread.is_alive():
+                    print("Doden threads")
+
+                    thread.join()
+                    self.kill_switch = True
+                    loop = False
+                    break
 
         thread1.join()
         thread2.join()
@@ -1172,6 +1194,35 @@ class kko_portfolio_update_manager:
 
         return
 
+    def create_single_options(self, data_service, list_of_options: list, thread_name="thread 1 "):
+
+        total_len = len(list_of_options)
+        round_ = 0
+        # create dataframes that can be tested.
+        for i in range(0, len(list_of_options)):
+
+            round_ += 1
+            prc_ = round((round_ / total_len) * 100, 2)
+            #print("we are running itteration ", round_)
+            print(thread_name, " we are on", prc_, "% of processing")
+            tickers_selected = list_of_options[i]
+
+            data = self.create_data_frame_of_tickers(
+                tickers_selected, data_service)
+
+            portfolio = portfolio_constructor_manager(data)
+
+            allowd_to_add = kko_portfolio_gardian(portfolio)
+
+            if allowd_to_add.allowd:
+
+                execute = add_kko_portfolio(portfolio)
+
+            if self.kill_switch:
+                break
+
+        return
+
     def create_data_and_filter_tickers(self, list_of_stocks: list, amount_of_stocks: int):
         tickers_out = list_of_stocks
         # create function that creates all kind off ticker combinations
@@ -1201,8 +1252,10 @@ class kko_portfolio_update_manager:
 
         # gets all posible moves. 5 IS 42k
         options = list(combinations(tickers_out, 5))
+        res = [list(ele) for i, ele in enumerate(options)]
+        list_of_options.extend(res)
 
-        return[options, ticker_options]
+        return[list_of_options, ticker_options]
 
     def create_data_frame_of_tickers(self, tickers: list, data: dict):
         """
