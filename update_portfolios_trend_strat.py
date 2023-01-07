@@ -1042,7 +1042,7 @@ class kko_portfolio_update_manager:
 
         # get the tickers
         selection = create_kko_tickers_selection(methode_two=True)
-        print("this is the new len", .selected_tickers)
+        print("this is the new len", selection)
         time.sleep(2)
         items = self.create_data_and_filter_tickers(
             selection.selected_tickers, 5)

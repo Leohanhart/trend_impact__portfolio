@@ -390,7 +390,7 @@ class Portfolio(Base):
     createdAt = Column(String, nullable=False)
 
 
-class trading_portfolio(Base):
+class TradingPortfolio(Base):
     __tablename__ = 'trading_portfolio'
     id = Column(Integer, primary_key=True)
     portfolio_id = Column(String, nullable=False)
@@ -403,6 +403,7 @@ class trading_portfolio(Base):
     total_sharp_y2 = Column(Float)
     total_volatility_y2 = Column(Float)
     createdAt = Column(String, nullable=False)
+    updatedAt = Column(String, nullable=False)
 
 
 class closed_portfolio(Base):

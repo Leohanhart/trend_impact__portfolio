@@ -25,11 +25,11 @@ TASKS TO DO:
 
 import constants
 
-from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio
+from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio
 
 import pandas as pd
 
-
+from datetime import datetime, timedelta, date
 import json
 from datetime import datetime
 import sqlalchemy
@@ -402,6 +402,143 @@ class database_querys:
 
             # return frame.
             return df
+
+    def subscribe_trading_portfolio(id_: str):
+
+        data = database_querys.get_portfolio(id_=id_)
+
+        if data == None:
+            raise Exception("No portfolio matching ID")
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # check if portfolio already exsits
+        data_exp = session.query(TradingPortfolio).filter(
+            TradingPortfolio.portfolio_id == id_,
+        ).first()
+
+        if data_exp != None:
+            raise Exception("Portfolio already exists.")
+
+        # get portfolio data
+        data = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == model.portfolio_id,
+        ).first()
+
+        # get date
+        today = date.today()
+        d1 = today.strftime("%d-%m-%Y")
+
+        object_ = TradingPortfolio(
+            portfolio_id=data.portfolio_id,
+            portfolio_strategy=data.portfolio_strategy,
+            list_of_tickers=data.list_of_tickers,
+            list_of_balances=data.list_of_balances,
+            list_of_sides=data.list_of_sides,
+            list_of_performance=data.list_of_performance,
+            total_expected_return=data.total_expected_return,
+            total_sharp_y2=data.total_sharp_y2,
+            total_volatility_y2=data.total_volatility_y2,
+            createdAt=d1,
+            updatedAt=d1
+        )
+
+        session.add(object_)
+        session.commit()
+        session.close()
+
+    def get_trading_portfolio(id_: str):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string: str
+
+        if id_:
+
+            query_string = session.query(TradingPortfolio).filter(
+                Portfolio.portfolio_id == id_,
+            ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
+    def update_trading_portfolio(model):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == model.portfolio_id,
+        ).first()
+
+        if x == None:
+            Analyses = TradingPortfolio(
+                portfolio_id=model.portfolio_id,
+                portfolio_strategy=model.portfolio_strategy,
+                portfolio_amount=model.portfolio_amount,
+                list_of_tickers=model.list_of_tickers,
+                list_of_balances=model.list_of_balances,
+                list_of_sides=model.list_of_sides,
+                list_of_performance=model.list_of_performance,
+                total_expected_return=model.total_expected_return,
+                total_sharp_y2=model.total_sharp_y2,
+                total_volatility_y2=model.total_volatility_y2,
+                createdAt=model.createdAt)
+
+            session.add(Analyses)
+            session.commit()
+            session.close()
+
+        else:
+
+            if x.portfolio_id != model.portfolio_id:
+                x.portfolio_id = model.portfolio_id
+
+            if x.portfolio_strategy != model.portfolio_strategy:
+                x.portfolio_strategy = model.portfolio_strategy
+
+            if x.list_of_tickers != model.list_of_tickers:
+                x.list_of_tickers = model.list_of_tickers
+
+            if x.list_of_balances != model.list_of_balances:
+                x.list_of_balances = model.list_of_balances
+
+            if x.list_of_sides != model.list_of_sides:
+                x.list_of_sides = model.list_of_sides
+
+            if x.list_of_performance != model.list_of_performance:
+                x.list_of_performance = model.list_of_performance
+
+            if x.total_expected_return != model.total_expected_return:
+                x.total_expected_return = model.total_expected_return
+
+            if x.total_sharp_y2 != model.total_sharp_y2:
+                x.total_sharp_y2 = model.total_sharp_y2
+
+            if x.total_volatility_y2 != model.total_volatility_y2:
+                x.total_volatility_y2 = model.total_volatility_y2
+
+            session.commit()
+            session.close()
+
+        session.close()
+        return
 
     def get_portfolio(id_: str = "", strategy: str = ""):
 
@@ -1085,7 +1222,8 @@ if __name__ == "__main__":
         model.createdAt = "14-01-2023"
 
         global x
-        x = database_querys.get_trend_kalman(ticker="AACG")
+        x = database_querys.subscribe_portfolio(
+            id_="e0eeaa4b-8e14-11ed-b2b9-001a7dda7110")
         print(int(x.trend))
         #x = database_querys.delete_portfolio_with_id(model.portfolio_id)
 

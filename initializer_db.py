@@ -177,6 +177,8 @@ def initialization():
         total_expected_return = Column(Float)
         total_sharp_y2 = Column(Float)
         total_volatility_y2 = Column(Float)
+        createdAt = Column(String, nullable=False)
+        updatedAt = Column(String, nullable=False)
 
     class closed_portfolio(Base):
         __tablename__ = 'closed_portfolio'
