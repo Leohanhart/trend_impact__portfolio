@@ -603,13 +603,20 @@ class create_time_serie_with_kamalstrategie:
         """
        # return signals
         power_object = stock_object.power_stock_object(
-            stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
+            stock_ticker=ticker)
 
        # stockdata
         sdata = power_object.stock_data
 
+        itms = list(sdata.columns.to_list())
        # stock.data.change
-        cdata = power_object.stock_data.Change
+        if 'Change' not in itms:
+
+            cdata = power_object.stock_data.Close
+
+        else:
+
+            cdata = power_object.stock_data.Change
 
         # set openprice
         open_price_stock = float(sdata.Close.head(1))
@@ -1039,20 +1046,43 @@ class kko_portfolio_update_manager:
     kill_switch: bool = False
 
     def __init__(self):
+        """
+        Troubles start with the second items_10, thread 13. the lists are probably to big. 
+        - first downscale to lists of 10, probably build this in create_data_and_filer. 
+            just normal lists of 1 mil or so. 
 
+        then act on the multi threading. 
+
+        """
         # get the tickers
-        selection = create_kko_tickers_selection(methode_two=True)
+        selection = create_kko_tickers_selection(methode_one=True)
         print("this is the new len", selection)
         time.sleep(2)
+
         items = self.create_data_and_filter_tickers(
             selection.selected_tickers, 5)
+
+        items_10 = self.create_data_and_filter_tickers(
+            selection.selected_tickers, 10)
+
+        items_20 = self.create_data_and_filter_tickers(
+            selection.selected_tickers, 20)
 
         # this will be threaded, 5 for portfolio of 5
         lists_ = self.return_equal_lists(
             items[0], amount_of_lists=5)
 
-        #self.create_single_options(items[1], lists_[0], "thread Leo")
-        #self.create_all_options(selection.selected_tickers, 5)
+        # this will be threaded, 5 for portfolio of 5
+        lists_ten = self.return_equal_lists(
+            items_10[0], amount_of_lists=6)
+
+        items_20 = items_20[0:100000]
+
+        lists_twen = self.return_equal_lists(
+            items_20[0], amount_of_lists=6)
+
+        # self.create_single_options(items[1], lists_[0], "thread Leo")
+        # self.create_all_options(selection.selected_tickers, 5)
 
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
@@ -1065,6 +1095,31 @@ class kko_portfolio_update_manager:
         thread5 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[4], "thread 5"))
 
+        thread6 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_ten[0], "thread 6"))
+        thread7 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_ten[1], "thread 7"))
+        thread8 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_ten[2], "thread 8"))
+        thread9 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_ten[3], "thread 9"))
+        thread10 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_ten[4], "thread 10"))
+        thread11 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_ten[5], "thread 11"))
+
+        thread12 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_twen[0], "thread 12"))
+        thread13 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_twen[1], "thread 13"))
+        thread14 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_twen[2], "thread 14"))
+        thread15 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_twen[3], "thread 15"))
+        thread16 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_twen[4], "thread 16"))
+        thread17 = threading.Thread(target=self.create_single_options,
+                                    args=(items[1], lists_twen[5], "thread 17"))
         threads = []
 
         thread1.start()
@@ -1072,12 +1127,35 @@ class kko_portfolio_update_manager:
         thread3.start()
         thread4.start()
         thread5.start()
+        thread6.start()
+        thread7.start()
+        thread8.start()
+        thread9.start()
+        thread10.start()
+        thread11.start()
+        thread12.start()
+        thread13.start()
+        thread14.start()
+        thread15.start()
+        thread16.start()
+        thread17.start()
 
         threads.append(thread1)
         threads.append(thread2)
         threads.append(thread3)
         threads.append(thread4)
         threads.append(thread5)
+        threads.append(thread6)
+        threads.append(thread7)
+        threads.append(thread8)
+        threads.append(thread9)
+        threads.append(thread10)
+        threads.append(thread11)
+        threads.append(thread12)
+        threads.append(thread13)
+        threads.append(thread14)
+        threads.append(thread15)
+        threads.append(thread16)
 
         # Join the threads before
         loop:  bool = True
@@ -1096,6 +1174,17 @@ class kko_portfolio_update_manager:
         thread3.join()
         thread4.join()
         thread5.join()
+        thread6.join()
+        thread7.join()
+        thread8.join()
+        thread9.join()
+        thread10.join()
+        thread11.join()
+        thread12.join()
+        thread13.join()
+        thread14.join()
+        thread15.join()
+        thread16.join()
 
         """
         # the rest one I guess.
@@ -1203,7 +1292,7 @@ class kko_portfolio_update_manager:
 
             round_ += 1
             prc_ = round((round_ / total_len) * 100, 2)
-            #print("we are running itteration ", round_)
+            # print("we are running itteration ", round_)
             print(thread_name, " we are on", prc_, "% of processing")
             tickers_selected = list_of_options[i]
 
@@ -1251,7 +1340,7 @@ class kko_portfolio_update_manager:
         tickers_out = list(ticker_options.keys())
 
         # gets all posible moves. 5 IS 42k
-        options = list(combinations(tickers_out, 5))
+        options = list(combinations(tickers_out, amount_of_stocks))
         res = [list(ele) for i, ele in enumerate(options)]
         list_of_options.extend(res)
 
