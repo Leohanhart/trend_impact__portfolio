@@ -34,7 +34,7 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from concurrent.futures import wait
 from concurrent.futures import FIRST_EXCEPTION
-
+import random
 # custom target function
 
 
@@ -712,8 +712,8 @@ class create_time_serie_with_kamalstrategie:
 
 class create_kko_portfolios:
     """
-    On 06-01 this class is not longer be maintained anymore, 
-    main function is 
+    On 06-01 this class is not longer be maintained anymore,
+    main function is
 
     """
 
@@ -905,8 +905,8 @@ class create_kko_tickers_selection:
     def __init__(self, methode_one: bool = False, methode_two: bool = False):
         """
         VERY important
-        - First method is kind of created to make small lists of stocks. 
-        -second method is more pragmatish without caring about rest. 
+        - First method is kind of created to make small lists of stocks.
+        -second method is more pragmatish without caring about rest.
 
         Parameters
         ----------
@@ -921,10 +921,10 @@ class create_kko_tickers_selection:
 
         if methode_one:
 
-            """ 
-            Methode one is basicly filterd on winrate, cutted and 
+            """
+            Methode one is basicly filterd on winrate, cutted and
 
-            its very hard to say why this method is chosen, because it takes the median of the 
+            its very hard to say why this method is chosen, because it takes the median of the
 
 
 
@@ -961,10 +961,10 @@ class create_kko_tickers_selection:
 
         if methode_two:
 
-            """ 
-            Methode one is basicly filterd on winrate, cutted and 
+            """
+            Methode one is basicly filterd on winrate, cutted and
 
-            its very hard to say why this method is chosen, because it takes the median of the 
+            its very hard to say why this method is chosen, because it takes the median of the
 
 
 
@@ -1005,7 +1005,7 @@ class kko_portfolio_gardian:
         Criteria:
             - mainly build for max sharp, correlation balance in portfolio, and high expected return
 
-        checks 
+        checks
         - 1 if the stocks are equal balanced.
 
         Parameters
@@ -1047,11 +1047,11 @@ class kko_portfolio_update_manager:
 
     def __init__(self):
         """
-        Troubles start with the second items_10, thread 13. the lists are probably to big. 
-        - first downscale to lists of 10, probably build this in create_data_and_filer. 
-            just normal lists of 1 mil or so. 
+        Troubles start with the second items_10, thread 13. the lists are probably to big.
+        - first downscale to lists of 10, probably build this in create_data_and_filer.
+            just normal lists of 1 mil or so.
 
-        then act on the multi threading. 
+        then act on the multi threading.
 
         """
         # get the tickers
@@ -1062,24 +1062,33 @@ class kko_portfolio_update_manager:
         items = self.create_data_and_filter_tickers(
             selection.selected_tickers, 5)
 
+        data_ = items[0]
+        tickers = items[1].keys()
+
+        list_portfolios_big = self.create_lists_with_limit(
+            items[1].keys(), 10, 1000)
+        """
         items_10 = self.create_data_and_filter_tickers(
             selection.selected_tickers, 10)
-
+        
         items_20 = self.create_data_and_filter_tickers(
             selection.selected_tickers, 20)
-
+        """
         # this will be threaded, 5 for portfolio of 5
         lists_ = self.return_equal_lists(
             items[0], amount_of_lists=5)
 
+        """
         # this will be threaded, 5 for portfolio of 5
         lists_ten = self.return_equal_lists(
             items_10[0], amount_of_lists=6)
 
+        
         items_20 = items_20[0:100000]
 
         lists_twen = self.return_equal_lists(
             items_20[0], amount_of_lists=6)
+        """
 
         # self.create_single_options(items[1], lists_[0], "thread Leo")
         # self.create_all_options(selection.selected_tickers, 5)
@@ -1094,9 +1103,10 @@ class kko_portfolio_update_manager:
                                    args=(items[1], lists_[3], "thread 4"))
         thread5 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[4], "thread 5"))
-
+        """
         thread6 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_ten[0], "thread 6"))
+
         thread7 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_ten[1], "thread 7"))
         thread8 = threading.Thread(target=self.create_single_options,
@@ -1107,6 +1117,7 @@ class kko_portfolio_update_manager:
                                     args=(items[1], lists_ten[4], "thread 10"))
         thread11 = threading.Thread(target=self.create_single_options,
                                     args=(items[1], lists_ten[5], "thread 11"))
+
 
         thread12 = threading.Thread(target=self.create_single_options,
                                     args=(items[1], lists_twen[0], "thread 12"))
@@ -1120,6 +1131,8 @@ class kko_portfolio_update_manager:
                                     args=(items[1], lists_twen[4], "thread 16"))
         thread17 = threading.Thread(target=self.create_single_options,
                                     args=(items[1], lists_twen[5], "thread 17"))
+
+        """
         threads = []
 
         thread1.start()
@@ -1127,12 +1140,16 @@ class kko_portfolio_update_manager:
         thread3.start()
         thread4.start()
         thread5.start()
+
+        """
         thread6.start()
+
         thread7.start()
         thread8.start()
         thread9.start()
         thread10.start()
         thread11.start()
+
         thread12.start()
         thread13.start()
         thread14.start()
@@ -1140,23 +1157,28 @@ class kko_portfolio_update_manager:
         thread16.start()
         thread17.start()
 
+        """
         threads.append(thread1)
         threads.append(thread2)
         threads.append(thread3)
         threads.append(thread4)
         threads.append(thread5)
+
+        """
         threads.append(thread6)
+        
         threads.append(thread7)
         threads.append(thread8)
         threads.append(thread9)
         threads.append(thread10)
         threads.append(thread11)
+
         threads.append(thread12)
         threads.append(thread13)
         threads.append(thread14)
         threads.append(thread15)
         threads.append(thread16)
-
+        """
         # Join the threads before
         loop:  bool = True
         while loop:
@@ -1174,18 +1196,23 @@ class kko_portfolio_update_manager:
         thread3.join()
         thread4.join()
         thread5.join()
+
+        """
         thread6.join()
+        
         thread7.join()
         thread8.join()
         thread9.join()
         thread10.join()
         thread11.join()
+
         thread12.join()
         thread13.join()
         thread14.join()
         thread15.join()
         thread16.join()
 
+        """
         """
         # the rest one I guess.
         # function with different parameters
@@ -1406,6 +1433,46 @@ class kko_portfolio_update_manager:
                   for x in range(0, len(data), amount_per_list)]
 
         return chunks
+
+    def create_lists_with_limit(tickers_in: list, mode: str = "random", amount_per_portfolio: int = 10,
+                                amount_portfoio: int = 1000):
+        """
+
+
+        Parameters
+        ----------
+        tickers_in : list
+            DESCRIPTION.
+        mode : str, optional
+            DESCRIPTION. The default is "random".
+        amount_per_portfolio : int, optional
+            DESCRIPTION. The default is 10.
+        amount_portfoio : int, optional
+            DESCRIPTION. The default is 1000.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        list_of_portfolios = []
+        pseudo_portfo = []
+
+        while len(list_of_portfolios) < amount_portfoio:
+
+            number = random.randint(0, (len(tickers_in)-1))
+
+            ticker = tickers_in[number]
+
+            if ticker not in pseudo_portfo:
+                pseudo_portfo.append(ticker)
+                if len(pseudo_portfo) >= amount_per_portfolio:
+                    list_of_portfolios.append(pseudo_portfo)
+                    pseudo_portfo = []
+
+            if len(list_of_portfolios) >= amount_portfoio:
+                break
 
 
 class portfolio_kamal:
