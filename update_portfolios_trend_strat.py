@@ -38,6 +38,7 @@ from concurrent.futures import FIRST_EXCEPTION
 import random
 import random
 from datetime import datetime
+import statistics
 # custom target function
 
 
@@ -857,7 +858,7 @@ class add_kko_portfolio:
         model.list_of_tickers = serialized_list_of_tickers
 
         balances = portfolio.high_sharp_frame.balance.to_list()
-        balances = [round(num, 2) for num in balances]
+        balances = [round(num, 3) for num in balances]
 
         serialized_list_balances = json.dumps(balances)
 
@@ -1006,12 +1007,12 @@ class kko_portfolio_gardian:
     def __init__(self, portfolio):
         """
 
-        stocks for only 5 stocks have hardcore criteria. 
+        stocks for only 5 stocks have hardcore criteria.
         for above 10, there are different criteria.
         - no more sharpratio blockers -- this will be done automatic
-        for above 20 
-        - there will be a 1% minimum portfolio balance. 
-        - for 
+        for above 20
+        - there will be a 1% minimum portfolio balance.
+        - for
 
         Criteria:
             - mainly build for max sharp, correlation balance in portfolio, and high expected return
@@ -1033,6 +1034,7 @@ class kko_portfolio_gardian:
         print(portfolio.Imax_sharp_sharp_ratio,
               portfolio.Imax_sharp_expected_return)
 
+        allowd = False
         # sets portfolio_parameters -- if needed check them here -- for example long short.
         self.set_parameters(portfolio)
 
@@ -1040,56 +1042,50 @@ class kko_portfolio_gardian:
         if self.amount_stocks == 5:
 
             self.amount_5_stocks_criteria()
-
-            return self.allowd
+            return
 
         # route for 5 - 10 stocks
-        if self.amount_stocks > 5 and self.amount_stocks < 10:
+        if self.amount_stocks >= 5 and self.amount_stocks <= 10:
 
             self.amount_5_stocks_criteria()
-
-            return self.allowd
+            return
 
         # route for 10 and 20.
-        if self.amount_stocks > 10 and self.amount_stocks < 20:
+        if self.amount_stocks > 11 and self.amount_stocks <= 20:
 
             self.amount_20_stocks_criteria()
-
-            return self.allowd
-
-        if self.amount_stocks > 20 and self.amount_stocks < 50:
+            return
+        if self.amount_stocks > 21 and self.amount_stocks < 50:
 
             self.amount_50_stocks_criteria()
+            return
 
-            return self.allowd
-
-        if self.amount_stocks > 50 and self.amount_stocks < 500:
+        if self.amount_stocks > 51 and self.amount_stocks < 500:
 
             self.amount_100_stocks_criteria()
-
-            return self.allowd
+            return
 
     def amount_5_stocks_criteria(self):
-        if self.amount_stocks == 5:
-            if self.min_balance > self.boundery_low:
-                if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
-                    if self.portfolio.Imax_sharp_expected_return > 0.15:
-                        self.allowd = True
+
+        if self.min_balance > ((100 / (self.amount_stocks * 2))/100):
+            if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
+                if self.portfolio.Imax_sharp_expected_return > 0.15:
+                    self.allowd = True
 
     def amount_20_stocks_criteria(self):
-        if self.min_balance > self.boundery_low:
+        if self.min_balance > 0.025:
             if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
                 if self.portfolio.Imax_sharp_expected_return > 0.14:
                     self.allowd = True
 
     def amount_50_stocks_criteria(self):
-        if self.min_balance > 0.01:
+        if self.min_balance > 0.0005:
             if self.portfolio.Imax_sharp_sharp_ratio > 2.00:
                 if self.portfolio.Imax_sharp_expected_return > 0.10:
                     self.allowd = True
 
     def amount_100_stocks_criteria(self):
-        if self.min_balance > 0.005:
+        if self.min_balance > 0.00005:
             if self.portfolio.Imax_sharp_sharp_ratio > 2.00:
                 if self.portfolio.Imax_sharp_expected_return > 0.10:
                     self.allowd = True
@@ -1100,11 +1096,11 @@ class kko_portfolio_gardian:
 
     def set_parameters(self, portfolio):
         """
-        Sets parrameters for analyses. 
+        Sets parrameters for analyses.
 
         amount of stocks,
-        calculations, 
-        ect 
+        calculations,
+        ect
 
         Parameters
         ----------
@@ -1172,17 +1168,23 @@ class kko_portfolio_update_manager:
 
         lists_twen = self.return_equal_lists(
             items_20[0], amount_of_lists=6)
-        """
-        self.continues_portfolio_creation(items[1], selection, "thread 1", 40)
+        
+        self.continues_portfolio_creation(
+            items[1], selection, "thread 1", 10, 10000, 15)
+        
 
-        return
+        thread1 = threading.Thread(target=self.create_single_options,
+                                   args=(items[1], lists_[0], "thread 2"))
+
         # self.create_single_options(items[1], lists_[0], "thread Leo")
         # self.create_all_options(selection.selected_tickers, 5)
 
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
+
         thread2 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[1], "thread 2"))
+
         thread3 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[2], "thread 3"))
         thread4 = threading.Thread(target=self.create_single_options,
@@ -1190,9 +1192,23 @@ class kko_portfolio_update_manager:
         thread5 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[4], "thread 5"))
         """
-        thread6 = threading.Thread(target=self.create_single_options,
-                                   args=(items[1], lists_ten[0], "thread 6"))
 
+        thread6 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items[1], selection, "thread 6", 10, 10000, 15))
+
+        thread7 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items[1], selection, "thread 7", 16, 10000, 21))
+
+        thread8 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items[1], selection, "thread 8", 22, 10000, 30))
+
+        thread9 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items[1], selection, "thread 9", 30, 10000, 50))
+
+        sleep(10)
+        print("threads are about to start.")
+
+        """
         thread7 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_ten[1], "thread 7"))
         thread8 = threading.Thread(target=self.create_single_options,
@@ -1218,7 +1234,7 @@ class kko_portfolio_update_manager:
         thread17 = threading.Thread(target=self.create_single_options,
                                     args=(items[1], lists_twen[5], "thread 17"))
 
-        """
+        
         threads = []
 
         thread1.start()
@@ -1226,13 +1242,15 @@ class kko_portfolio_update_manager:
         thread3.start()
         thread4.start()
         thread5.start()
-
         """
+        threads = []
+
         thread6.start()
 
         thread7.start()
         thread8.start()
         thread9.start()
+        """
         thread10.start()
         thread11.start()
 
@@ -1243,19 +1261,20 @@ class kko_portfolio_update_manager:
         thread16.start()
         thread17.start()
 
-        """
+        
         threads.append(thread1)
         threads.append(thread2)
         threads.append(thread3)
         threads.append(thread4)
         threads.append(thread5)
-
         """
+
         threads.append(thread6)
 
         threads.append(thread7)
         threads.append(thread8)
         threads.append(thread9)
+        """
         threads.append(thread10)
         threads.append(thread11)
 
@@ -1276,19 +1295,21 @@ class kko_portfolio_update_manager:
                     self.kill_switch = True
                     loop = False
                     break
-
+        """
         thread1.join()
         thread2.join()
         thread3.join()
         thread4.join()
         thread5.join()
-
         """
         thread6.join()
-
         thread7.join()
         thread8.join()
         thread9.join()
+
+        return
+
+        """
         thread10.join()
         thread11.join()
 
@@ -1446,7 +1467,8 @@ class kko_portfolio_update_manager:
                                      tickers_in: list,
                                      thread_name="thread 1 ",
                                      amount_per_portfolio: int = 10,
-                                     ):
+                                     amount_if_itterations_before_next_step=10000,
+                                     max_amount_per_portfolio=50):
         """
 
 
@@ -1460,32 +1482,71 @@ class kko_portfolio_update_manager:
             DESCRIPTION. The default is "thread 1 ".
         amount_per_portfolio : int, optional
             DESCRIPTION. The default is 10.
-         : TYPE
-            DESCRIPTION.
+        amount_if_itterations_before_next_step : TYPE, optional
+            DESCRIPTION. The default is 10000.
+        max_amount_per_portfolio : TYPE, optional
+            DESCRIPTION. The default is 50.
 
         Returns
         -------
         None.
 
         """
+        """
+
+        explaination:
+            this script loops 10000 times over an amount of stock, everytime the sharp ratio will
+            be added to a list, and when the sharp ratio is 2 stds above the average the count will be
+            resetted, so that only the best portfolio's will be added'
+
+            - what if the average go's down? this can result in a infinit loop,, only if score is higher than average will be added.'
+            - what if dubble portfolio's come in? that is no problem' on
+
+
+        """
+
+        print(thread_name, " Just started")
+
+        amount_per_portfolio = amount_per_portfolio
 
         # creates list where pseudo portfolio' will be added in.
         pseudo_portfo = []
+
+        start_amount = 5
+
+        # stats.
+        itterations_count = []
+
+        # sharp ratio's
+        sharp_ratios = [5, 5]
 
         # var for suggested portfolio.
         suggested_portfolio = None
         max_nr = (len(tickers_in.selected_tickers)-1)
         rng = numpy.random.RandomState(2)
+
         # while killswitch is off: run for ever.
         while not self.kill_switch:
 
+            # add itteration
+            itterations_count.append(1)
+
+            # if 10000 itterations have been and no sharp is updated
+            if len(itterations_count) > amount_if_itterations_before_next_step:
+
+                itterations_count = []
+                amount_per_portfolio += 1
+
+                if amount_per_portfolio > max_amount_per_portfolio:
+                    break
+
             data = None
             pseudo_portfo = []
+
             # loop runs untill the portfolio is full.
             while True:
 
                 # creates random number
-
                 number = rng.randint(0, max_nr)
 
                 # selects ticker based on the random number
@@ -1502,6 +1563,7 @@ class kko_portfolio_update_manager:
 
                         # set to selected portfolio and break.
                         suggested_portfolio = pseudo_portfo
+
                         break
 
                 # if there is a kill in the thread. Exit.
@@ -1511,6 +1573,9 @@ class kko_portfolio_update_manager:
             # if there is a kill in the thread, kill it.
             if self.kill_switch:
                 break
+
+        # /|\ CREATES PSUEDO PORTFOLIO || \|/ CREATES OPTIONAL PORTFOLIO
+        ############################################################################
 
             # creates data with the portfolio
             data = self.create_data_frame_of_tickers(
@@ -1533,19 +1598,36 @@ class kko_portfolio_update_manager:
             # creates portfolio
             portfolio = portfolio_constructor_manager(data)
 
+            # checks for sharp ratio managment, if list is empty or not full, fill, if sharp is not above average, remove.
+            if not sharp_ratios or len(sharp_ratios) < 100:
+
+                sharp_ratios.append(portfolio.Imax_sharp_sharp_ratio)
+
+                if len(sharp_ratios) <= 100:
+
+                    start_amount = statistics.mean(sharp_ratios)
+
+                itterations_count = []
+
+            if portfolio.Imax_sharp_sharp_ratio < start_amount:
+
+                continue
+
+            # add sharp ratio
+            sharp_ratios.append(portfolio.Imax_sharp_sharp_ratio)
+
             # checks needed if portfolio is alowed to trade.
             allowd_to_add = kko_portfolio_gardian(portfolio)
 
-            print(portfolio.high_sharp_frame.balance)
-            print(round(portfolio.std_sharp, 2))
-            print(portfolio.max_sharp_y2_expected_return.round(2))
-            print("tried portfolio", suggested_portfolio,
-                  "  did this:", allowd_to_add.allowd)
             # if alowed
             if allowd_to_add.allowd:
 
                 # add portfolio to the database.
                 execute = add_kko_portfolio(portfolio)
+
+                start_amount += 0.05
+
+                itterations_count = []
 
             if self.kill_switch:
                 break
