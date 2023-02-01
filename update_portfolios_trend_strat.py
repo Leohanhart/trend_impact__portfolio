@@ -12,6 +12,7 @@ from core_update.update_analyses import update_support
 from datetime import datetime, timedelta, date
 import time
 import numpy as np
+import numpy
 import pandas as pd
 import os
 import datetime
@@ -35,6 +36,8 @@ import concurrent.futures
 from concurrent.futures import wait
 from concurrent.futures import FIRST_EXCEPTION
 import random
+import random
+from datetime import datetime
 # custom target function
 
 
@@ -1002,6 +1005,14 @@ class kko_portfolio_gardian:
 
     def __init__(self, portfolio):
         """
+
+        stocks for only 5 stocks have hardcore criteria. 
+        for above 10, there are different criteria.
+        - no more sharpratio blockers -- this will be done automatic
+        for above 20 
+        - there will be a 1% minimum portfolio balance. 
+        - for 
+
         Criteria:
             - mainly build for max sharp, correlation balance in portfolio, and high expected return
 
@@ -1022,23 +1033,95 @@ class kko_portfolio_gardian:
         print(portfolio.Imax_sharp_sharp_ratio,
               portfolio.Imax_sharp_expected_return)
 
-        # implement logic here.
-        amount_stocks = self.return_amount_of_stocks(portfolio)
-        boundery_low = 100/amount_stocks * (self.lower_boundery / 100)
-        min_balance = round((portfolio.min_sharp * 100), 2)
-        min_shapr = portfolio.min_sharp * 100
+        # sets portfolio_parameters -- if needed check them here -- for example long short.
+        self.set_parameters(portfolio)
 
-        if min_balance > boundery_low:
-            if portfolio.Imax_sharp_sharp_ratio > 2.99:
-                if portfolio.Imax_sharp_expected_return > 0.15:
+        # route for 5 stocks
+        if self.amount_stocks == 5:
+
+            self.amount_5_stocks_criteria()
+
+            return self.allowd
+
+        # route for 5 - 10 stocks
+        if self.amount_stocks > 5 and self.amount_stocks < 10:
+
+            self.amount_5_stocks_criteria()
+
+            return self.allowd
+
+        # route for 10 and 20.
+        if self.amount_stocks > 10 and self.amount_stocks < 20:
+
+            self.amount_20_stocks_criteria()
+
+            return self.allowd
+
+        if self.amount_stocks > 20 and self.amount_stocks < 50:
+
+            self.amount_50_stocks_criteria()
+
+            return self.allowd
+
+        if self.amount_stocks > 50 and self.amount_stocks < 500:
+
+            self.amount_100_stocks_criteria()
+
+            return self.allowd
+
+    def amount_5_stocks_criteria(self):
+        if self.amount_stocks == 5:
+            if self.min_balance > self.boundery_low:
+                if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
+                    if self.portfolio.Imax_sharp_expected_return > 0.15:
+                        self.allowd = True
+
+    def amount_20_stocks_criteria(self):
+        if self.min_balance > self.boundery_low:
+            if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
+                if self.portfolio.Imax_sharp_expected_return > 0.14:
                     self.allowd = True
-                    return
 
-        return
+    def amount_50_stocks_criteria(self):
+        if self.min_balance > 0.01:
+            if self.portfolio.Imax_sharp_sharp_ratio > 2.00:
+                if self.portfolio.Imax_sharp_expected_return > 0.10:
+                    self.allowd = True
+
+    def amount_100_stocks_criteria(self):
+        if self.min_balance > 0.005:
+            if self.portfolio.Imax_sharp_sharp_ratio > 2.00:
+                if self.portfolio.Imax_sharp_expected_return > 0.10:
+                    self.allowd = True
 
     def return_amount_of_stocks(self, p):
         amount = len(p.portfolio_strat_high_sharp_stocks)
         return amount
+
+    def set_parameters(self, portfolio):
+        """
+        Sets parrameters for analyses. 
+
+        amount of stocks,
+        calculations, 
+        ect 
+
+        Parameters
+        ----------
+        porfolfio : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.portfolio = portfolio
+        self.amount_stocks = self.return_amount_of_stocks(portfolio)
+        self.boundery_low = 100/self.amount_stocks * \
+            (self.lower_boundery / 100)
+        self.min_balance = round((portfolio.min_sharp * 100), 2)
+        self.min_shapr = portfolio.min_sharp * 100
 
 
 class kko_portfolio_update_manager:
@@ -1065,12 +1148,13 @@ class kko_portfolio_update_manager:
         data_ = items[0]
         tickers = items[1].keys()
 
+        """
         list_portfolios_big = self.create_lists_with_limit(
             items[1].keys(), 10, 1000)
-        """
+
         items_10 = self.create_data_and_filter_tickers(
             selection.selected_tickers, 10)
-        
+
         items_20 = self.create_data_and_filter_tickers(
             selection.selected_tickers, 20)
         """
@@ -1083,13 +1167,15 @@ class kko_portfolio_update_manager:
         lists_ten = self.return_equal_lists(
             items_10[0], amount_of_lists=6)
 
-        
+
         items_20 = items_20[0:100000]
 
         lists_twen = self.return_equal_lists(
             items_20[0], amount_of_lists=6)
         """
+        self.continues_portfolio_creation(items[1], selection, "thread 1", 40)
 
+        return
         # self.create_single_options(items[1], lists_[0], "thread Leo")
         # self.create_all_options(selection.selected_tickers, 5)
 
@@ -1166,7 +1252,7 @@ class kko_portfolio_update_manager:
 
         """
         threads.append(thread6)
-        
+
         threads.append(thread7)
         threads.append(thread8)
         threads.append(thread9)
@@ -1199,7 +1285,7 @@ class kko_portfolio_update_manager:
 
         """
         thread6.join()
-        
+
         thread7.join()
         thread8.join()
         thread9.join()
@@ -1311,6 +1397,23 @@ class kko_portfolio_update_manager:
         return
 
     def create_single_options(self, data_service, list_of_options: list, thread_name="thread 1 "):
+        """
+
+
+        Parameters
+        ----------
+        data_service : TYPE
+            DESCRIPTION.
+        list_of_options : list
+            DESCRIPTION.
+        thread_name : TYPE, optional
+            DESCRIPTION. The default is "thread 1 ".
+
+        Returns
+        -------
+        None.
+
+        """
 
         total_len = len(list_of_options)
         round_ = 0
@@ -1332,6 +1435,116 @@ class kko_portfolio_update_manager:
 
             if allowd_to_add.allowd:
 
+                execute = add_kko_portfolio(portfolio)
+
+            if self.kill_switch:
+                break
+
+        return
+
+    def continues_portfolio_creation(self, data_service,
+                                     tickers_in: list,
+                                     thread_name="thread 1 ",
+                                     amount_per_portfolio: int = 10,
+                                     ):
+        """
+
+
+        Parameters
+        ----------
+        data_service : TYPE
+            DESCRIPTION.
+        tickers_in : list
+            DESCRIPTION.
+        thread_name : TYPE, optional
+            DESCRIPTION. The default is "thread 1 ".
+        amount_per_portfolio : int, optional
+            DESCRIPTION. The default is 10.
+         : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # creates list where pseudo portfolio' will be added in.
+        pseudo_portfo = []
+
+        # var for suggested portfolio.
+        suggested_portfolio = None
+        max_nr = (len(tickers_in.selected_tickers)-1)
+        rng = numpy.random.RandomState(2)
+        # while killswitch is off: run for ever.
+        while not self.kill_switch:
+
+            data = None
+            pseudo_portfo = []
+            # loop runs untill the portfolio is full.
+            while True:
+
+                # creates random number
+
+                number = rng.randint(0, max_nr)
+
+                # selects ticker based on the random number
+                ticker = tickers_in.selected_tickers[number]
+
+                # if ticker is not in the portfolio' add.
+                if ticker not in pseudo_portfo:
+
+                    # add stock to list of portfolio
+                    pseudo_portfo.append(ticker)
+
+                    # if the length is equal to max amount, break
+                    if len(pseudo_portfo) >= amount_per_portfolio:
+
+                        # set to selected portfolio and break.
+                        suggested_portfolio = pseudo_portfo
+                        break
+
+                # if there is a kill in the thread. Exit.
+                if self.kill_switch:
+                    break
+
+            # if there is a kill in the thread, kill it.
+            if self.kill_switch:
+                break
+
+            # creates data with the portfolio
+            data = self.create_data_frame_of_tickers(
+                suggested_portfolio, data_service)
+
+            # Remove NA's
+            data = data.tail(len(data)-1)
+
+            # check if is contains error's
+            if data.isna().values.any():
+
+                # amount of signals
+                amount_of_nas = data.isna().sum().sum()
+                amount_of_values = data.count().sum()
+
+                # if error rate is higher then 1%, let it go.
+                if amount_of_nas / amount_of_values > 0.01:
+                    continue
+
+            # creates portfolio
+            portfolio = portfolio_constructor_manager(data)
+
+            # checks needed if portfolio is alowed to trade.
+            allowd_to_add = kko_portfolio_gardian(portfolio)
+
+            print(portfolio.high_sharp_frame.balance)
+            print(round(portfolio.std_sharp, 2))
+            print(portfolio.max_sharp_y2_expected_return.round(2))
+            print("tried portfolio", suggested_portfolio,
+                  "  did this:", allowd_to_add.allowd)
+            # if alowed
+            if allowd_to_add.allowd:
+
+                # add portfolio to the database.
                 execute = add_kko_portfolio(portfolio)
 
             if self.kill_switch:
@@ -1526,12 +1739,15 @@ if __name__ == "__main__":
 
         """
         print("Starting up ...")
-        power_object = stock_object.power_stock_object(stock_ticker = "ACRX", simplyfied_load = True, periode_weekly = True)
-        x = update_kaufman_support.return_kaufman_ma_frame(stock__data__frame=power_object.stock_data)   
+        power_object = stock_object.power_stock_object(
+            stock_ticker = "ACRX", simplyfied_load = True, periode_weekly = True)
+        x = update_kaufman_support.return_kaufman_ma_frame(
+            stock__data__frame=power_object.stock_data)
         print(x)
         z = update_kaufman_support.add_kalman_filter_to_data(x)
         print(z)
-        y = update_kaufman_support.return_profiles_data(z,10,False,power_object.stock_data)
+        y = update_kaufman_support.return_profiles_data(
+            z,10,False,power_object.stock_data)
         print(y)
         print("Finnished")
         print("END")
