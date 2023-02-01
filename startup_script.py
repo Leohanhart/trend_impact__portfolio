@@ -19,6 +19,7 @@ after that you add the analyses en you have won this battle.
 
 
 """
+from datetime import datetime
 
 import threading
 import multiprocessing
@@ -32,13 +33,14 @@ from core_utils.core_initalization import initializer_tickers
 import initializer_tickers_main
 import update_stocks_main
 
-
+import update_portfolios_trend_strat as update_trend_kalman
 import schedule
 import time
 
 import numpy as np
 import os
 from datetime import datetime
+
 import support_class
 import database_querys_main
 
@@ -68,7 +70,10 @@ def update_tickers_daily():
 
     update_stocks_main.update_stocks.download_stockdata()
 
+    update = update_trend_kalman.update_trend_kamal_portfolio_selection()
     # update analyses
+
+    input_dt = datetime.today()
 
     update_analyses(periode="D")
 
@@ -142,6 +147,7 @@ def update_scedual():
     # Every friday tickers get initizalized and analyses are yodated after
 
     schedule.every().saturday.at("01:00").do(update_tickers_weekly)
+
     # schedule.every().friday.at("23:59").do(update_analyses)
 
     while True:
