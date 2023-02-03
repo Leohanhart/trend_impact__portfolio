@@ -72,7 +72,7 @@ class update_kaufman_kalman_analyses(object):
         """
 
         # load periodes
-        periodes = ["D", "W"]
+        periodes = ["D"]
 
         # load tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
@@ -82,7 +82,6 @@ class update_kaufman_kalman_analyses(object):
         for periode_in in periodes:
             for ticker in tickers:
 
-                #
                 if periode_in == "D":
 
                     try:
@@ -128,7 +127,8 @@ class update_kaufman_kalman_analyses(object):
     def update_full_analyses():
         """
 
-        updates all tickers in archive. 
+        updates all tickers in analyses_trend_kamal_archive and analyses_trend_kamal_performance. 
+
 
 
         Parameters
@@ -142,7 +142,7 @@ class update_kaufman_kalman_analyses(object):
 
         """
         # load periodes
-        periodes = ["D", "W"]
+        periodes = ["D"]
 
         # load tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
@@ -169,22 +169,6 @@ class update_kaufman_kalman_analyses(object):
                     except Exception as e:
 
                         print(e)
-
-                elif periode_in == "W":
-
-                    try:
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker, simplyfied_load=True, periode_weekly=True)
-
-                        model = update_kaufman_support.return_full_analyses_dict(
-                            stock_data=power_object.stock_data, ticker_name=power_object.stock_ticker, max_levels=10, periode="W")
-
-                        database_querys.database_querys.update_analyses_trend_kamal(
-                            model)
-
-                    except Exception as e:
-                        continue
 
                 else:
                     continue
@@ -1674,7 +1658,7 @@ if __name__ == "__main__":
 
         #obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = update_trend_kamal_portfolio_selection()
+        x = update_kaufman_kalman_analyses.update_full_analyses()
 
         # update_kaufman_kalman_analyses.update_full_analyses()
        # update_kaufman_kalman_analyses.update_all()
