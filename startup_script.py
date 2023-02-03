@@ -29,11 +29,14 @@ import threading
 from threading import Lock
 from core_utils.core_initalization import initializer_tickers
 
+import startup_support as support
 
 import initializer_tickers_main
 import update_stocks_main
 
 import update_portfolios_trend_strat as update_trend_kalman
+import update_trend_analyses
+
 import schedule
 import time
 
@@ -62,6 +65,31 @@ def update_tickers_weekly():
     # mutex.release()
 
 
+def update_complex_operations():
+
+    # updates archive.
+    proces_background = threading.Thread(
+        name='daemon_complex_operations', target=update_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
+    )
+
+    proces_background.start()
+    proces_background.join()
+    update = update_trend_kalman.update_trend_kamal_portfolio_selection()
+
+
+def update_operation():
+    """
+    Updates every business day. 
+
+    Returns
+    -------
+    None.
+
+    """
+
+    update_trend_analyses.update_kaufman_kalman_analyses.update_all()
+
+
 def update_tickers_daily():
 
     # mutex.acquire()
@@ -70,10 +98,24 @@ def update_tickers_daily():
 
     update_stocks_main.update_stocks.download_stockdata()
 
-    update = update_trend_kalman.update_trend_kamal_portfolio_selection()
-    # update analyses
+    # update analyses daily
+    if support.check_if_today_is_businessday():
 
-    input_dt = datetime.today()
+        # start operations
+        proces_background = threading.Thread(
+            name='daemon_operations', target=update_operation)
+
+        proces_background.setDaemon(True)
+        proces_background.start()
+
+    # if today is first of the month.
+    if support.check_if_today_is_first_the_month():
+
+        proces_background = threading.Thread(
+            name='daemon_complex_operations', target=update_operation)
+
+        proces_background.setDaemon(True)
+        proces_background.start()
 
     update_analyses(periode="D")
 
