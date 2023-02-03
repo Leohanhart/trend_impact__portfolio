@@ -18,7 +18,7 @@ from fastapi import BackgroundTasks, FastAPI, Response, HTTPException
 from core_service_layer.data_service import get_system_info
 import database_querys_main
 import startup_script
-import service_layer_data_service
+import service_layer_data_service as services
 import json
 import constants
 import uvicorn
@@ -27,6 +27,13 @@ from mangum import Mangum
 app = FastAPI()
 
 # startup_script.start_update_scedule()
+
+"""
+acceptatie criteria
+- moet een endpoint komen waarbij je een status van een los aandeel kan 
+
+
+"""
 
 
 def onstart_function():
@@ -43,7 +50,39 @@ async def startup_event():
 @app.get("/")
 def read_root():
 
-    return {"Welcome to the flowimpact core.. I Love you Leo, LIKE ELMO"}
+    return {"Welcome to the trendimpact-core.. I Love you Leo, LIKE ELMO"}
+
+
+@app.get("/trend_analyses")
+def return_trend_analyses(ticker: str):
+
+    data = services.return_trend_analyses.get_trend_analyses(ticker)
+
+    return Response(data)
+
+
+@app.get("/trend_analyses_archive")
+def return_trend_archive_analyses(ticker: str):
+
+    data = services.return_trend_analyses.get_trend_archive_analyses(ticker)
+
+    return Response(data)
+
+
+@app.get("/trend_strategy_status")
+def return_all_trend_specs():
+
+    data = services.return_trend_analyses.get_all_trend_specs()
+
+    return Response(data)
+
+
+@app.get("/avalible_tickers")
+def return_all_tickers():
+
+    data = services.return_trend_analyses.get_all_tickers()
+
+    return Response(data)
 
 
 handler = Mangum(app)
