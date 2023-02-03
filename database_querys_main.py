@@ -286,6 +286,26 @@ class database_querys:
         # return frame.
         return df
 
+    def get_all_trend_kalman():
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string = session.query(Analyses_trend_kamal).filter(
+            Analyses_trend_kamal.periode == "D",
+
+
+        ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def get_trend_kalman_data(ticker: str = None,
                               periode: str = "D",
                               year: int = None,
@@ -363,7 +383,7 @@ class database_querys:
                     # return frame.
                     return df
 
-    def get_trend_kalman_performance(periode: str = "D", as_pandas: bool = True):
+    def get_trend_kalman_performance(ticker: str, periode: str = "D", as_pandas: bool = True):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False)
@@ -373,6 +393,7 @@ class database_querys:
         if periode == "D" or periode == "W":
 
             query_string = session.query(Analyses_trend_kamal_performance).filter(
+                Analyses_trend_kamal_performance.id == ticker,
                 Analyses_trend_kamal_performance.periode == periode
 
 
@@ -856,7 +877,7 @@ class database_querys:
     def update_analyses_trend_kamal_performance(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -1173,18 +1194,18 @@ class database_querys_support:
 if __name__ == "__main__":
 
     try:
-
+        """
         # end
 
         print("START")
 
         class kko_strat_model:
-            """
+
             k stands for kaufman.
             k stands for kamal.
             o stands for optimzed
 
-            """
+
             portfolio_id: str
             portfolio_strategy: str
             portfolio_amount: int
@@ -1229,7 +1250,9 @@ if __name__ == "__main__":
         #x = database_querys.delete_portfolio_with_id(model.portfolio_id)
         global x
         x = database_querys.get_trading_portfolio()
-
+        """
+        x = database_querys.get_all_trend_kalman()
+        print(x)
         print("END")
 
     except Exception as e:
