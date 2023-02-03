@@ -10,6 +10,36 @@ from pandas.tseries.holiday import USFederalHolidayCalendar
 import numpy as np
 
 
+def check_if_today_is_businessday():
+    """
+    Check if today is first business day of the month. 
+
+    Returns
+    -------
+    bool
+        DESCRIPTION.
+
+    """
+
+    dt = datetime.now()
+    td = timedelta(days=30)
+    # your calculated date
+    my_date = dt + td
+
+    staturedays = pd.date_range(dt.strftime(
+        "%d-%m-%Y"), my_date.strftime("%d-%m-%Y"),
+        freq='W-SAT')
+
+    sundays = pd.date_range(dt.strftime(
+        "%d-%m-%Y"), my_date.strftime("%d-%m-%Y"),
+        freq='W-SUN')
+
+    if np.datetime64(dt, 'D') in staturedays or np.datetime64(dt, 'D') in sundays:
+        return False
+    else:
+        return True
+
+
 def check_if_today_is_first_the_month():
     """
     Check if today is first business day of the month. 
