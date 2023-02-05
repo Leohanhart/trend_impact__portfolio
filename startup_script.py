@@ -169,9 +169,6 @@ def heartbeat():
     current_time = now.strftime("%H:%M:%S")
     print(current_time, " trendimpact_core is active ")
 
-    data = database_querys_main.database_querys.log_item(
-        1010, "last heartbeat")
-
     # mutex.release()
 
 
