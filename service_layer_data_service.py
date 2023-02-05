@@ -5,9 +5,9 @@ Created on Fri May  6 17:16:04 2022
 @author: Gebruiker
 
 IMPORTANT NOTES:
-    
-    IF YOU EVER WANT AN OTHER TYPE OF STOCK_ANALYSES_PACKAGE, REMOVE NAME FROM 
-    
+
+    IF YOU EVER WANT AN OTHER TYPE OF STOCK_ANALYSES_PACKAGE, REMOVE NAME FROM
+
 """
 
 import database_querys_main
@@ -26,7 +26,7 @@ class return_trend_analyses(object):
     @staticmethod
     def get_trend_analyses(ticker: str):
         """
-        returns trend data. 
+        returns trend data.
 
         Parameters
         ----------
@@ -48,7 +48,7 @@ class return_trend_analyses(object):
     @staticmethod
     def get_trend_archive_analyses(ticker: str):
         """
-        returns trend data. 
+        returns trend data.
 
         Parameters
         ----------
@@ -115,7 +115,7 @@ class trend_analyse_support(object):
     @staticmethod
     def package_data(data):
         """
-        Packages data in JSON 
+        Packages data in JSON
 
         Parameters
         ----------
@@ -146,6 +146,209 @@ class trend_analyse_support(object):
         resp = json.dumps(data)
 
         return resp
+
+
+class return_portfolios_options(object):
+
+    @staticmethod
+    def return_portfolios(page_number: int = 1,
+                          page_amount: int = 20,
+                          min_amount_stocks: int = 5,
+                          max_amount_stocks: int = 6):
+        """
+
+
+        Parameters
+        ----------
+        min_amount_stocks : int, optional
+            DESCRIPTION. The default is 5.
+        max_amount_stocks : int, optional
+            DESCRIPTION. The default is 6.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # get portfolio's
+        data = database_querys_main.database_querys.get_portfolio()
+
+        # filter portfolios
+        data = portfolio_support().return_portfolio_selection_between_amounts(df=data,
+                                                                              min_amount_stocks=min_amount_stocks,
+                                                                              max_amount_stocks=max_amount_stocks
+                                                                              )
+
+        data = analyses_support().apply_pagination(
+            data, page_amount=page_amount, page_number=page_number)
+
+        data = analyses_support().package_data(data)
+
+        return data
+
+    @staticmethod
+    def add_trading_portfolio(id_: str):
+        """
+        Add portfolio, after the portfio is added. The portfolio will not be deleted. 
+
+        Parameters
+        ----------
+        id_ : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+
+        try:
+
+            data = database_querys_main.database_querys.subscribe_trading_portfolio()
+
+            return data
+
+        except Exception as e:
+
+            return e
+
+    @staticmethod
+    def delete_trading_portfolio(id_: str):
+        """
+        Add portfolio, after the portfio is added. The portfolio will not be deleted. 
+
+        Parameters
+        ----------
+        id_ : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+
+        try:
+
+            data = database_querys_main.database_querys.unsubscribe_trading_portfolio()
+
+            return data
+
+        except Exception as e:
+
+            return e
+
+
+class portfolio_support(object):
+
+    @staticmethod
+    def check_portfolio_id_is_avible(id_: str):
+        """
+
+        Check if portolio is avalible. 
+
+        Parameters
+        ----------
+        id_ : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        bool
+            DESCRIPTION.
+
+        """
+        avalble_ids = portfolio_support().return_portfolio_ids()
+        avable_trading_ids = portfolio_support.return_trading_portfolios()
+
+        if id_ in avalble_ids:
+            return True
+        elif id_ in avable_trading_ids:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def return_portfolio_ids():
+        """
+
+        returns the portfolio ids.
+
+        Returns
+        -------
+        data : TYPE
+            DESCRIPTION.
+
+        """
+        data = database_querys_main.database_querys.get_portfolio()
+        data = list(data.portfolio_id.values)
+        return data
+
+    def return_trading_portfolios():
+        """
+
+
+        Returns
+        -------
+        None.
+
+        """
+        data = database_querys_main.database_querys.get_trading_portfolio()
+        data = list(data.portfolio_id.values)
+        return data
+
+    @staticmethod
+    def return_portfolio_selection_between_amounts(df, min_amount_stocks: int = 5, max_amount_stocks: int = 6, filter_on_sharp: bool = True):
+        """
+
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+        min_amount_stocks : int, optional
+            DESCRIPTION. The default is 5.
+        max_amount_stocks : int, optional
+            DESCRIPTION. The default is 6.
+        filter_on_sharp : bool, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        df : TYPE
+            DESCRIPTION.
+
+        """
+        df = df.loc[(df["portfolio_amount"] <= max_amount_stocks) &
+                    (df["portfolio_amount"] >= min_amount_stocks)]
+
+        if filter_on_sharp:
+            df = portfolio_support().sort_on_yield(df)
+
+        return df
+
+    @staticmethod
+    def sort_on_yield(df):
+        """
+        Sort portfolio on 2 year sharp ration. 
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        df : TYPE
+            DESCRIPTION.
+
+        """
+
+        df = df.sort_values(by='total_sharp_y2', ascending=False)
+        return df
 
 
 class analyses_support(object):
@@ -198,7 +401,7 @@ class analyses_support(object):
         average_yield_negative = negative_trades.current_yield.mean().round(2)
 
         data_res["average_strategy_net_yield"] = average_net_yield = round(((((pct_positive_signals/100) * average_yield_positive) +
-                                                                             ((pct_negative_signals/100) * average_yield_negative))), 2)
+                                                                            ((pct_negative_signals/100) * average_yield_negative))), 2)
 
         data_res["average_durration_trade"] = average_durration_long_durration = df.duration.mean(
         ).round(2)
@@ -207,12 +410,82 @@ class analyses_support(object):
         resp = json.dumps(data_res)
         return resp
 
+    @staticmethod
+    def apply_pagination(data, page_amount: int = 20, page_number: int = 1):
+        """
+        Pagnation.
+
+        Parameters
+        ----------
+        data : dataframe with data.
+
+        pagination_filter : bool, optional
+            DESCRIPTION. The default is False.
+        page_amount : int, optional
+            DESCRIPTION. The default is 20.
+        page_number : int, optional
+            DESCRIPTION. The default is 1.
+
+        Returns
+        -------
+        None.
+
+
+
+        """
+        # setup to pervent idiotic pagination.
+        if len(data) < page_amount:
+            return data
+        # gets starting number
+
+        # define page number:
+        end___number = page_amount * page_number
+        start_number = end___number - page_amount
+        data = data.iloc[start_number:end___number]
+
+        return data
+
+    @staticmethod
+    def package_data(data):
+        """
+        Packages data in JSON
+
+        Parameters
+        ----------
+        data : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        resp : TYPE
+            DESCRIPTION.
+
+        """
+        # transform data to json
+
+        try:
+
+            data = data.to_dict(orient='records')
+
+        # if packaging already done, dump and return.
+        except AttributeError:
+
+            resp = json.dumps(data)
+
+            return resp
+
+        # else dump and return.
+
+        resp = json.dumps(data)
+
+        return resp
+
 
 if __name__ == "__main__":
 
     try:
 
-        x = return_trend_analyses.get_all_tickers()
+        x = return_portfolios_options.return_portfolios()
 
         print(x)
     except Exception as e:
