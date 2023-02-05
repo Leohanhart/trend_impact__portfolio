@@ -380,18 +380,45 @@ class analyses_support(object):
         df = data
 
         # get amount of positive data.
-        long_trades = df.loc[df['trend'] > 0]
-        short_trades = df.loc[df['trend'] < 0]
+        long_trades = df.loc[(df['trend'] > 0) & (df['duration'] < 250)]
+        short_trades = df.loc[(df['trend'] < 0) & (df['duration'] < 250)]
+
+        long_trades_m1 = df.loc[(df['trend'] > 0) & (df['duration'] <= 21)]
+        short_trades_m1 = df.loc[(df['trend'] < 0) & (df['duration'] <= 21)]
+
+        trades_m1 = df.loc[df['duration'] <= 21]
+
+        long_trades_d5 = df.loc[(df['trend'] > 0) & (df['duration'] <= 5)]
+        short_trades_d5 = df.loc[(df['trend'] < 0) & (df['duration'] <= 5)]
+
+        trades_d5 = df.loc[df['duration'] <= 5]
 
         data_res["stocks_trending_long"] = pct_markettrending = round(
             len(long_trades) / len(df)*100, 2)
 
         positive_trades = df.loc[df['current_yield'] > 0]
 
+        positive_trades_m1 = trades_m1.loc[df['current_yield'] > 0]
+
+        positive_trades_d5 = trades_d5.loc[df['current_yield'] > 0]
+
         negative_trades = df.loc[df['current_yield'] < 0]
 
-        data_res["percentage_positive_trades"] = pct_positive_signals = round(
+        data_res["percentage_positive_trades_y1"] = pct_positive_signals = round(
             len(positive_trades) / len(df)*100, 2)
+        pct_negative_signals = round(
+            len(negative_trades) / len(df)*100, 2)
+
+        data_res["percentage_positive_trades_m1"] = pct_positive_signals_ = round(
+            len(positive_trades_m1) / len(trades_m1)*100, 2)
+
+        data_res["percentage_positive_trades_w1"] = pct_positive_signals_ = round(
+            len(trades_d5) / len(trades_d5)*100, 2)
+
+        data_res["percentage_amount_trades_m1"] = len(trades_m1)
+
+        data_res["percentage_amount_trades_w1"] = len(trades_d5)
+
         pct_negative_signals = round(
             len(negative_trades) / len(df)*100, 2)
 
