@@ -85,6 +85,30 @@ def return_all_tickers():
     return Response(data)
 
 
+@app.get("/avalible_portfolios")
+def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6):
+
+    data = services.return_portfolios_options.return_portfolios()
+
+    return Response(data)
+
+
+@app.get("/add_portfolios")
+def return_add_portfolios(ID: str):
+
+    data = services.return_trend_analyses.get_all_tickers()
+
+    return Response(data)
+
+
+@app.get("/remove_portfolios")
+def return_all_tickers():
+
+    data = services.return_trend_analyses.get_all_tickers()
+
+    return Response(data)
+
+
 handler = Mangum(app)
 
 if __name__ == "__main__":
