@@ -73,6 +73,10 @@ class update_trading_portfolios:
 
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
+                if ts_data == 404:
+
+                    # delete portfolio
+
                 ticker_options[i] = ts_data.data
 
             data = self.create_data_frame_of_tickers(
@@ -189,6 +193,7 @@ class add_update_trading_portfolio:
         model.total_volatility_y2 = portfolio.Imax_sharp_volatility
 
         database_querys.database_querys.update_trading_portfolio(model)
+
         return
 
 

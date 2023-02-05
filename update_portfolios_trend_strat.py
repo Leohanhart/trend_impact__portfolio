@@ -612,6 +612,9 @@ class create_time_serie_with_kamalstrategie:
        # stockdata
         sdata = power_object.stock_data
 
+        if not sdata:
+            return 404
+
         itms = list(sdata.columns.to_list())
        # stock.data.change
         if 'Change' not in itms:
