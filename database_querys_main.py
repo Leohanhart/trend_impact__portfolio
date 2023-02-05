@@ -383,7 +383,7 @@ class database_querys:
                     # return frame.
                     return df
 
-    def get_trend_kalman_performance(ticker: str, periode: str = "D", as_pandas: bool = True):
+    def get_trend_kalman_performance(ticker: str = "", periode: str = "D", as_pandas: bool = True):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False)
@@ -472,6 +472,8 @@ class database_querys:
         session.add(object_)
         session.commit()
         session.close()
+
+        return 200
 
     def get_trading_portfolio(id_: str = None):
 
@@ -562,6 +564,37 @@ class database_querys:
         session.close()
         return
 
+    def unsubscribe_trading_portfolio(id_: str):
+
+        data = database_querys.get_portfolio(id_=id_)
+
+        if type(data) == None:
+            raise Exception("No portfolio matching ID")
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(TradingPortfolio).filter(
+            TradingPortfolio.portfolio_id == id_,
+        ).first()
+
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
+        session.close()
+
+        return 200
+
     def get_portfolio(id_: str = "", strategy: str = ""):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -571,7 +604,7 @@ class database_querys:
         session = Session()
 
         x = session.query(Portfolio).filter(
-            Portfolio.portfolio_id == model.portfolio_id,
+            Portfolio.portfolio_id == id_,
         ).first()
 
         query_string: str
@@ -973,7 +1006,7 @@ class database_querys:
         session = Session()
 
         x = session.query(Portfolio).filter(
-            Portfolio.portfolio_id == model.portfolio_id,
+            Portfolio.portfolio_id == id_,
         ).first()
 
         # check if ticker exsists
@@ -1251,7 +1284,7 @@ if __name__ == "__main__":
         global x
         x = database_querys.get_trading_portfolio()
         """
-        x = database_querys.get_all_trend_kalman()
+        x = database_querys.get_portfolio()
         print(x)
         print("END")
 
