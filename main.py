@@ -50,7 +50,7 @@ async def startup_event():
 @app.get("/")
 def read_root():
 
-    return {"Welcome to the trendimpact-core.. I Love you Leo, LIKE ELMO!!! ELMO IS GREAT 1337"}
+    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend can wait, LIKE ELMO! ELMO IS GREAT 1337"}
 
 
 @app.get("/trend_analyses")
@@ -93,7 +93,7 @@ def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_st
     return Response(data)
 
 
-@app.get("/add_portfolios")
+@app.post("/add_portfolios")
 def return_add_portfolios(ID: str):
 
     data = services.return_trend_analyses.get_all_tickers()
@@ -101,7 +101,7 @@ def return_add_portfolios(ID: str):
     return Response(data)
 
 
-@app.get("/remove_portfolios")
+@app.delete("/remove_portfolios")
 def return_all_tickers():
 
     data = services.return_trend_analyses.get_all_tickers()
