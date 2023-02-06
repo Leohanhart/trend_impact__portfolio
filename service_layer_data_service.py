@@ -393,6 +393,11 @@ class analyses_support(object):
 
         trades_d5 = df.loc[df['duration'] <= 5]
 
+        data_res["percentage_average_yield_m1"] = trades_m1.current_yield.mean().round(
+            2)
+        data_res["percentage_average_yield_w1"] = trades_d5.current_yield.mean().round(
+            2)
+
         data_res["stocks_trending_long"] = pct_markettrending = round(
             len(long_trades) / len(df)*100, 2)
 
@@ -413,11 +418,11 @@ class analyses_support(object):
             len(positive_trades_m1) / len(trades_m1)*100, 2)
 
         data_res["percentage_positive_trades_w1"] = pct_positive_signals_ = round(
-            len(trades_d5) / len(trades_d5)*100, 2)
+            len(positive_trades_d5) / len(trades_d5)*100, 2)
 
-        data_res["percentage_amount_trades_m1"] = len(trades_m1)
+        data_res["amount_trades_m1"] = len(trades_m1)
 
-        data_res["percentage_amount_trades_w1"] = len(trades_d5)
+        data_res["amount_trades_w1"] = len(trades_d5)
 
         pct_negative_signals = round(
             len(negative_trades) / len(df)*100, 2)
