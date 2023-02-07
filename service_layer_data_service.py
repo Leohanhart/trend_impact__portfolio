@@ -127,6 +127,7 @@ class trend_analyse_support(object):
         resp : TYPE
             DESCRIPTION.
 
+
         """
         # transform data to json
 
@@ -149,6 +150,24 @@ class trend_analyse_support(object):
 
 
 class return_portfolios_options(object):
+
+    @staticmethod
+    def return_trading_portfolios(id_: str = ""):
+        """
+        Returns trading portfolio's these can be added with the add function.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # get portfolio's
+        data = database_querys_main.database_querys.get_trading_portfolio(id_)
+
+        res_data = analyses_support().package_data(data)
+
+        return res_data
 
     @staticmethod
     def return_portfolios(page_number: int = 1,
@@ -517,7 +536,8 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_portfolios_options.return_portfolios()
+        x = return_portfolios_options.return_trading_portfolios(
+            id_="e0eeaa4b-8e14-11ed-b2b9-001a7dda7110")
 
         print(x)
     except Exception as e:
