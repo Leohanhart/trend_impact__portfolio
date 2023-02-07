@@ -488,9 +488,10 @@ class database_querys:
         if id_:
 
             query_string = session.query(TradingPortfolio).filter(
-                Portfolio.portfolio_id == id_,
+                TradingPortfolio.portfolio_id == id_,
             ).statement.compile()
-        elif id_ == None:
+
+        elif not id_:
             query_string = session.query(TradingPortfolio).statement.compile()
 
         df = pd.read_sql_query(query_string, session.bind)
