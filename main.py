@@ -93,6 +93,14 @@ def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_st
     return Response(data)
 
 
+@app.get("/trading_portfolios")
+def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6):
+
+    data = services.return_portfolios_options.return_portfolios()
+
+    return Response(data)
+
+
 @app.post("/add_portfolios")
 def return_add_portfolios(ID: str):
 
