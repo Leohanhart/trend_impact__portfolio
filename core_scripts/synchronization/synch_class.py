@@ -114,7 +114,9 @@ class data_synch:
 # Synch_data - merging data.
 # data_for_callculations
 
-    def __init__(self, path: str = "", subfolder: str = "", ticker: str = "", data_extention: str = "", raise_error_if_found: bool = False):
+    def __init__(self, path: str = "", subfolder: str = "",
+                 ticker: str = "", data_extention: str = "",
+                 raise_error_if_found: bool = False, print_data: bool = False):
         """
         Initalize data synchronizations
 
@@ -154,6 +156,7 @@ class data_synch:
         self.file_name = ticker + "." + data_extention
 
         self.raise_error_if_found = raise_error_if_found
+        self.print_data = print_data
         # creating class object vars - this is done for refreshin the path extention.
 
         self.ticker = ticker
