@@ -225,7 +225,8 @@ class return_portfolios_options(object):
 
         try:
 
-            data = database_querys_main.database_querys.subscribe_trading_portfolio()
+            data = database_querys_main.database_querys.subscribe_trading_portfolio(
+                id_=id_)
 
             return data
 
@@ -536,8 +537,8 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_portfolios_options.return_trading_portfolios(
-            id_="e0eeaa4b-8e14-11ed-b2b9-001a7dda7110")
+        x = return_portfolios_options.add_trading_portfolio(
+            id_="fcd50532-8dd2-11ed-904b-001a7dda7110")
 
         print(x)
     except Exception as e:

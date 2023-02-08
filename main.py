@@ -94,25 +94,28 @@ def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_st
 
 
 @app.get("/trading_portfolios")
-def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6):
+def avalible_portfolios(portfolio_id: str = ""):
 
-    data = services.return_portfolios_options.return_portfolios()
+    data = services.return_portfolios_options.return_trading_portfolios(
+        id_=portfolio_id)
 
     return Response(data)
 
 
 @app.post("/add_portfolios")
-def return_add_portfolios(ID: str):
+def return_add_portfolios(portfolio_id: str):
 
-    data = services.return_trend_analyses.get_all_tickers()
+    data = services.return_portfolios_options.add_trading_portfolio(
+        id_=portfolio_id)
 
     return Response(data)
 
 
-@app.delete("/remove_portfolios")
-def return_all_tickers():
+@app.delete("/remove_portfolio")
+def return_all_tickers(portfolio_id):
 
-    data = services.return_trend_analyses.get_all_tickers()
+    data = services.return_portfolios_options.delete_trading_portfolio(
+        id_=portfolio_id)
 
     return Response(data)
 

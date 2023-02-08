@@ -1285,7 +1285,8 @@ if __name__ == "__main__":
         global x
         x = database_querys.get_trading_portfolio()
         """
-        x = database_querys.get_portfolio()
+        x = database_querys.subscribe_trading_portfolio(
+            "3f8d8199-8dd5-11ed-84f2-001a7dda7110")
         print(x)
         print("END")
 
