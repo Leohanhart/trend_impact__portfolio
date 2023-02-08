@@ -108,16 +108,16 @@ def return_add_portfolios(portfolio_id: str):
     data = services.return_portfolios_options.add_trading_portfolio(
         id_=portfolio_id)
 
-    return Response(data)
+    return data
 
 
 @app.delete("/remove_portfolio")
-def return_all_tickers(portfolio_id):
+def return_remove_portfolio(portfolio_id):
 
     data = services.return_portfolios_options.delete_trading_portfolio(
         id_=portfolio_id)
 
-    return Response(data)
+    return data
 
 
 handler = Mangum(app)

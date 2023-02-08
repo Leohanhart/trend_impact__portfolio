@@ -228,6 +228,8 @@ class return_portfolios_options(object):
             data = database_querys_main.database_querys.subscribe_trading_portfolio(
                 id_=id_)
 
+            data = portfolio_support().package_data(data)
+
             return data
 
         except Exception as e:
@@ -253,7 +255,10 @@ class return_portfolios_options(object):
 
         try:
 
-            data = database_querys_main.database_querys.unsubscribe_trading_portfolio()
+            data = database_querys_main.database_querys.unsubscribe_trading_portfolio(
+                id_=id_)
+
+            data = portfolio_support().package_data(data)
 
             return data
 
