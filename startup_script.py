@@ -36,6 +36,7 @@ import update_stocks_main
 
 import update_portfolios_trend_strat as update_trend_kalman
 import update_trend_analyses
+import portfolio_synchronization
 
 import schedule
 import time
@@ -88,6 +89,8 @@ def update_operation():
     """
 
     update_trend_analyses.update_kaufman_kalman_analyses.update_all()
+
+    update = portfolio_synchronization.update_trading_portfolios.update_trading_portfolios()
 
 
 def update_tickers_daily():
