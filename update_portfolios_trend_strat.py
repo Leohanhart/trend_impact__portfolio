@@ -612,7 +612,7 @@ class create_time_serie_with_kamalstrategie:
        # stockdata
         sdata = power_object.stock_data
 
-        if not sdata:
+        if sdata.empty:
             return 404
 
         itms = list(sdata.columns.to_list())
@@ -1773,6 +1773,108 @@ class kko_portfolio_update_manager:
                 break
 
 
+class create_stats(object):
+
+    @staticmethod
+    def return_backtest(tickers: list = []):
+
+        tickers_out = tickers
+        # create function that creates all kind off ticker combinations
+        # 5 - 10.
+
+        list_of_options = []
+
+        # optionally there needs to be a efficiency impementation here.
+        # that could be a loop that gets all data and puts it in a dict
+        # and gets it out, so it will work way faster.
+        ticker_options = {}
+
+        # loops true
+        for i in tickers_out:
+
+            try:
+
+                ts_data = create_time_serie_with_kamalstrategie(i)
+
+                ticker_options[i] = ts_data.data
+            except:
+
+                raise ValueError
+
+        # get the keys so only good stocks will stay ther
+        tickers_out = list(ticker_options.keys())
+
+        tickers_selected = tickers_out
+
+        data = create_stats.create_data_frame_of_tickers(
+            tickers_selected, ticker_options)
+
+        portfolio = portfolio_constructor_manager(data)
+
+        balanced_portfolio = data * portfolio.high_sharp_frame.balance.values
+
+        ts_portfolio = balanced_portfolio.mean(axis=1).pct_change().cumsum()
+
+        ts_portfolio = ts_portfolio * 100
+
+        ts_portfolio = ts_portfolio.fillna(0)
+
+        return ts_portfolio
+
+    @staticmethod
+    def create_data_frame_of_tickers(tickers: list, data: dict):
+        """
+
+        r_data.mean(axis=1).pct_change().cumsum().plot()
+
+        r_data.pct_change().cumsum().plot()
+
+
+        Parameters
+        ----------
+        tickers : list
+            DESCRIPTION.
+        data : dict
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        first: bool = True
+        r_data = 0
+        for i in tickers:
+
+            #
+            sdata = data[i]
+
+            # select data from dict
+            df = sdata
+
+            df = df.tail(520)
+            # first column selected
+            first_column = df.iloc[:, 0]
+
+            # set to frame
+            xdf = first_column.to_frame()
+
+            # rename to ticker
+            xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
+
+            if first:
+
+                r_data = xdf
+                first = False
+
+            else:
+
+                r_data = pd.concat([r_data, xdf], axis=1)
+
+        return r_data
+
+
 class portfolio_kamal:
 
     tickers: list
@@ -1844,7 +1946,8 @@ if __name__ == "__main__":
 
         # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = kko_portfolio_update_manager()
+        x = create_stats.return_backtest(
+            tickers=["ADMA", "ALT", "AFYA", "AEPPZ", "ACET"])
 
         # update_kaufman_kalman_analyses.update_full_analyses()
        # update_kaufman_kalman_analyses.update_all()
