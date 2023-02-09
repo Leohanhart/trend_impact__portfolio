@@ -13,6 +13,7 @@ IMPORTANT NOTES:
 import database_querys_main
 import json
 from core_scripts.stock_data_download import power_stock_object
+import update_portfolios_trend_strat
 import datetime
 import constants
 import service_layer_support
@@ -265,6 +266,29 @@ class return_portfolios_options(object):
         except Exception as e:
 
             return e
+
+
+class return_stats(object):
+
+    @staticmethod
+    def return_trading_backtest(portfolio_id):
+
+        data = database_querys_main.database_querys.get_trading_portfolio(
+            portfolio_id)
+
+        # set to values
+        x = list(data.list_of_tickers.values)
+
+        # set to list
+        list_of_tickers = json.loads(x[0])
+
+        data = update_portfolios_trend_strat.create_stats().return_backtest(list_of_tickers)
+
+        data.index = data.index.map(str)
+
+        data = data.to_json()
+
+        return data
 
 
 class portfolio_support(object):
@@ -542,8 +566,8 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_portfolios_options.add_trading_portfolio(
-            id_="fcd50532-8dd2-11ed-904b-001a7dda7110")
+        x = return_stats.return_trading_backtest(
+            portfolio_id="fcd50532-8dd2-11ed-904b-001a7dda7110")
 
         print(x)
     except Exception as e:
