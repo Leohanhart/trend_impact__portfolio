@@ -75,7 +75,7 @@ class update_trading_portfolios:
 
                 if ts_data == 404:
 
-                    # delete portfolio
+                    print("portfolio should be deleted")
 
                 ticker_options[i] = ts_data.data
 
