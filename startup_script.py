@@ -76,6 +76,7 @@ def update_complex_operations():
     proces_background.start()
     proces_background.join()
     update = update_trend_kalman.update_trend_kamal_portfolio_selection()
+    return
 
 
 def update_operation():
@@ -91,6 +92,8 @@ def update_operation():
     update_trend_analyses.update_kaufman_kalman_analyses.update_all()
 
     update = portfolio_synchronization.update_trading_portfolios.update_trading_portfolios()
+
+    return
 
 
 def update_tickers_daily():
@@ -220,7 +223,7 @@ if __name__ == "__main__":
         time.sleep(5)
 
         name = input(
-            "Starting up Flowimpact.\n\npress (E)fficient for fast en efficient update, (A)dvanced for extended re-inializing stocks + update!\n\n")
+            "Starting up s Flowimpact.\n\npress (E)fficient for fast en efficient update, (A)dvanced for extended re-inializing stocks + update!\n\n")
 
         if name.lower() == "e":
             update_tickers_daily()
