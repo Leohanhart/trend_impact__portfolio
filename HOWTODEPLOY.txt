@@ -1,0 +1,4 @@
+1. Set up server with : https://www.slingacademy.com/article/deploying-fastapi-on-ubuntu-with-nginx-and-lets-encrypt/#google_vignette
+1.1 setup CICD, -- dont forget to make a service of it. 
+2. Change libs import -- cocksuckers. 
+3. make a service of the server.

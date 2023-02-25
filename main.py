@@ -50,7 +50,7 @@ async def startup_event():
 @app.get("/")
 def read_root():
 
-    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend can wait, LIKE ELMO! ELMO IS GREAT 1337"}
+    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is waiting, LIKE ELMO! ELMO IS GREAT 1337"}
 
 
 @app.get("/trend_analyses")
@@ -133,5 +133,5 @@ handler = Mangum(app)
 
 if __name__ == "__main__":
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8005, reload=True, debug=True,
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, debug=True,
                 workers=4, limit_concurrency=1000)
