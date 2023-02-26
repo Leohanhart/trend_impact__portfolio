@@ -71,6 +71,30 @@ class return_trend_analyses(object):
         return res_data
 
     @staticmethod
+    def get_trend_analyses_trades(ticker: str):
+        """
+        returns trend data.
+
+        Parameters
+        ----------
+        ticker : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        res : TYPE
+            DESCRIPTION.
+
+        """
+
+        data = database_querys_main.database_querys.get_trend_kalman_data(
+            ticker)
+
+        res_data = trend_analyse_support.package_data(data)
+
+        return res_data
+
+    @staticmethod
     def get_all_trend_specs():
 
         data = database_querys_main.database_querys.get_all_trend_kalman()

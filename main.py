@@ -69,6 +69,14 @@ def return_trend_archive_analyses(ticker: str):
     return Response(data)
 
 
+@app.get("/trend_analyses_trades")
+def return_trend_archive_analyses(ticker: str):
+
+    data = services.return_trend_analyses.get_trend_analyses_trades(ticker)
+
+    return Response(data)
+
+
 @app.get("/trend_strategy_status")
 def return_all_trend_specs():
 
