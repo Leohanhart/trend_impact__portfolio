@@ -36,7 +36,7 @@ import update_stocks_main
 
 import update_portfolios_trend_strat as update_trend_kalman
 import update_trend_analyses
-import portfolio_synchronization
+import portfolio_synchronization as portfolio_synch
 
 import schedule
 import time
@@ -47,6 +47,7 @@ from datetime import datetime
 
 import support_class
 import database_querys_main
+
 
 #mutex = Lock()
 
@@ -88,10 +89,12 @@ def update_operation():
     None.
 
     """
+    database_querys_main.database_querys.add_log_to_logbook(
+        "update operations is started.")
 
     update_trend_analyses.update_kaufman_kalman_analyses.update_all()
 
-    update = portfolio_synchronization.update_trading_portfolios.update_trading_portfolios()
+    update = portfolio_synch.update_trading_portfolios()
 
     return
 
@@ -101,18 +104,17 @@ def update_tickers_daily():
     # mutex.acquire()
 
     # update tickers
-
+    """
     update_stocks_main.update_stocks.download_stockdata()
-
+    """
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Starting daily update")
     # update analyses daily
-    if support.check_if_today_is_businessday():
+    # if support.check_if_today_is_businessday():
 
-        # start operations
-        proces_background = threading.Thread(
-            name='daemon_operations', target=update_operation)
+    update_trend_analyses.update_kaufman_kalman_analyses.update_all()
 
-        proces_background.setDaemon(True)
-        proces_background.start()
+    update = portfolio_synch.update_trading_portfolios()
 
     # if today is first of the month.
     if support.check_if_today_is_first_the_month():
@@ -121,6 +123,7 @@ def update_tickers_daily():
             name='daemon_complex_operations', target=update_operation)
 
         proces_background.setDaemon(True)
+
         proces_background.start()
 
     update_analyses(periode="D")
@@ -227,7 +230,7 @@ if __name__ == "__main__":
 
         if name.lower() == "e":
             update_tickers_daily()
-            update_analyses()
+            # update_analyses()
         else:
             update_tickers_weekly()
             update_analyses()
