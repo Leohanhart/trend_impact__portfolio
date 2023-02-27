@@ -88,6 +88,25 @@ def return_trend_archive_analyses(ticker: str):
     return Response(data)
 
 
+@app.get("/trend_analyses_trade_options")
+def return_all_trend_specs(page: int = 1,
+                           long: bool = True,
+                           short: bool = False,
+                           amount_days_of_new_trend: int = 5,
+                           percentage_2y_profitble: float = 90):
+
+    data = services.return_trend_trade_options.return_trade_options(
+        page=page,
+        long=long,
+        short=short,
+        amount_days_of_new_trend=amount_days_of_new_trend,
+        percentage_2y_profitble=percentage_2y_profitble
+
+    )
+
+    return Response(data)
+
+
 @app.get("/trend_strategy_status")
 def return_all_trend_specs():
 
