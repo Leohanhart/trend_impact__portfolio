@@ -167,6 +167,14 @@ def return_portfolio_performance(portfolio_id: str):
     return data
 
 
+@app.get("/show_logs")
+def return_portfolio_performance(page_number: int = 1):
+
+    data = services.return_logs.return_logs_page(page_number=page_number)
+
+    return data
+
+
 handler = Mangum(app)
 
 if __name__ == "__main__":

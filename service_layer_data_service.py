@@ -119,6 +119,13 @@ class return_trend_analyses(object):
 
         return res_data
 
+    @staticmethod
+    def get_performance_sector(ticker: str = None, sector: str = None):
+
+        data = database_querys_main.database_querys.get_trends_and_sector()
+
+        return data
+
 
 class trend_analyse_support(object):
 
@@ -336,6 +343,39 @@ class return_stats(object):
         data.index = data.index.map(str)
 
         data = data.to_json()
+
+        return data
+
+
+class return_logs(object):
+
+    @staticmethod
+    def return_logs_page(page_number: int = 1):
+        """
+
+
+        Parameters
+        ----------
+        page_number : int, optional
+            DESCRIPTION. The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
+        #
+        data = database_querys_main.database_querys.get_logs()
+
+        data = trend_analyse_support.flip_dataframe(data)
+
+        data[['created']] = data[['created']].astype(str)
+
+        data = analyses_support.apply_pagination(data=data,
+                                                 page_amount=20,
+                                                 page_number=page_number)
+
+        data = trend_analyse_support.package_data(data)
 
         return data
 
@@ -651,8 +691,7 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_trend_trade_options.return_trade_options(
-            percentage_2y_profitble=99)
+        x = return_logs.return_logs_page(1)
 
         print(x)
     except Exception as e:
