@@ -142,8 +142,8 @@ def return_remove_portfolio(portfolio_id: str):
 @app.get("/show_portfolio_performance")
 def return_portfolio_performance(portfolio_id: str):
 
-    data = services.return_stats().return_trading_backtest(
-        id_=portfolio_id)
+    data = services.return_stats.return_trading_backtest(
+        portfolio_id=portfolio_id)
 
     return data
 
