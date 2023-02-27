@@ -61,7 +61,7 @@ async def startup_event():
 @app.get("/")
 def read_root():
 
-    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is so cute, LIKE ELMO! ELMO IS GREAT 1337"}
+    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is so cute<3, LIKE ELMO! ELMO IS GREAT 1337"}
 
 
 @app.get("/trend_analyses")
