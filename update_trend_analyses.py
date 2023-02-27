@@ -79,6 +79,9 @@ class update_kaufman_kalman_analyses(object):
 
         trade_data = None
 
+        database_querys.database_querys.add_log_to_logbook(
+            "Start procedure. for thingss")
+
         for periode_in in periodes:
             for ticker in tickers:
 
@@ -94,7 +97,8 @@ class update_kaufman_kalman_analyses(object):
                         print(model.__dict__)
                         database_querys.database_querys.update_analyses_trend_kamal(
                             model)
-
+                        database_querys.database_querys.add_log_to_logbook(
+                            "Update")
                         del power_object
                         del model
 

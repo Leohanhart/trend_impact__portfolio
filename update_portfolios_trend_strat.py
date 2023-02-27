@@ -946,6 +946,7 @@ class create_kko_tickers_selection:
                         df["amount_of_trades_y2"].median()]
 
             # high winrates, takes higest BEST 82,5%
+            print(df)
             p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
                                                              df.total_profitible_trades_y2.mean()) / 4)
 
@@ -1181,6 +1182,11 @@ class kko_portfolio_update_manager:
 
         # self.create_single_options(items[1], lists_[0], "thread Leo")
         # self.create_all_options(selection.selected_tickers, 5)
+        
+        """
+        thread0 = threading.Thread(target=self.kill_switch,
+                                   args=(5, True))
+        """
 
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
@@ -1208,7 +1214,6 @@ class kko_portfolio_update_manager:
         thread9 = threading.Thread(target=self.continues_portfolio_creation,
                                    args=(items[1], selection, "thread 9", 30, 10000, 50))
 
-        sleep(10)
         print("threads are about to start.")
 
         """
@@ -1287,6 +1292,7 @@ class kko_portfolio_update_manager:
         threads.append(thread15)
         threads.append(thread16)
         """
+        print('threads have started')
         # Join the threads before
         loop:  bool = True
         while loop:
@@ -1732,7 +1738,7 @@ class kko_portfolio_update_manager:
 
         return chunks
 
-    def create_lists_with_limit(tickers_in: list, mode: str = "random", amount_per_portfolio: int = 10,
+    def create_lists_with_limit(self, tickers_in: list, mode: str = "random", amount_per_portfolio: int = 10,
                                 amount_portfoio: int = 1000):
         """
 
@@ -1770,7 +1776,49 @@ class kko_portfolio_update_manager:
                     pseudo_portfo = []
 
             if len(list_of_portfolios) >= amount_portfoio:
+
                 break
+
+    def kill_switch(self, days_untill_reset=31, test_modus: bool = False):
+        """
+        destroys thread after certain time so that the system can reset. 
+
+        Parameters
+        ----------
+        days_untill_reset : TYPE, optional
+            DESCRIPTION. The default is 31.
+
+        Returns
+        -------
+        None.
+
+        """
+        if not test_modus:
+            amount_of_sleep = days_untill_reset * 86400
+
+            time.sleep(amount_of_sleep)
+
+            return
+        else:
+
+            amount_of_sleep = 20
+
+            time.sleep(amount_of_sleep)
+
+            print("Wakie wakie")
+
+            return
+
+
+class kk_manager(object):
+
+    @staticmethod
+    def run_the_portfolio_update_system():
+
+        while True:
+
+            # start portfolio program, will take days before finish.
+            portfolio_creator = kko_portfolio_update_manager()
 
 
 class create_stats(object):
@@ -1946,9 +1994,9 @@ if __name__ == "__main__":
 
         # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = create_stats.return_backtest(
-            tickers=["ADMA", "ALT", "AFYA", "AEPPZ", "ACET"])
-
+        # x = create_stats.return_backtest(
+        #    tickers=["ADMA", "ALT", "AFYA", "AEPPZ", "ACET"])
+        startup_ = kko_portfolio_update_manager()
         # update_kaufman_kalman_analyses.update_full_analyses()
        # update_kaufman_kalman_analyses.update_all()
        # update_trend_performance("AAPL", "D")

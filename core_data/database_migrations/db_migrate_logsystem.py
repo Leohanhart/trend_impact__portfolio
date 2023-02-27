@@ -9,7 +9,7 @@ Created on Mon Oct 24 14:18:38 2022
 @author: Gebruiker
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, JSON
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -25,20 +25,20 @@ def initialization():
         "sqlite:///../../core_data/flowimpact_api_db.db", echo=True)
     Base = declarative_base()
 
-    class Table(Base):
-        """
-        id = Column(String, unique = True, primary_key=True)
-        sector = Column(String)
-        industry = Column(String)
-        Boolean = Column(String)
-
-        """
-
-        __tablename__ = 'logbook'
-
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        created = Column(DateTime, default=func.now())
-        message = Column(String)
+    class portfolio(Base):
+        __tablename__ = 'portfolio'
+        id = Column(Integer, primary_key=True)
+        portfolio_id = Column(String, nullable=False, unique=True)
+        portfolio_strategy = Column(String, nullable=False)
+        portfolio_amount = Column(Integer)
+        list_of_tickers = Column(JSON, nullable=False)
+        list_of_balances = Column(JSON, nullable=False)
+        list_of_sides = Column(JSON, nullable=False)
+        list_of_performance = Column(JSON, nullable=False)
+        total_expected_return = Column(Float)
+        total_sharp_y2 = Column(Float)
+        total_volatility_y2 = Column(Float)
+        createdAt = Column(String, nullable=False)
 
     Base.metadata.create_all(engine)
 

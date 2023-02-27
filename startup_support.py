@@ -90,3 +90,15 @@ def check_if_today_is_first_the_quarter():
         return True
     else:
         return False
+
+
+if __name__ == "__main__":
+
+    try:
+
+        if not check_if_today_is_businessday():
+            print("oke ")
+
+    except Exception as e:
+
+        raise Exception("Error with tickers", e)

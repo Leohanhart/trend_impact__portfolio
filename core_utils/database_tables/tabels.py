@@ -230,6 +230,15 @@ class unit_tests_and_errors(Base):
     error_code = Column(String, nullable=True)
 
 
+class Logbook(Base):
+
+    __tablename__ = 'logbook'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created = Column(DateTime, default=func.now())
+    message = Column(String)
+
+
 class log(Base):
 
     __tablename__ = 'logs_and_reports'
@@ -306,6 +315,7 @@ class Analyses_trend_kamal(Base):
     max_drawdown = Column(Float)
     exp_return = Column(Float)
     max_yield = Column(Float)
+    last_update = Column(DateTime(timezone=True), onupdate=func.now())
 
 
 class Analyses_archive_kamal(Base):

@@ -25,7 +25,7 @@ TASKS TO DO:
 
 import constants
 
-from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio
+from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio, Logbook
 
 import pandas as pd
 
@@ -390,10 +390,28 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        if periode == "D" or periode == "W":
+        if periode == "D" and ticker != "":
 
             query_string = session.query(Analyses_trend_kamal_performance).filter(
                 Analyses_trend_kamal_performance.id == ticker,
+                Analyses_trend_kamal_performance.periode == periode
+
+
+            ).statement.compile()  # .all()
+            # load dataframe with query
+
+            df = pd.read_sql_query(query_string, session.bind)
+
+            # close session
+            session.close()
+
+            # return frame.
+            return df
+
+        elif periode == "D" and ticker == "":
+
+            query_string = session.query(Analyses_trend_kamal_performance).filter(
+
                 Analyses_trend_kamal_performance.periode == periode
 
 
@@ -640,6 +658,22 @@ class database_querys:
         # return frame.
         return df
 
+    def add_log_to_logbook(text: str = ""):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        log = Logbook(
+            message=str(text)
+        )
+
+        session.add(log)
+        session.commit()
+        session.close()
+
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -718,6 +752,10 @@ class database_querys:
             Analyses_trend_kamal.periode == model.periode,
         ).first()
 
+        now = datetime.now()  # current date and time
+
+        date_time = now.strftime("%d-%m-%Y, %H:%M:%S")
+
         # check if ticker exsists
         if x == None:
 
@@ -733,8 +771,8 @@ class database_querys:
                 current_yield=model.current_yield,
                 max_drawdown=model.max_drawdown,
                 exp_return=model.exp_return,
-                max_yield=float(model.max_yield)
-
+                max_yield=float(model.max_yield),
+                last_update=now
             )
 
             session.add(Analyses)
@@ -779,6 +817,8 @@ class database_querys:
             if x.max_yield != model.max_yield:
 
                 x.max_yield = model.max_yield
+
+            x.last_update = now
 
             session.commit()
             session.close()
@@ -1277,16 +1317,49 @@ if __name__ == "__main__":
         model.total_volatility_y2 = 20
         model.createdAt = "14-01-2023"
 
-        #global x
+        # global x
         # x = database_querys.get_trading_portfolio(
         #    id_="e0eeaa4b-8e14-11ed-b2b9-001a7dda7110")
         # print(x)
-        #x = database_querys.delete_portfolio_with_id(model.portfolio_id)
+        # x = database_querys.delete_portfolio_with_id(model.portfolio_id)
         global x
         x = database_querys.get_trading_portfolio()
-        """
+
         x = database_querys.subscribe_trading_portfolio(
             "3f8d8199-8dd5-11ed-84f2-001a7dda7110")
+
+        class test:
+
+            ticker = str
+            periode = str
+            trend = int
+            duration = int
+            profile = int
+            profile_std = int
+            volatility = float
+            current_yield = float
+            max_drawdown = float
+            exp_return = float
+            max_yield = float
+
+        model = test()
+
+        # id = 1,
+        model.ticker = "AAL"
+        model.periode = "D"
+        model.trend = int(1)
+        model.duration = int(12)
+        model.profile = int(1)
+        model.profile_std = int(1)
+        model.volatility = float(4.1)
+        model.current_yield = float(6.4)
+        model.max_drawdown = float(12.1)
+        model.exp_return = float(1.19)
+        model.max_yield = float(1.10)
+        """
+
+        x = database_querys.get_trend_kalman_performance(
+            periode="D")
         print(x)
         print("END")
 
