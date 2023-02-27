@@ -442,6 +442,27 @@ class database_querys:
             # return frame.
             return df
 
+    def get_trend_and_performance_kamal():
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string = session.query(Analyses_trend_kamal, Analyses_trend_kamal_performance).filter(
+
+            Analyses_trend_kamal.id == Analyses_trend_kamal_performance.id
+
+        ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def subscribe_trading_portfolio(id_: str):
 
         data = database_querys.get_portfolio(id_=id_)
@@ -1358,8 +1379,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
 
-        x = database_querys.get_trend_kalman_performance(
-            periode="D")
+        x = database_querys.get_trend_and_performance_kamal()
         print(x)
         print("END")
 
