@@ -42,6 +42,9 @@ class return_trend_analyses(object):
         """
         data = database_querys_main.database_querys.get_trend_kalman(ticker)
 
+        # fixes date stamp
+        data[['last_update']] = data[['last_update']].astype(str)
+
         res = trend_analyse_support.package_data(data)
 
         return res
@@ -313,6 +316,42 @@ class return_stats(object):
         data = data.to_json()
 
         return data
+
+
+class return_trend_trade_options(object):
+
+    @staticmethod
+    def return_trade_options(page: int = 1, long: bool = True, short: bool = False,
+                             amount_days_of_new_trend: int = 5,
+                             percentage_2y_profitble: float = 90):
+
+        df = database_querys_main.database_querys.get_trend_and_performance_kamal()
+
+        if long and not short:
+
+            df = df.loc[(df['trend'] > 0) & (df['duration'] < amount_days_of_new_trend) & (
+                df['total_profitible_trades_y2'] > float(percentage_2y_profitble))]
+
+        elif short and not long:
+
+            df = df.loc[(df['trend'] < 0) & (df['duration'] < amount_days_of_new_trend) & (
+                df['total_profitible_trades_y2'] > float(percentage_2y_profitble))]
+
+        elif long and short:
+
+            df = df.loc[(df['duration'] < amount_days_of_new_trend) & (
+                df['total_profitible_trades_y2'] > float(percentage_2y_profitble))]
+
+        # apply pagenagtion
+        df = analyses_support.apply_pagination(df, 20, page)
+
+        # drop columns with troubles.
+        df = df.drop(columns=['last_update', 'id_1'])
+
+        # package data
+        res_data = trend_analyse_support.package_data(df)
+
+        return res_data
 
 
 class portfolio_support(object):
@@ -590,8 +629,8 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_stats.return_trading_backtest(
-            portfolio_id="fcd50532-8dd2-11ed-904b-001a7dda7110")
+        x = return_trend_trade_options.return_trade_options(
+            percentage_2y_profitble=99)
 
         print(x)
     except Exception as e:
