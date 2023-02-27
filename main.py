@@ -15,6 +15,7 @@ Idea's correlation / cointegration table. Use for prediction.
 
 from typing import Optional
 from fastapi import BackgroundTasks, FastAPI, Response, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from core_service_layer.data_service import get_system_info
 import database_querys_main
 import startup_script
@@ -25,6 +26,16 @@ import uvicorn
 from mangum import Mangum
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # startup_script.start_update_scedule()
 
@@ -50,7 +61,7 @@ async def startup_event():
 @app.get("/")
 def read_root():
 
-    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is waiting, LIKE ELMO! ELMO IS GREAT 1337"}
+    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is waiting GOO, LIKE ELMO! ELMO IS GREAT 1337"}
 
 
 @app.get("/trend_analyses")
