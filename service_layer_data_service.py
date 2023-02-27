@@ -93,6 +93,8 @@ class return_trend_analyses(object):
         data = database_querys_main.database_querys.get_trend_kalman_data(
             ticker)
 
+        data = trend_analyse_support.flip_dataframe(data)
+
         res_data = trend_analyse_support.package_data(data)
 
         return res_data
@@ -119,6 +121,26 @@ class return_trend_analyses(object):
 
 
 class trend_analyse_support(object):
+
+    @staticmethod
+    def flip_dataframe(data):
+        """
+
+        Flips dataframe
+
+        Parameters
+        ----------
+        data : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        data : TYPE
+            DESCRIPTION.
+
+        """
+        data = data.iloc[::-1]
+        return data
 
     @staticmethod
     def set_ticker(ticker):
