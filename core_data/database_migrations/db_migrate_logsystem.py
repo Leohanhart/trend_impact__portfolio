@@ -27,11 +27,14 @@ def initialization():
 
     class logbook(Base):
 
-        __tablename__ = 'logbook'
+        __tablename__ = 'user_trades'
 
         id = Column(Integer, primary_key=True, autoincrement=True)
-        created = Column(DateTime, default=func.now())
-        message = Column(String)
+        user_id = Column(String)
+        ticker = Column(String)
+
+        __table_args__ = (UniqueConstraint('user_id', 'ticker', name='_tickers_unique_value'),
+                          )
 
     Base.metadata.create_all(engine)
 

@@ -20,6 +20,7 @@ import service_layer_support
 from core_utils.save_temp_data import save_and_load_temp_data
 import pandas
 import numpy as np
+import pandas as pd
 
 
 class return_trend_analyses(object):
@@ -120,14 +121,103 @@ class return_trend_analyses(object):
         return res_data
 
     @staticmethod
-    def get_performance_sector(ticker: str = None, sector: str = None):
+    def get_performance_sector(ticker: str = None,
+                               sector: bool = True,
+                               industry: bool = False,
+                               name_industry: str = "",
+                               name_sector: str = ""):
 
         data = database_querys_main.database_querys.get_trends_and_sector()
 
+        data = data.drop(columns=['last_update', 'periode', 'id_1',
+                         'profile_std', 'max_drawdown', 'max_yield'])
+
+        if industry:
+
+            data = data.groupby('industry')['trend', 'exp_return',
+                                            'duration'].aggregate('mean', 'count')
+
+        elif sector:
+
+            data = data.groupby('sector')['trend', 'exp_return',
+                                          'duration'].aggregate('mean', 'count')
+
+        data.sort_values(by='trend', ascending=False)
+
         return data
+
+    @staticmethod
+    def get_user_trades(uuid_portfolio: str = ""):
+        """
+        returns user trades
+
+        Parameters
+        ----------
+        uuid_portfolio : str, optional
+            DESCRIPTION. The default is "".
+        list_tickers : list, optional
+            DESCRIPTION. The default is [].
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+
+        data = database_querys_main.database_querys.get_user_trade(
+            uuid_portfolio)
+
+        if data.empty:
+            return "portfolio id not found"
+
+        tickers = list(data.ticker.values)
+
+        data = trend_analyse_support.return_trend_data_multiple(
+            list_tickers=tickers)
+
+        data[['last_update']] = data[['last_update']].astype(str)
+
+        res_data = trend_analyse_support().package_data(data)
+
+        return res_data
 
 
 class trend_analyse_support(object):
+
+    def return_trend_data_multiple(list_tickers: list = []):
+        """
+        returns dataframe of trend data. 
+
+        Parameters
+        ----------
+        list_tickers : list, optional
+            DESCRIPTION. The default is [].
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # set vars.
+        first_run: bool = True
+        data = None
+
+        for ticker in list_tickers:
+
+            data_ticker = database_querys_main.database_querys.get_trend_kalman(
+                ticker)
+
+            if first_run:
+                data = data_ticker
+                first_run = False
+
+            else:
+
+                data = pd.concat([data, data_ticker])
+
+        return data
 
     @staticmethod
     def flip_dataframe(data):
@@ -257,7 +347,8 @@ class return_portfolios_options(object):
                                                                               )
 
         data = analyses_support().apply_pagination(
-            data, page_amount=page_amount, page_number=page_number)
+            data, page_amount=page_amount, page_number=page_number
+        )
 
         data = analyses_support().package_data(data)
 
@@ -378,6 +469,25 @@ class return_logs(object):
         data = trend_analyse_support.package_data(data)
 
         return data
+
+
+class crud_user_trades(object):
+
+    @staticmethod
+    def add_user_trade(uu_id_trader: str, ticker_name: str):
+
+        database_querys_main.database_querys.add_user_trade(
+            uu_id_trader, ticker_name)
+
+        return 200
+
+    @staticmethod
+    def remove_user_trade(uu_id_trader: str, ticker_name: str):
+
+        database_querys_main.database_querys.delete_user_trade(
+            uu_id_trader, ticker_name)
+
+        return 200
 
 
 class return_trend_trade_options(object):
@@ -691,7 +801,8 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_logs.return_logs_page(1)
+        x = return_trend_analyses().get_user_trades(
+            "49a55c9c-8dbd-11ed-8abb-001a7dda7110")
 
         print(x)
     except Exception as e:

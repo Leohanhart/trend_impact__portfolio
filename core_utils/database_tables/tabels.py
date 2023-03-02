@@ -430,3 +430,15 @@ class closed_portfolio(Base):
     total_volatility_y2 = Column(Float)
     createdAt = Column(String, nullable=False)
     closedAt = Column(String, nullable=False)
+
+
+class User_trades(Base):
+
+    __tablename__ = 'user_trades'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String)
+    ticker = Column(String)
+
+    __table_args__ = (UniqueConstraint('user_id', 'ticker', name='_tickers_unique_value'),
+                      )

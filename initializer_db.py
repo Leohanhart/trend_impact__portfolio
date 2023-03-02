@@ -206,6 +206,17 @@ def initialization():
 
     os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
 
+    class user_trades(Base):
+
+        __tablename__ = 'user_trades'
+
+        id = Column(Integer, primary_key=True, autoincrement=True)
+        user_id = Column(String)
+        ticker = Column(String)
+
+        __table_args__ = (UniqueConstraint('user_id', 'ticker', name='_tickers_unique_value'),
+                          )
+
 
 if __name__ == "__main__":
 

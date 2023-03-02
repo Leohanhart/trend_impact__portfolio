@@ -81,7 +81,7 @@ def return_trend_archive_analyses(ticker: str):
 
 
 @app.get("/trend_analyses_trades")
-def return_trend_archive_analyses(ticker: str):
+def return_trend_archive_trades(ticker: str):
 
     data = services.return_trend_analyses.get_trend_analyses_trades(ticker)
 
@@ -141,7 +141,7 @@ def avalible_portfolios(portfolio_id: str = ""):
 
 
 @app.post("/add_portfolios")
-def return_add_portfolios(portfolio_id: str):
+def add_portfolios(portfolio_id: str):
 
     data = services.return_portfolios_options.add_trading_portfolio(
         id_=portfolio_id)
@@ -150,7 +150,7 @@ def return_add_portfolios(portfolio_id: str):
 
 
 @app.delete("/remove_portfolio")
-def return_remove_portfolio(portfolio_id: str):
+def remove_portfolio(portfolio_id: str):
 
     data = services.return_portfolios_options.delete_trading_portfolio(
         id_=portfolio_id)
@@ -168,9 +168,36 @@ def return_portfolio_performance(portfolio_id: str):
 
 
 @app.get("/show_logs")
-def return_portfolio_performance(page_number: int = 1):
+def return_logs(page_number: int = 1):
 
     data = services.return_logs.return_logs_page(page_number=page_number)
+
+    return data
+
+
+@app.get("/show_user_trades")
+def return_user_trades(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110"):
+
+    data = services.return_trend_analyses.get_user_trades(
+        uuid_portfolio=trader_id)
+
+    return data
+
+
+@app.post("/add_user_trades")
+def add_user_trade(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""):
+
+    data = services.crud_user_trades.add_user_trade(
+        uu_id_trader=trader_id, ticker_name=ticker)
+
+    return data
+
+
+@app.delete("/remove_user_trades")
+def return_logs(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""):
+
+    data = services.crud_user_trades.remove_user_trade(uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110",
+                                                       ticker="")
 
     return data
 

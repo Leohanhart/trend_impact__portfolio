@@ -89,8 +89,6 @@ def update_operation():
     None.
 
     """
-    database_querys_main.database_querys.add_log_to_logbook(
-        "update operations is started.")
 
     update_trend_analyses.update_kaufman_kalman_analyses.update_all()
 
@@ -107,8 +105,7 @@ def update_tickers_daily():
     """
     update_stocks_main.update_stocks.download_stockdata()
     """
-    database_querys_main.database_querys.add_log_to_logbook(
-        "Starting daily update")
+
     # update analyses daily
     # if support.check_if_today_is_businessday():
 
@@ -127,6 +124,9 @@ def update_tickers_daily():
         proces_background.start()
 
     update_analyses(periode="D")
+
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Finnished daily updates")
 
     # mutex.release()
 

@@ -25,7 +25,7 @@ TASKS TO DO:
 
 import constants
 
-from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio, Logbook
+from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio, Logbook, User_trades
 
 import pandas as pd
 
@@ -463,6 +463,27 @@ class database_querys:
         # return frame.
         return df
 
+    def get_trends_and_sector():
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string = session.query(Analyses_trend_kamal, Ticker).filter(
+
+            Analyses_trend_kamal.id == Ticker.id
+
+        ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def subscribe_trading_portfolio(id_: str):
 
         data = database_querys.get_portfolio(id_=id_)
@@ -679,6 +700,23 @@ class database_querys:
         # return frame.
         return df
 
+    def get_logs():
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string = session.query(Logbook).statement.compile()  # .all()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def add_log_to_logbook(text: str = ""):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -693,6 +731,83 @@ class database_querys:
 
         session.add(log)
         session.commit()
+        session.close()
+
+    def add_user_trade(user_id: str, user_ticker):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(User_trades).filter(
+
+            User_trades.user_id == user_id,
+            User_trades.ticker == user_ticker
+        ).first()
+
+        if x == None:
+
+            trade = User_trades(
+
+                user_id=str(user_id),
+                ticker=str(user_ticker)
+            )
+
+            session.add(trade)
+            session.commit()
+            session.close()
+
+            return
+
+    def get_user_trade(user_id: str):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string: str
+
+        query_string = session.query(User_trades).filter(
+            User_trades.user_id == user_id
+        ).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
+    def delete_user_trade(user_id: str, user_ticker):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(User_trades).filter(
+
+            User_trades.user_id == user_id,
+            User_trades.ticker == user_ticker
+        ).first()
+
+        # check if ticker exsists
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
         session.close()
 
     def update_portfolio(model):
@@ -1378,8 +1493,11 @@ if __name__ == "__main__":
         model.exp_return = float(1.19)
         model.max_yield = float(1.10)
         """
+        # x = database_querys.get_trends_and_sector()
+        x = database_querys.get_user_trade(
+            "49a55c9c-8dbd-11ed-8abba7dda7110")
 
-        x = database_querys.get_trend_and_performance_kamal()
+        # x = database_querys.get_logs()
         print(x)
         print("END")
 
