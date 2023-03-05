@@ -7,6 +7,9 @@ Created on Fri Mar  3 16:57:39 2023
 
 # other objects.
 import update_portfolios_trend_strat as update_portfolio_trends
+import update_trend_analyses as update_stats_trend_analyses
+import database_querys_main as database_querys
+
 
 # system
 from time import sleep
@@ -48,12 +51,19 @@ class update_data:
         while True:
             i += 1
             sleep(.10)
+
             # report a message
             print('Hello from the new thread 2 ')
 
             print('updating the portfolio s')
 
+            database_querys.database_querys.add_log_to_logbook(
+                "started portfolio creation system")
+
             update = update_portfolio_trends.kko_portfolio_update_manager()
+
+            database_querys.database_querys.add_log_to_logbook(
+                "ended portfolio creation system")
 
             if self.kill_switch:
                 print("GET OUT ")
@@ -68,6 +78,13 @@ class update_data:
             sleep(2)
             # report a message
             print('Hello from the new thread 3 ')
+            database_querys.database_querys.add_log_to_logbook(
+                "started trendperformance archive")
+
+            update_stats_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
+
+            database_querys.database_querys.add_log_to_logbook(
+                "eneded trendperformance archive")
 
             if self.kill_switch:
                 print("GET OUT ")
@@ -76,11 +93,6 @@ class update_data:
     def task_4(self):
         print("THROW EXCEPTION")
         raise Exception("Thisisnotcool")
-        return
-
-    def task_4(self):
-        sleep(5)
-
         return
 
     def print_squares(self, thread_name, numbers):
