@@ -656,50 +656,6 @@ class database_querys:
 
         return 200
 
-    def get_portfolio(id_: str = "", strategy: str = ""):
-
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
-                               )
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        x = session.query(Portfolio).filter(
-            Portfolio.portfolio_id == id_,
-        ).first()
-
-        query_string: str
-
-        if id_:
-
-            query_string = session.query(Portfolio).filter(
-                Portfolio.portfolio_id == id_,
-            ).statement.compile()
-
-        elif strategy:
-
-            query_string = session.query(Portfolio).filter(
-                Portfolio.portfolio_strategy == strategy
-            ).statement.compile()
-
-        elif id_ and strategy:
-            query_string = session.query(Portfolio).filter(
-                Portfolio.portfolio_strategy == strategy,
-                Portfolio.portfolio_id == id_
-            ).statement.compile()
-
-        else:
-
-            query_string = session.query(Portfolio).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
-
-        # close session
-        session.close()
-
-        # return frame.
-        return df
-
     def get_logs():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -810,6 +766,50 @@ class database_querys:
 
         session.close()
 
+    def get_portfolio(id_: str = "", strategy: str = ""):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == id_,
+        ).first()
+
+        query_string: str
+
+        if id_:
+
+            query_string = session.query(Portfolio).filter(
+                Portfolio.portfolio_id == id_,
+            ).statement.compile()
+
+        elif strategy:
+
+            query_string = session.query(Portfolio).filter(
+                Portfolio.portfolio_strategy == strategy
+            ).statement.compile()
+
+        elif id_ and strategy:
+            query_string = session.query(Portfolio).filter(
+                Portfolio.portfolio_strategy == strategy,
+                Portfolio.portfolio_id == id_
+            ).statement.compile()
+
+        else:
+
+            query_string = session.query(Portfolio).statement.compile()
+
+        df = pd.read_sql_query(query_string, session.bind)
+
+        # close session
+        session.close()
+
+        # return frame.
+        return df
+
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -874,6 +874,31 @@ class database_querys:
 
         session.close()
         return
+
+    def delete_portfolio(portfio_id: str = ""):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+                               )
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Portfolio).filter(
+            Portfolio.portfolio_id == portfio_id,
+        ).first()
+
+        # check if ticker exsists
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
+        session.close()
 
     def update_analyses_trend_kamal(model):
 
@@ -1494,8 +1519,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_user_trade(
-            "49a55c9c-8dbd-11ed-8abba7dda7110")
+        x = database_querys.get_portfolio()
 
         # x = database_querys.get_logs()
         print(x)

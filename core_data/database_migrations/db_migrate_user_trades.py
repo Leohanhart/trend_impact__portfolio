@@ -22,16 +22,19 @@ import os
 def initialization():
     db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
     engine = create_engine(
-        "sqlite:///../../core_data/flowimpact_api_db.db", echo=True)
+        "sqlite:///../../core_data/flowimpa5ct_api_db.db", echo=True)
     Base = declarative_base()
 
     class logbook(Base):
 
-        __tablename__ = 'logbook'
+        __tablename__ = 'user_trades'
 
         id = Column(Integer, primary_key=True, autoincrement=True)
-        created = Column(DateTime, default=func.now())
-        message = Column(String)
+        user_id = Column(String)
+        ticker = Column(String)
+
+        __table_args__ = (UniqueConstraint('user_id', 'ticker', name='_tickers_unique_value'),
+                          )
 
     Base.metadata.create_all(engine)
 

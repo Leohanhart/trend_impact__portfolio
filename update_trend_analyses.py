@@ -31,6 +31,7 @@ from statsmodels.tsa.vector_ar.vecm import coint_johansen
 from collections import ChainMap
 import uuid
 
+pd.options.mode.chained_assignment = None
 
 """
 
@@ -816,6 +817,8 @@ class update_trend_performance:
         model = all_data
 
         model = update_kaufman_support().package_dict_in_class(model)
+
+        print("ticker: ", ticker, " = updated")
 
         database_querys.database_querys.update_analyses_trend_kamal_performance(
             model)
@@ -1660,8 +1663,8 @@ if __name__ == "__main__":
         # print(obj)
         #x = update_kaufman_kalman_analyses.update_full_analyses()
 
-        # update_kaufman_kalman_analyses.update_full_analyses()
-        update_kaufman_kalman_analyses.update_all()
+        update_kaufman_kalman_analyses.update_full_analyses()
+        # update_kaufman_kalman_analyses.update_all()
        # update_trend_performance("AAPL", "D")
 
     except Exception as e:

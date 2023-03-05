@@ -1137,6 +1137,9 @@ class kko_portfolio_update_manager:
         then act on the multi threading.
 
         """
+
+        self.remove_all_portfolios()
+
         # get the tickers
         selection = create_kko_tickers_selection(methode_one=True)
         print("this is the new len", selection)
@@ -1184,7 +1187,7 @@ class kko_portfolio_update_manager:
         # self.create_all_options(selection.selected_tickers, 5)
         
         """
-        thread0 = threading.Thread(target=self.kill_switch,
+        thread0 = threading.Thread(target=self.the_kill_switch,
                                    args=(5, True))
         """
 
@@ -1298,7 +1301,9 @@ class kko_portfolio_update_manager:
         while loop:
             for thread in threads:
                 if not thread.is_alive():
-                    print("Doden threads")
+                    print("Doden threads in portfolio managment")
+
+                    print(thread)
 
                     thread.join()
                     self.kill_switch = True
@@ -1537,6 +1542,7 @@ class kko_portfolio_update_manager:
         # while killswitch is off: run for ever.
         while not self.kill_switch:
 
+            print("heartbeat : ", thread_name)
             # add itteration
             itterations_count.append(1)
 
@@ -1779,7 +1785,7 @@ class kko_portfolio_update_manager:
 
                 break
 
-    def kill_switch(self, days_untill_reset=31, test_modus: bool = False):
+    def the_kill_switch(self, days_untill_reset=31, test_modus: bool = False):
         """
         destroys thread after certain time so that the system can reset. 
 
@@ -1808,6 +1814,17 @@ class kko_portfolio_update_manager:
             print("Wakie wakie")
 
             return
+
+    def remove_all_portfolios(self):
+
+        portfolios = database_querys.database_querys.get_portfolio()
+
+        portfolio_ids = list(portfolios.portfolio_id)
+
+        for i in portfolio_ids:
+
+            database_querys.database_querys.delete_portfolio_with_id(i)
+            print("deleted portfolio : ", i)
 
 
 class kk_manager(object):

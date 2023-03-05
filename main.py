@@ -197,7 +197,7 @@ def add_user_trade(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", tick
 def return_logs(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""):
 
     data = services.crud_user_trades.remove_user_trade(uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110",
-                                                       ticker="")
+                                                       ticker_name=ticker)
 
     return data
 
