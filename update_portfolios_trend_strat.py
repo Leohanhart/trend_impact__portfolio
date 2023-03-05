@@ -36,7 +36,6 @@ import concurrent.futures
 from concurrent.futures import wait
 from concurrent.futures import FIRST_EXCEPTION
 import random
-import random
 from datetime import datetime
 import statistics
 # custom target function
@@ -1130,11 +1129,12 @@ class kko_portfolio_update_manager:
 
     def __init__(self):
         """
-        Troubles start with the second items_10, thread 13. the lists are probably to big.
-        - first downscale to lists of 10, probably build this in create_data_and_filer.
-            just normal lists of 1 mil or so.
-
-        then act on the multi threading.
+        
+        
+        first split the list of options so that the data unit doesent overload. 
+        
+        befor split randomise the list. 
+        
 
         """
 
@@ -1189,7 +1189,7 @@ class kko_portfolio_update_manager:
         """
         thread0 = threading.Thread(target=self.the_kill_switch,
                                    args=(5, True))
-
+        """
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
 
@@ -1202,6 +1202,7 @@ class kko_portfolio_update_manager:
                                    args=(items[1], lists_[3], "thread 4"))
         thread5 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[4], "thread 5"))
+        """
 
         thread6 = threading.Thread(target=self.continues_portfolio_creation,
                                    args=(items[1], selection, "thread 6", 10, 10000, 15))
@@ -1243,17 +1244,15 @@ class kko_portfolio_update_manager:
         thread17 = threading.Thread(target=self.create_single_options,
                                     args=(items[1], lists_twen[5], "thread 17"))
 
-        
+        """
         threads = []
-
+        """
         thread1.start()
         thread2.start()
         thread3.start()
         thread4.start()
         thread5.start()
         """
-        threads = []
-
         thread6.start()
 
         thread7.start()
@@ -1270,14 +1269,14 @@ class kko_portfolio_update_manager:
         thread16.start()
         thread17.start()
 
-        
+        """
+        """
         threads.append(thread1)
         threads.append(thread2)
         threads.append(thread3)
         threads.append(thread4)
         threads.append(thread5)
         """
-
         threads.append(thread6)
 
         threads.append(thread7)
@@ -1665,9 +1664,16 @@ class kko_portfolio_update_manager:
 
             try:
 
+                nr = tickers_out.index(i)
+                #prc = nr / len(tickers_out)
+
+                print(i, " is added to data, we are at =",
+                      str(nr), " of ", str(len(tickers_out)))
+
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
                 ticker_options[i] = ts_data.data
+
             except:
 
                 tickers_out.remove(i)
