@@ -102,9 +102,7 @@ def update_tickers_daily():
     # mutex.acquire()
 
     # update tickers
-    """
     update_stocks_main.update_stocks.download_stockdata()
-    """
 
     # update analyses daily
     # if support.check_if_today_is_businessday():
