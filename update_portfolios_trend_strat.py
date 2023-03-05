@@ -1189,7 +1189,6 @@ class kko_portfolio_update_manager:
         """
         thread0 = threading.Thread(target=self.the_kill_switch,
                                    args=(5, True))
-        """
 
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
@@ -1203,7 +1202,6 @@ class kko_portfolio_update_manager:
                                    args=(items[1], lists_[3], "thread 4"))
         thread5 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[4], "thread 5"))
-        """
 
         thread6 = threading.Thread(target=self.continues_portfolio_creation,
                                    args=(items[1], selection, "thread 6", 10, 10000, 15))
@@ -1550,6 +1548,7 @@ class kko_portfolio_update_manager:
             if len(itterations_count) > amount_if_itterations_before_next_step:
 
                 itterations_count = []
+                sharp_ratios = []
                 amount_per_portfolio += 1
 
                 if amount_per_portfolio > max_amount_per_portfolio:
@@ -1812,6 +1811,10 @@ class kko_portfolio_update_manager:
             time.sleep(amount_of_sleep)
 
             print("Wakie wakie")
+
+            self.kill_switch = True
+
+            print("hit the switch.")
 
             return
 
