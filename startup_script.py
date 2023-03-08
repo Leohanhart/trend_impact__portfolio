@@ -101,6 +101,9 @@ def update_tickers_daily():
 
     # mutex.acquire()
 
+    database_querys_main.database_querys.add_log_to_logbook(
+        "started daily updates")
+
     # update tickers
     update_stocks_main.update_stocks.download_stockdata()
 
@@ -113,13 +116,7 @@ def update_tickers_daily():
 
     # if today is first of the month.
     if support.check_if_today_is_first_the_month():
-
-        proces_background = threading.Thread(
-            name='daemon_complex_operations', target=update_operation)
-
-        proces_background.setDaemon(True)
-
-        proces_background.start()
+        pass
 
     update_analyses(periode="D")
 
@@ -179,6 +176,12 @@ def heartbeat():
     # mutex.release()
 
 
+def report_alive():
+
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Hourly update in update_cycle.")
+
+
 def update_scedual():
 
     print("Starting up.")
@@ -189,9 +192,9 @@ def update_scedual():
 
     schedule.every(1).seconds.do(heartbeat)
 
-    schedule.every().day.at("18:55").do(update_tickers_daily)
+    schedule.every().day.at("23:55").do(update_tickers_daily)
     # Every friday tickers get initizalized and analyses are yodated after
-
+    schedule.every().hour.do(report_alive)
     schedule.every().saturday.at("01:00").do(update_tickers_weekly)
 
     # schedule.every().friday.at("23:59").do(update_analyses)
@@ -210,6 +213,10 @@ def update_scedual():
 
 
 def start_update_scedule():
+
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Started update_cycle.")
+
     proces_background = threading.Thread(name='daemon', target=update_scedual)
     proces_background.setDaemon(True)
     proces_background.start()
