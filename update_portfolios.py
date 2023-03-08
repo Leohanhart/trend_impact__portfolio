@@ -30,7 +30,7 @@ class update_data:
     def __init__(self):
 
         Thread()
-        self.thead_it_up()
+        self.start_update_scedule()
 
     def task(self):
 
@@ -103,7 +103,7 @@ class update_data:
             # Produce some delay to see the output
             sleep(1)
 
-    def thead_it_up(self):
+    def startup_data_transformation(self):
         """
         # create a new thread
         threads = []
@@ -174,8 +174,13 @@ class update_data:
         thread2.join()
         thread3.join()
 
+    def start_update_scedule(self):
 
-print("thread finnsehd")
+        database_querys.database_querys.add_log_to_logbook(
+            "Started update data_transformation.")
 
-
-leo = update_data()
+        proces_background = threading.Thread(
+            name='daemon_dtf', target=self.startup_data_transformation)
+        proces_background.setDaemon(True)
+        proces_background.start()
+        # proces_background.join()
