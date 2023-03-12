@@ -316,7 +316,8 @@ class data_synch:
 
                     pickle.dump(self.new_data, handle,
                                 protocol=pickle.DEFAULT_PROTOCOL)
-                    print("Data saved", self.ticker)
+                    if self.print_data:
+                        print("Data saved", self.ticker)
             except:
                 self.error_code = 1
         else:
@@ -326,7 +327,8 @@ class data_synch:
 
                     pickle.dump(self.synchronized_data, handle,
                                 protocol=pickle.DEFAULT_PROTOCOL)
-                    print("New data is saved", self.ticker)
+                    if self.print_data:
+                        print("New data is saved", self.ticker)
             except:
                 self.error_code = 1
 

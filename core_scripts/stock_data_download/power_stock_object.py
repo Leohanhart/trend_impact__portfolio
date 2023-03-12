@@ -136,7 +136,7 @@ class power_stock_object:
                  analyeses_modus    : bool = False):
         """
 
-        print("Startup")
+        # print("Startup")
 
         #
         # check if the ticker is empty.
@@ -571,7 +571,7 @@ class power_stock_object:
         # if the date is not equal to 0, it means that the data is expired. Even in the weekends or in holydays.
         if amount_of_dates != 0 or ignore_last_refresh_date == True:
 
-            print("Stock data is loaded")
+            #print("Stock data is loaded")
             #
             # sets up a stock download object
             stock_dowload_object = old_supporting_functions.download_stock(

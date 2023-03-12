@@ -38,6 +38,7 @@ from concurrent.futures import FIRST_EXCEPTION
 import random
 from datetime import datetime
 import statistics
+import startup_support as support
 # custom target function
 
 
@@ -768,7 +769,6 @@ class create_kko_portfolios:
         for i in range(0, len(list_of_options)):
 
             round_ += 1
-            print("we are running itteration ", round_)
 
             tickers_selected = list_of_options[i]
 
@@ -908,7 +908,7 @@ class create_kko_tickers_selection:
 
     selected_tickers: list
 
-    def __init__(self, methode_one: bool = False, methode_two: bool = False):
+    def __init__(self, methode_one: bool = False, methode_two: bool = False, methode_test: bool = False):
         """
         VERY important
         - First method is kind of created to make small lists of stocks.
@@ -945,7 +945,7 @@ class create_kko_tickers_selection:
                         df["amount_of_trades_y2"].median()]
 
             # high winrates, takes higest BEST 82,5%
-            print(df)
+
             p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
                                                              df.total_profitible_trades_y2.mean()) / 4)
 
@@ -999,6 +999,38 @@ class create_kko_tickers_selection:
             self.selected_tickers = tickers_for_portfolio
             return
 
+        if methode_test:
+            """
+            Methode one is basicly filterd on winrate, cutted and
+
+            its very hard to say why this method is chosen, because it takes the median of the
+
+
+
+            """
+            # gets data
+            df = database_querys.database_querys.get_trend_kalman_performance(
+                periode="D")
+
+            # first select half of amount of trades.
+            df = df.loc[df['amount_of_trades_y2'] > 13]
+
+            df = df.loc[df['total_profitible_trades_y2'] > 95]
+
+            df = df.sort_values(
+                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+
+            # opoinaly remove. if there are more than 25 the system chrashs haha
+            # it takes ages for the correlation matrix.
+
+            # removed because tail values
+            df = df.head(30)
+            #
+            tickers_for_portfolio = list(df.id.values)
+
+            self.selected_tickers = tickers_for_portfolio
+            return
+
 
 class kko_portfolio_gardian:
 
@@ -1033,9 +1065,6 @@ class kko_portfolio_gardian:
         None.
 
         """
-
-        print(portfolio.Imax_sharp_sharp_ratio,
-              portfolio.Imax_sharp_expected_return)
 
         allowd = False
         # sets portfolio_parameters -- if needed check them here -- for example long short.
@@ -1128,28 +1157,196 @@ class kko_portfolio_update_manager:
     kill_switch: bool = False
 
     def __init__(self):
+
+        self.startup_new()
+
+    def startup_new(self):
         """
-        
-        
-        first split the list of options so that the data unit doesent overload. 
-        
-        befor split randomise the list. 
-        
+
+
+        System functions
+        1. Deletes all old options when a cycle is finished, removes all options if restarted. So there is always a clean database.
 
         """
 
-        self.remove_all_portfolios()
+        delete_old_portfolios: bool = False
+
+        min_amount_tickers: int = 5
+        max_rotations: int = 10000
+        max_stocks: int = 50
+        min_sharp_ratio: int = 0
+
+        # find last amount and sharp.
+        details = self.get_last_details()
+        # remove methode test befor deployment
+        min_amount_tickers, min_sharp_ratio = details
+
+        #
+        if min_amount_tickers == 5:
+            #
+            self.remove_all_portfolios()
+
+        # retreives the list with old portoflio's that will be deleted in the end.
+        old_portfolios = self.return_all_old_portfolios()
 
         # get the tickers
-        selection = create_kko_tickers_selection(methode_one=True)
-        print("this is the new len", selection)
-        time.sleep(2)
+        selection = create_kko_tickers_selection(methode_two=True)
 
-        items = self.create_data_and_filter_tickers(
-            selection.selected_tickers, 5)
+        tickers_selected = selection.selected_tickers
 
-        data_ = items[0]
-        tickers = items[1].keys()
+        # shuffel selection.
+        for i in range(0, 10):
+            random.shuffle(tickers_selected)
+
+        items = self.create_data_of_tickers(
+            selection.selected_tickers)
+
+        tickers = list(items.keys())
+
+        # self.create_single_options(items[1], lists_[0], "thread Leo")
+        # self.create_all_options(selection.selected_tickers, 5)
+
+        self.continues_portfolio_creation(
+            items, tickers, 'thread 0', min_amount_tickers, max_rotations, max_stocks, min_sharp_ratio)
+
+        self.delete_list_portrfolios(old_portfolios)
+
+        return
+        """
+        threads = []
+        thread0.start()
+        thread6.start()
+
+        threads.append(thread0)
+        threads.append(thread6)
+
+        print('threads have started')
+        # Join the threads before
+        loop:  bool = True
+        while loop:
+
+            if not thread6.is_alive():
+
+                print("Doden threads in portfolio managment")
+
+                thread6.join()
+                self.kill_switch = True
+                loop = False
+                break
+
+            if not thread0.is_alive():
+
+                print("Doden threads in portfolio managment")
+
+                print(thread)
+
+                thread.join()
+                self.kill_switch = True
+                loop = False
+                break
+
+    
+        thread1.join()
+        thread2.join()
+        thread3.join()
+        thread4.join()
+        thread5.join()
+ 
+        thread7.join()
+        thread8.join()
+        thread9.join()
+        
+
+        thread10.join()
+        thread11.join()
+
+        thread12.join()
+        thread13.join()
+        thread14.join()
+        thread15.join()
+        thread16.join()
+
+
+        # the rest one I guess.
+        # function with different parameters
+        thread1 = threading.Thread(target=self.print_squares,
+                                   args=("thread1", [1, 2, 3, 4, 5]))
+
+        thread2 = thread_2 = Thread(target=self.task_2)
+
+        thread3 = threading.Thread(target=self.task_3,
+                                   args=())
+        threads = []
+        # Start the threads
+        thread1.start()
+        thread2.start()
+        thread3.start()
+
+        threads.append(thread1)
+        threads.append(thread2)
+        threads.append(thread3)
+
+        # Join the threads before
+        loop:  bool = True
+        while loop:
+            for thread in threads:
+                if not thread.is_alive():
+                    print("Doden threads")
+
+                    thread.join()
+                    self.kill_switch = True
+                    loop = False
+                    break
+
+        # moving further
+        thread1.join()
+        thread2.join()
+        thread3.join()
+  
+        """
+
+    def starting_up(self):
+        """
+
+
+        first split the list of options so that the data unit doesent overload. 
+
+        befor split randomise the list. 
+
+
+        """
+
+        min_amount_tickers: int = 5
+        min_sharp_ratio: int = 0
+        max_rotations: int = 10000
+        max_stocks: int = 50
+
+        if support.check_if_today_is_first_the_month():
+
+            database_querys.database_querys.add_log_to_logbook(
+                "Deleted all portfolio's and re-newd cycle")
+            self.remove_all_portfolios()
+
+        else:
+
+            # find last amount and sharp.
+            details = self.get_last_details()
+            # remove methode test befor deployment
+            min_amount_tickers, min_sharp_ratio = details
+
+        # get the tickers
+        selection = create_kko_tickers_selection(methode_test=True)
+
+        tickers_selected = selection.selected_tickers
+
+        # shuffel selection.
+        for i in range(0, 10):
+            random.shuffle(tickers_selected)
+
+        items = self.create_data_of_tickers(
+            selection.selected_tickers)
+
+        tickers = list(items.keys())
 
         """
         list_portfolios_big = self.create_lists_with_limit(
@@ -1161,9 +1358,10 @@ class kko_portfolio_update_manager:
         items_20 = self.create_data_and_filter_tickers(
             selection.selected_tickers, 20)
         """
+        # this function is realy danagerouse, remove fast as posible.
         # this will be threaded, 5 for portfolio of 5
-        lists_ = self.return_equal_lists(
-            items[0], amount_of_lists=5)
+        # lists_ = self.return_equal_lists(
+        #    items[0], amount_of_lists=5)
 
         """
         # this will be threaded, 5 for portfolio of 5
@@ -1187,8 +1385,9 @@ class kko_portfolio_update_manager:
         # self.create_all_options(selection.selected_tickers, 5)
         
         """
+
         thread0 = threading.Thread(target=self.the_kill_switch,
-                                   args=(5, True))
+                                   args=(2, False))
         """
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
@@ -1205,20 +1404,31 @@ class kko_portfolio_update_manager:
         """
 
         thread6 = threading.Thread(target=self.continues_portfolio_creation,
-                                   args=(items[1], selection, "thread 6", 10, 10000, 15))
-
-        thread7 = threading.Thread(target=self.continues_portfolio_creation,
-                                   args=(items[1], selection, "thread 7", 16, 10000, 21))
-
-        thread8 = threading.Thread(target=self.continues_portfolio_creation,
-                                   args=(items[1], selection, "thread 8", 22, 10000, 30))
-
-        thread9 = threading.Thread(target=self.continues_portfolio_creation,
-                                   args=(items[1], selection, "thread 9", 30, 10000, 50))
-
-        print("threads are about to start.")
+                                   args=(items, tickers, "thread 6",
+                                         min_amount_tickers,
+                                         max_rotations,
+                                         max_stocks,
+                                         min_sharp_ratio))
 
         """
+        random.shuffle(tickers)
+
+        thread7 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items, tickers, "thread 7", 5, 100000, 50))
+
+        random.shuffle(tickers)
+
+        thread8 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items, tickers, "thread 8", 5, 100000, 50))
+
+        random.shuffle(tickers)
+
+        thread9 = threading.Thread(target=self.continues_portfolio_creation,
+                                   args=(items, tickers, "thread 9", 5, 100000, 50))
+        
+        print("threads are about to start.")
+
+        
         thread7 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_ten[1], "thread 7"))
         thread8 = threading.Thread(target=self.create_single_options,
@@ -1246,6 +1456,7 @@ class kko_portfolio_update_manager:
 
         """
         threads = []
+        # thread0.start()
         """
         thread1.start()
         thread2.start()
@@ -1255,10 +1466,13 @@ class kko_portfolio_update_manager:
         """
         thread6.start()
 
+        """
         thread7.start()
         thread8.start()
         thread9.start()
-        """
+
+        
+         
         thread10.start()
         thread11.start()
 
@@ -1277,12 +1491,14 @@ class kko_portfolio_update_manager:
         threads.append(thread4)
         threads.append(thread5)
         """
-        threads.append(thread6)
 
+        threads.append(thread6)
+        """
         threads.append(thread7)
         threads.append(thread8)
         threads.append(thread9)
-        """
+        
+        
         threads.append(thread10)
         threads.append(thread11)
 
@@ -1296,7 +1512,9 @@ class kko_portfolio_update_manager:
         # Join the threads before
         loop:  bool = True
         while loop:
+
             for thread in threads:
+
                 if not thread.is_alive():
                     print("Doden threads in portfolio managment")
 
@@ -1306,6 +1524,7 @@ class kko_portfolio_update_manager:
                     self.kill_switch = True
                     loop = False
                     break
+            continue
         """
         thread1.join()
         thread2.join()
@@ -1313,11 +1532,15 @@ class kko_portfolio_update_manager:
         thread4.join()
         thread5.join()
         """
+
         thread6.join()
+
+        """
         thread7.join()
         thread8.join()
         thread9.join()
-
+        
+        """
         return
 
         """
@@ -1411,7 +1634,6 @@ class kko_portfolio_update_manager:
         for i in range(0, len(list_of_options)):
 
             round_ += 1
-            print("we are running itteration ", round_)
 
             tickers_selected = list_of_options[i]
 
@@ -1455,7 +1677,7 @@ class kko_portfolio_update_manager:
             round_ += 1
             prc_ = round((round_ / total_len) * 100, 2)
             # print("we are running itteration ", round_)
-            print(thread_name, " we are on", prc_, "% of processing")
+
             tickers_selected = list_of_options[i]
 
             data = self.create_data_frame_of_tickers(
@@ -1477,9 +1699,10 @@ class kko_portfolio_update_manager:
     def continues_portfolio_creation(self, data_service,
                                      tickers_in: list,
                                      thread_name="thread 1 ",
-                                     amount_per_portfolio: int = 10,
+                                     amount_per_portfolio: int = 5,
                                      amount_if_itterations_before_next_step=10000,
-                                     max_amount_per_portfolio=50):
+                                     max_amount_per_portfolio=50,
+                                     minimum_sharp_last=0):
         """
 
 
@@ -1498,6 +1721,7 @@ class kko_portfolio_update_manager:
         max_amount_per_portfolio : TYPE, optional
             DESCRIPTION. The default is 50.
 
+        minumim_shrp is set to create default minimum/
         Returns
         -------
         None.
@@ -1516,8 +1740,6 @@ class kko_portfolio_update_manager:
 
         """
 
-        print(thread_name, " Just started")
-
         amount_per_portfolio = amount_per_portfolio
 
         # creates list where pseudo portfolio' will be added in.
@@ -1533,13 +1755,12 @@ class kko_portfolio_update_manager:
 
         # var for suggested portfolio.
         suggested_portfolio = None
-        max_nr = (len(tickers_in.selected_tickers)-1)
+        max_nr = (len(tickers_in)-1)
         rng = numpy.random.RandomState(2)
 
         # while killswitch is off: run for ever.
         while not self.kill_switch:
 
-            print("heartbeat : ", thread_name)
             # add itteration
             itterations_count.append(1)
 
@@ -1563,7 +1784,7 @@ class kko_portfolio_update_manager:
                 number = rng.randint(0, max_nr)
 
                 # selects ticker based on the random number
-                ticker = tickers_in.selected_tickers[number]
+                ticker = tickers_in[number]
 
                 # if ticker is not in the portfolio' add.
                 if ticker not in pseudo_portfo:
@@ -1581,14 +1802,16 @@ class kko_portfolio_update_manager:
 
                 # if there is a kill in the thread. Exit.
                 if self.kill_switch:
+
                     break
 
             # if there is a kill in the thread, kill it.
             if self.kill_switch:
+
                 break
 
-        # /|\ CREATES PSUEDO PORTFOLIO || \|/ CREATES OPTIONAL PORTFOLIO
-        ############################################################################
+            # /|\ CREATES PSUEDO PORTFOLIO || \|/ CREATES OPTIONAL PORTFOLIO
+            ############################################################################
 
             # creates data with the portfolio
             data = self.create_data_frame_of_tickers(
@@ -1612,7 +1835,7 @@ class kko_portfolio_update_manager:
             portfolio = portfolio_constructor_manager(data)
 
             # checks for sharp ratio managment, if list is empty or not full, fill, if sharp is not above average, remove.
-            if not sharp_ratios or len(sharp_ratios) < 100:
+            if not sharp_ratios or len(sharp_ratios) < 100 and minimum_sharp_last == 0:
 
                 sharp_ratios.append(portfolio.Imax_sharp_sharp_ratio)
 
@@ -1621,6 +1844,9 @@ class kko_portfolio_update_manager:
                     start_amount = statistics.mean(sharp_ratios)
 
                 itterations_count = []
+
+            else:
+                start_amount = minimum_sharp_last
 
             if portfolio.Imax_sharp_sharp_ratio < start_amount:
 
@@ -1646,6 +1872,39 @@ class kko_portfolio_update_manager:
                 break
 
         return
+
+    def create_data_of_tickers(self, list_of_stocks: list):
+        tickers_out = list_of_stocks
+        # create function that creates all kind off ticker combinations
+        # 5 - 10.
+
+        list_of_options = []
+
+        # optionally there needs to be a efficiency impementation here.
+        # that could be a loop that gets all data and puts it in a dict
+        # and gets it out, so it will work way faster.
+        ticker_options = {}
+
+        # loops true
+        for i in tickers_out:
+
+            try:
+
+                nr = tickers_out.index(i)
+                #prc = nr / len(tickers_out)
+
+                ts_data = create_time_serie_with_kamalstrategie(i)
+
+                ticker_options[i] = ts_data.data
+
+            except:
+
+                tickers_out.remove(i)
+
+        # get the keys so only good stocks will stay ther
+        tickers_out = list(ticker_options.keys())
+
+        return ticker_options
 
     def create_data_and_filter_tickers(self, list_of_stocks: list, amount_of_stocks: int):
         tickers_out = list_of_stocks
@@ -1790,7 +2049,34 @@ class kko_portfolio_update_manager:
 
                 break
 
-    def the_kill_switch(self, days_untill_reset=31, test_modus: bool = False):
+    def get_last_details(self):
+        """
+        returns amount of minimaal number, and sharp. 
+
+        Returns
+        -------
+        int
+            DESCRIPTION.
+        int
+            DESCRIPTION.
+
+        """
+
+        portfolios = database_querys.database_querys.get_portfolio()
+
+        # if there are no portfolios, return 5 and 0
+        if portfolios.empty:
+            return (5, 0)
+
+        high_amount = portfolios.sort_values(
+            ['portfolio_amount', 'total_sharp_y2'], ascending=False)
+
+        height_sharpr = high_amount.total_sharp_y2.to_list()[0]
+        height_amount = high_amount.portfolio_amount.to_list()[0]
+
+        return (height_amount, height_sharpr)
+
+    def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
         """
         destroys thread after certain time so that the system can reset. 
 
@@ -1812,7 +2098,7 @@ class kko_portfolio_update_manager:
             return
         else:
 
-            amount_of_sleep = 20
+            amount_of_sleep = 10
 
             time.sleep(amount_of_sleep)
 
@@ -1823,6 +2109,47 @@ class kko_portfolio_update_manager:
             print("hit the switch.")
 
             return
+
+    def return_all_old_portfolios(self):
+        """
+
+        returns a list of portfolios. 
+
+        Returns
+        -------
+        portfolio_ids : TYPE
+            DESCRIPTION.
+
+        """
+        portfolios = database_querys.database_querys.get_portfolio()
+
+        portfolio_ids = list(portfolios.portfolio_id)
+
+        return portfolio_ids
+
+    def delete_list_portrfolios(self, list_of_portfolios: list):
+        """
+        returns list of portfolios
+
+        Parameters
+        ----------
+        list_of_portfolios : list
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        if not list_of_portfolios:
+            return
+
+        for i in list_of_portfolios:
+
+            database_querys.database_querys.delete_portfolio_with_id(i)
+
+        return
 
     def remove_all_portfolios(self):
 

@@ -40,9 +40,6 @@ class update_data:
             i += 1
             sleep(.1)
             # report a message
-            print('Hello from the new thread')
-
-            print(self.thead_it_up())
 
     def task_2(self):
 
@@ -53,9 +50,6 @@ class update_data:
             sleep(.10)
 
             # report a message
-            print('Hello from the new thread 2 ')
-
-            print('updating the portfolio s')
 
             database_querys.database_querys.add_log_to_logbook(
                 "started portfolio creation system")
@@ -77,12 +71,13 @@ class update_data:
             i += 1
             sleep(2)
             # report a message
-            print('Hello from the new thread 3 ')
+
             database_querys.database_querys.add_log_to_logbook(
                 "started trendperformance archive")
-
+          # try:
             update_stats_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
-
+          #  except:
+          #      pass
             database_querys.database_querys.add_log_to_logbook(
                 "eneded trendperformance archive")
 
@@ -98,7 +93,7 @@ class update_data:
     def print_squares(self, thread_name, numbers):
 
         for number in numbers:
-            print(thread_name, number**2)
+            print("Startup check, ", number**2)
 
             # Produce some delay to see the output
             sleep(1)
@@ -138,7 +133,7 @@ class update_data:
                 self.kill_switch = True
 
         """
-
+        print(1)
         # function with different parameters
         thread1 = threading.Thread(target=self.print_squares,
                                    args=("thread1", [1, 2, 3, 4, 5]))
@@ -162,7 +157,9 @@ class update_data:
         while loop:
             for thread in threads:
                 if not thread.is_alive():
-                    print("Doden threads")
+
+                    database_querys.database_querys.add_log_to_logbook(
+                        "Thead is killed, portfolio managment has stopt.")
 
                     thread.join()
                     self.kill_switch = True
@@ -174,7 +171,11 @@ class update_data:
         thread2.join()
         thread3.join()
 
+        self.startup_data_transformation()
+
     def start_update_scedule(self):
+
+        print(0.1)
 
         database_querys.database_querys.add_log_to_logbook(
             "Started update data_transformation.")
@@ -184,3 +185,15 @@ class update_data:
         proces_background.setDaemon(True)
         proces_background.start()
         # proces_background.join()
+
+
+if __name__ == "__main__":
+
+    # archive
+    try:
+        x = update_data()
+        x.start_update_scedule()
+
+    except Exception as e:
+
+        raise Exception("Error with tickers", e)

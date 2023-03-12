@@ -86,7 +86,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -113,7 +113,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -147,7 +147,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -182,7 +182,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -215,7 +215,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -249,7 +249,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -492,7 +492,7 @@ class database_querys:
             raise Exception("No portfolio matching ID")
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -633,7 +633,7 @@ class database_querys:
             raise Exception("No portfolio matching ID")
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -813,7 +813,7 @@ class database_querys:
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -903,7 +903,7 @@ class database_querys:
     def update_analyses_trend_kamal(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -1202,7 +1202,7 @@ class database_querys:
     def delete_portfolio_with_id(id_: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -1241,7 +1241,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
