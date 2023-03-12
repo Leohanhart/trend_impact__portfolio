@@ -92,7 +92,6 @@ class update_kaufman_kalman_analyses(object):
                         model = update_kaufman_support.return_full_analyses_dict(
                             stock_data=power_object.stock_data, ticker_name=power_object.stock_ticker, max_levels=10, periode="D")
 
-                        print(model.__dict__)
                         database_querys.database_querys.update_analyses_trend_kamal(
                             model)
 
@@ -817,8 +816,6 @@ class update_trend_performance:
         model = all_data
 
         model = update_kaufman_support().package_dict_in_class(model)
-
-        print("ticker: ", ticker, " = updated")
 
         database_querys.database_querys.update_analyses_trend_kamal_performance(
             model)
