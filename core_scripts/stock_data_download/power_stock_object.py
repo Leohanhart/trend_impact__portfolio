@@ -198,18 +198,31 @@ class power_stock_object:
 
             # set two,
             self.reset_stock_data_experiment()
-            self.save_new_data()
+            self.load_stock_data()
 
             return
             # hier moet een modules komen die A een last download variablen maakt en de data download en goed opslaat.
-
-            self.save_new_data()
 
         self.synch_object.ticker = stock_ticker
 
         #
         # loads the data object
-        self.synch_object.load_data()
+        self.load_stock_data()
+        try:
+
+            if(self.stock_data == ''):
+
+                self.reset_stock_data_experiment()
+
+                # self.save_new_data()
+
+                self.load_stock_data()
+
+                return
+
+        except ValueError:
+
+            pass
 
         # Analyses modus, weekly
         #
@@ -974,7 +987,7 @@ if __name__ == "__main__":
 
     try:
 
-        power_stock_apple = power_stock_object("BABA")
+        power_stock_apple = power_stock_object("ABEO")
 
     except Exception as e:
 

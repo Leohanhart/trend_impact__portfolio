@@ -643,7 +643,7 @@ class update_archive_kaufmal():
         # if lenght is not good, return.
         if len(stock_data) < 30:
 
-            raise Exception("DATA_ERROR", "Data is not long enough")
+            raise Exception("DATA_ERROR", "Data is not long enough ", ticker)
 
         # set vars
         first_it: bool = True
