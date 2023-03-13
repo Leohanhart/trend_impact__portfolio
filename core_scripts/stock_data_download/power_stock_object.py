@@ -178,7 +178,6 @@ class power_stock_object:
 
         except FileNotFoundError:
 
-            print("I have cancer under controll. = ", stock_ticker)
             # self.__first_run()
             # Import os module
 
@@ -199,7 +198,6 @@ class power_stock_object:
             # set two,
             self.reset_stock_data_experiment()
             self.load_stock_data()
-            print(self.stock_data, "this is the data")
 
             return
             # hier moet een modules komen die A een last download variablen maakt en de data download en goed opslaat.
