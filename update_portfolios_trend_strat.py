@@ -1184,7 +1184,8 @@ class kko_portfolio_update_manager:
         #
         if min_amount_tickers == 5:
             #
-            self.remove_all_portfolios()
+            # self.remove_all_portfolios()
+            pass
 
         # retreives the list with old portoflio's that will be deleted in the end.
         old_portfolios = self.return_all_old_portfolios()
@@ -1889,6 +1890,8 @@ class kko_portfolio_update_manager:
         # loops true
         for i in tickers_out:
 
+            ti = tickers_out.index(i)
+            print("we are at ", ti, " of the ", len(tickers_out))
             try:
 
                 nr = tickers_out.index(i)

@@ -133,7 +133,6 @@ class update_data:
                 self.kill_switch = True
 
         """
-        print(1)
         # function with different parameters
         thread1 = threading.Thread(target=self.print_squares,
                                    args=("thread1", [1, 2, 3, 4, 5]))
