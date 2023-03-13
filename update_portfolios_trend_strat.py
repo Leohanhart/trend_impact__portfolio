@@ -343,8 +343,9 @@ class portfolio_constructor_manager:
                     opt_w, opt_res = pf.mc_optimisation(num_trials=1000)
 
                     print("THIRD VALUE ERRUR")
-                except:
+                except Exception as e:
 
+                    print(e)
                     self.error = True
                     return
 
