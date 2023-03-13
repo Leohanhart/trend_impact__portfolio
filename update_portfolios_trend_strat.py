@@ -343,7 +343,7 @@ class portfolio_constructor_manager:
 
                     print("THIRD VALUE ERRUR")
                 except:
-                    pass
+                    return 0
 
         # gets ID's
         self.the_id_low_vol = uuid.uuid4().hex
@@ -1851,6 +1851,9 @@ class kko_portfolio_update_manager:
 
             # creates portfolio
             portfolio = portfolio_constructor_manager(data)
+
+            if portfolio == 0:
+                continue
 
             # checks for sharp ratio managment, if list is empty or not full, fill, if sharp is not above average, remove.
             if not sharp_ratios or len(sharp_ratios) < 100 and minimum_sharp_last == 0:
