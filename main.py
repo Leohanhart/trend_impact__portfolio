@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core_service_layer.data_service import get_system_info
 import database_querys_main
 import startup_script
+import startup_support
 import update_portfolios
 import service_layer_data_service as services
 import json
@@ -50,6 +51,7 @@ acceptatie criteria
 
 def onstart_function():
 
+    startup_support.create_path_for_stock_data()
     startup_script.start_update_scedule()
     data_update = update_portfolios.update_data()
 

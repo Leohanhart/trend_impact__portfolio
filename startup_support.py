@@ -8,6 +8,19 @@ from datetime import datetime, timedelta
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 import numpy as np
+import constants
+import os
+
+
+def create_path_for_stock_data():
+
+    if os.path.isdir(constants.DATA_STOCK_DATA_PATH) == False:
+
+        os.mkdir(constants.DATA_STOCK_DATA_PATH)
+
+        print("The directory is created.")
+    else:
+        print("directory already created.")
 
 
 def check_if_today_is_businessday():
