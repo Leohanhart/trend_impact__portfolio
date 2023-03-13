@@ -1191,7 +1191,7 @@ class kko_portfolio_update_manager:
         old_portfolios = self.return_all_old_portfolios()
 
         # get the tickers
-        selection = create_kko_tickers_selection(methode_two=True)
+        selection = create_kko_tickers_selection(methode_test=True)
 
         tickers_selected = selection.selected_tickers
 
