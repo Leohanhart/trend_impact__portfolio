@@ -180,7 +180,18 @@ class power_stock_object:
 
             print("I have cancer under controll.")
             # self.__first_run()
+            # Import os module
 
+            # Check the directory name exist or not
+            if os.path.isdir(constants.DATA_STOCK_DATA_PATH) == False:
+                # Create the directory
+                os.mkdir(constants.DATA_STOCK_DATA_PATH)
+                # Print success message
+                print("The directory is created.")
+
+        else:
+            # Print the message if the directory exists
+            print("The directory already exists.")
             # step one, new synch object (Maar er wordt nu een error getrowd.)
             self.synch_object = synch_class.data_synch(
                 path=constants.CORE_DATA_____PATH, subfolder="stock_data",
