@@ -295,6 +295,8 @@ class portfolio_constructor_manager:
     # 2 year expected return
     max_sharp_y2_expected_return: float = None
 
+    error = False
+
     # amount of stocks
 
     def __init__(self, data, name_strategie: str = "undefined", periode=500, days_untill_ex: int = 21):
@@ -330,20 +332,21 @@ class portfolio_constructor_manager:
             # set optimalization
             opt_w, opt_res = pf.mc_optimisation(num_trials=500)
 
-            print("FIRST VALUE ERRUR")
         except ValueError:
-
+            print("FIRST VALUE ERRUR")
             try:
                 opt_w, opt_res = pf.mc_optimisation(num_trials=250)
-                print("SECOND VALUE ERRUR")
-            except ValueError:
 
+            except ValueError:
+                print("SECOND VALUE ERRUR")
                 try:
                     opt_w, opt_res = pf.mc_optimisation(num_trials=1000)
 
                     print("THIRD VALUE ERRUR")
                 except:
-                    return 0
+
+                    self.error = True
+                    return
 
         # gets ID's
         self.the_id_low_vol = uuid.uuid4().hex
@@ -1852,7 +1855,7 @@ class kko_portfolio_update_manager:
             # creates portfolio
             portfolio = portfolio_constructor_manager(data)
 
-            if portfolio == 0:
+            if portfolio.error == True:
                 continue
 
             # checks for sharp ratio managment, if list is empty or not full, fill, if sharp is not above average, remove.
