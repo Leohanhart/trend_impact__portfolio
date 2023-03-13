@@ -326,8 +326,24 @@ class portfolio_constructor_manager:
         # sets pf to class object.
         self.pf = pf = build_portfolio(data=data)
 
-        # set optimalization
-        opt_w, opt_res = pf.mc_optimisation(num_trials=500)
+        try:
+            # set optimalization
+            opt_w, opt_res = pf.mc_optimisation(num_trials=500)
+
+            print("FIRST VALUE ERRUR")
+        except ValueError:
+
+            try:
+                opt_w, opt_res = pf.mc_optimisation(num_trials=250)
+                print("SECOND VALUE ERRUR")
+            except ValueError:
+
+                try:
+                    opt_w, opt_res = pf.mc_optimisation(num_trials=1000)
+
+                    print("THIRD VALUE ERRUR")
+                except:
+                    pass
 
         # gets ID's
         self.the_id_low_vol = uuid.uuid4().hex
