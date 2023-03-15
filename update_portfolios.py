@@ -37,9 +37,16 @@ class update_data:
         i = 0
         # block for a moment
         while True:
-            i += 1
-            sleep(.1)
-            # report a message
+
+            sleep(4)
+            database_querys.database_querys.add_log_to_logbook(
+                "started trend_update in portfolio construction")
+          # try:
+            update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all()
+          #  except:
+          #      pass
+            database_querys.database_querys.add_log_to_logbook(
+                "ended trend_update in portfolio construction")
 
     def task_2(self):
 
@@ -69,7 +76,7 @@ class update_data:
         # block for a moment
         while True:
             i += 1
-            sleep(2)
+            sleep(3)
             # report a message
 
             database_querys.database_querys.add_log_to_logbook(
@@ -136,8 +143,8 @@ class update_data:
         for i in range(0, 10):
             print("startup")
         # function with different parameters
-        thread1 = threading.Thread(target=self.print_squares,
-                                   args=("thread1", [1, 2, 3, 4, 5]))
+        thread1 = threading.Thread(target=self.task,
+                                   args=())
 
         thread2 = thread_2 = Thread(target=self.task_2)
 
