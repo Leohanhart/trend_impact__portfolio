@@ -104,15 +104,33 @@ def update_tickers_daily():
     database_querys_main.database_querys.add_log_to_logbook(
         "started daily updates")
 
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Started stock_downloads")
+
     # update tickers
     update_stocks_main.update_stocks.download_stockdata()
+
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Finnished stock_downloads")
 
     # update analyses daily
     # if support.check_if_today_is_businessday():
 
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Started trend updates")
+
     update_trend_analyses.update_kaufman_kalman_analyses.update_all()
 
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Ended trend updates")
+
+    database_querys_main.database_querys.add_log_to_logbook(
+        "Started updating trading portfoios")
+
     update = portfolio_synch.update_trading_portfolios()
+
+    database_querys_main.database_querys.add_log_to_logbook(
+        "ended updating trading portfoios")
 
     # if today is first of the month.
     if support.check_if_today_is_first_the_month():

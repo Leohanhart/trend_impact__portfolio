@@ -1201,11 +1201,12 @@ class kko_portfolio_update_manager:
         # remove methode test befor deployment
         min_amount_tickers, min_sharp_ratio = details
 
+        old_portfolios = []
+
         #
         if min_amount_tickers == 5:
             #
-            # self.remove_all_portfolios()
-            pass
+            old_portfolios = self.return_all_old_portfolios()
 
         # retreives the list with old portoflio's that will be deleted in the end.
         old_portfolios = self.return_all_old_portfolios()
