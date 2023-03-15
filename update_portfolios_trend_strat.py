@@ -1783,7 +1783,6 @@ class kko_portfolio_update_manager:
         # while killswitch is off: run for ever.
         while not self.kill_switch:
 
-            print("Looking for a portfolio")
             # add itteration
             itterations_count.append(1)
 
