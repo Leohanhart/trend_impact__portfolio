@@ -168,6 +168,7 @@ class update_kaufman_kalman_analyses(object):
                         performance_specs = update_trend_performance(
                             ticker, periode_in)
 
+                        print("update archive of ", ticker)
                     except Exception as e:
 
                         print(e)
