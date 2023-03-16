@@ -85,6 +85,8 @@ class update_kaufman_kalman_analyses(object):
 
                 if periode_in == "D":
 
+                    print("update trendanalyses for ticker =", ticker)
+
                     try:
                         power_object = stock_object.power_stock_object(
                             stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)

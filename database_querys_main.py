@@ -75,6 +75,8 @@ class database_querys:
 
         data = df[df.active == True]
 
+        data = data.id.to_list()
+
         return data
 
     @staticmethod
