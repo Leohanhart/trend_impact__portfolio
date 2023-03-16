@@ -44,21 +44,24 @@ from update_portfolios_trend_strat import create_kko_portfolios, portfolio_const
 
 class update_trading_portfolios:
 
-    def __init__(self):
+    @staticmethod
+    def startup_update():
 
         # get the portfolio's
         # update the portfolio's
+
         portfolios = database_querys.database_querys.get_trading_portfolio()
 
         try:
 
-            self.update_portfolios(portfolios)
+            update_trading_portfolios.update_portfolios(portfolios)
 
         except Exception as e:
 
             raise e
 
-    def update_portfolios(self, portfolios):
+    @staticmethod
+    def update_portfolios(portfolios):
         # extract the portfolio ID's and tickers
         for i in range(0, len(portfolios)):
 
@@ -79,7 +82,7 @@ class update_trading_portfolios:
 
                 ticker_options[i] = ts_data.data
 
-            data = self.create_data_frame_of_tickers(
+            data = update_trading_portfolios.create_data_frame_of_tickers(
                 tickers=tickers, data=ticker_options)
 
             portfolio = portfolio_constructor_manager(data)
@@ -89,7 +92,8 @@ class update_trading_portfolios:
 
         print(portfolios)
 
-    def create_data_frame_of_tickers(self, tickers: list, data: dict):
+    @staticmethod
+    def create_data_frame_of_tickers(tickers: list, data: dict):
         """
 
         r_data.mean(axis=1).pct_change().cumsum().plot()
