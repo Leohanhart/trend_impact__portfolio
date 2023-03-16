@@ -159,6 +159,8 @@ class update_kaufman_kalman_analyses(object):
 
                     try:
 
+                        print("start update archive of ", ticker)
+
                         power_object = stock_object.power_stock_object(
                             stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
 
@@ -168,7 +170,8 @@ class update_kaufman_kalman_analyses(object):
                         performance_specs = update_trend_performance(
                             ticker, periode_in)
 
-                        print("update archive of ", ticker)
+                        print("finish update archive of ", ticker)
+
                     except Exception as e:
 
                         print(e)
@@ -1663,7 +1666,7 @@ if __name__ == "__main__":
         # print(obj)
         #x = update_kaufman_kalman_analyses.update_full_analyses()
         while True:
-            update_kaufman_kalman_analyses.update_all()
+            update_kaufman_kalman_analyses.update_full_analyses()
         # update_kaufman_kalman_analyses.update_all()
        # update_trend_performance("AAPL", "D")
 

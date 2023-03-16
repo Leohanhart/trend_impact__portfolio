@@ -1198,6 +1198,7 @@ class kko_portfolio_update_manager:
 
         # find last amount and sharp.
         details = self.get_last_details()
+
         # remove methode test befor deployment
         min_amount_tickers, min_sharp_ratio = details
 
@@ -1855,6 +1856,8 @@ class kko_portfolio_update_manager:
 
             # creates portfolio
             portfolio = portfolio_constructor_manager(data)
+
+            print("Setup portfolio ", pseudo_portfo)
 
             if portfolio.error == True:
                 continue
