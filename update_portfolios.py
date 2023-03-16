@@ -193,7 +193,7 @@ class update_data:
         thread4 = threading.Thread(target=self.task_4,
                                    args=())
 
-        thread4 = threading.Thread(target=self.task_5,
+        thread5 = threading.Thread(target=self.task_5,
                                    args=())
         threads = []
         # Start the threads
