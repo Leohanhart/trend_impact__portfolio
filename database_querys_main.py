@@ -675,7 +675,7 @@ class database_querys:
         return df
 
     def add_log_to_logbook(text: str = ""):
-
+        """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
@@ -689,6 +689,9 @@ class database_querys:
         session.add(log)
         session.commit()
         session.close()
+        """
+
+        print(text)
 
     def add_user_trade(user_id: str, user_ticker):
 
