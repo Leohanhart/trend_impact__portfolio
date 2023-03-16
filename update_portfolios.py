@@ -128,9 +128,9 @@ class update_data:
             print("start trading portfolio")
 
             sleep(4)
-
-            update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all(
-                last_update_first=True)
+            try:
+                update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all(
+                    last_update_first=True)
             except:
                 sleep(60)
 
