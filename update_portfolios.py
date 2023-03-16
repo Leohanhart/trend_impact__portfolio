@@ -41,10 +41,11 @@ class update_data:
             sleep(4)
             database_querys.database_querys.add_log_to_logbook(
                 "started trend_update in portfolio construction")
-          # try:
-            update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all()
-          #  except:
-          #      pass
+            try:
+
+                update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all()
+            except:
+                sleep(60)
             database_querys.database_querys.add_log_to_logbook(
                 "ended trend_update in portfolio construction")
 
@@ -60,8 +61,12 @@ class update_data:
 
             database_querys.database_querys.add_log_to_logbook(
                 "started portfolio creation system")
+            try:
 
-            update = update_portfolio_trends.kko_portfolio_update_manager()
+                update = update_portfolio_trends.kko_portfolio_update_manager()
+            except:
+
+                sleep(60)
 
             database_querys.database_querys.add_log_to_logbook(
                 "ended portfolio creation system")
@@ -81,10 +86,12 @@ class update_data:
 
             database_querys.database_querys.add_log_to_logbook(
                 "started trendperformance archive")
-          # try:
-            update_stats_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
-          #  except:
-          #      pass
+            try:
+                update_stats_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
+            except:
+
+                sleep(60)
+
             database_querys.database_querys.add_log_to_logbook(
                 "eneded trendperformance archive")
 
