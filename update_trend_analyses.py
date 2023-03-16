@@ -57,7 +57,7 @@ class update_all_trend_analyses(object):
 
 class update_kaufman_kalman_analyses(object):
 
-    def update_all():
+    def update_all(last_update_first: bool = False):
         """
 
 
@@ -75,8 +75,20 @@ class update_kaufman_kalman_analyses(object):
         # load periodes
         periodes = ["D"]
 
+        tickers = None
+
         # load tickers
-        tickers = database_querys.database_querys.get_all_active_tickers()
+        if last_update_first:
+
+            tickers = database_querys.database_querys.get_all_trend_kalman()
+
+            tickers_ = tickers.sort_values(by=['last_update'])
+
+            tickers = tickers_.id.to_list()
+
+        else:
+
+            tickers = database_querys.database_querys.get_all_active_tickers()
 
         trade_data = None
 
@@ -85,7 +97,11 @@ class update_kaufman_kalman_analyses(object):
 
                 if periode_in == "D":
 
-                    print("update trendanalyses for ticker =", ticker)
+                    if last_update_first:
+                        print("update reverse trend-analyses for ticker =", ticker)
+                    else:
+
+                        print("update trend-analyses for ticker =", ticker)
 
                     try:
                         power_object = stock_object.power_stock_object(
@@ -1666,8 +1682,8 @@ if __name__ == "__main__":
         # print(obj)
         #x = update_kaufman_kalman_analyses.update_full_analyses()
         while True:
-            update_kaufman_kalman_analyses.update_full_analyses()
-        # update_kaufman_kalman_analyses.update_all()
+            # update_kaufman_kalman_analyses.update_full_analyses()
+            update_kaufman_kalman_analyses.update_all(last_update_first=True)
        # update_trend_performance("AAPL", "D")
 
     except Exception as e:

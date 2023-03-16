@@ -115,7 +115,24 @@ class update_data:
 
             except:
 
-                sleep(600)
+                sleep(3600)
+
+            print("Updaded trading portfolios")
+
+    def task_5(self):
+
+        i = 0
+        # block for a moment
+        while True:
+
+            print("start trading portfolio")
+
+            sleep(4)
+
+            update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all(
+                last_update_first=True)
+            except:
+                sleep(60)
 
             print("Updaded trading portfolios")
 
@@ -175,17 +192,22 @@ class update_data:
 
         thread4 = threading.Thread(target=self.task_4,
                                    args=())
+
+        thread4 = threading.Thread(target=self.task_5,
+                                   args=())
         threads = []
         # Start the threads
         thread1.start()
         thread2.start()
         thread3.start()
         thread4.start()
+        thread5.start()
 
         threads.append(thread1)
         threads.append(thread2)
         threads.append(thread3)
         threads.append(thread4)
+        threads.append(thread5)
 
         # Join the threads before
         loop:  bool = True
@@ -206,6 +228,7 @@ class update_data:
         thread2.join()
         thread3.join()
         thread4.join()
+        thread5.join()
 
         self.startup_data_transformation()
 
