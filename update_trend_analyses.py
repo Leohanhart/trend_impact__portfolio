@@ -1659,8 +1659,8 @@ if __name__ == "__main__":
         #obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
         #x = update_kaufman_kalman_analyses.update_full_analyses()
-
-        update_kaufman_kalman_analyses.update_all()
+        while True:
+            update_kaufman_kalman_analyses.update_all()
         # update_kaufman_kalman_analyses.update_all()
        # update_trend_performance("AAPL", "D")
 
