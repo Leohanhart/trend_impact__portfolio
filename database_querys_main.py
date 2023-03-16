@@ -67,10 +67,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        data = session.query(Ticker).filter(Ticker.active == True).all()
-        data = database_querys_support.unpack_all_tickers(data)
+        query_string = session.query(Ticker).statement.compile()  # .all()
+
+        df = pd.read_sql_query(query_string, session.bind)
 
         session.close()
+
+        data = df[df.active == True]
 
         return data
 
@@ -292,11 +295,7 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = session.query(Analyses_trend_kamal).filter(
-            Analyses_trend_kamal.periode == "D",
-
-
-        ).statement.compile()
+        query_string = session.query(Analyses_trend_kamal).statement.compile()
 
         df = pd.read_sql_query(query_string, session.bind)
 
@@ -1519,7 +1518,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_portfolio()
+        x = database_querys.get_all_active_tickers()
 
         # x = database_querys.get_logs()
         print(x)

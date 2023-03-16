@@ -114,9 +114,7 @@ class return_trend_analyses(object):
 
         data = database_querys_main.database_querys.get_all_trend_kalman()
 
-        res_data = analyses_support.extract_all_tickers(data)
-
-        res_data = trend_analyse_support().package_data(res_data)
+        res_data = trend_analyse_support().package_data(data)
 
         return res_data
 
@@ -801,8 +799,7 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_trend_analyses().get_user_trades(
-            "49a55c9c-8dbd-11ed-8abb-001a7dda7110")
+        x = return_trend_analyses().get_all_tickers()
 
         print(x)
     except Exception as e:
