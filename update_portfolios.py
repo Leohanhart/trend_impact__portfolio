@@ -9,7 +9,7 @@ Created on Fri Mar  3 16:57:39 2023
 import update_portfolios_trend_strat as update_portfolio_trends
 import update_trend_analyses as update_stats_trend_analyses
 import database_querys_main as database_querys
-
+import portfolio_synchronization as portfolio_synch
 
 # system
 from time import sleep
@@ -100,9 +100,24 @@ class update_data:
                 break
 
     def task_4(self):
-        print("THROW EXCEPTION")
-        raise Exception("Thisisnotcool")
-        return
+
+        i = 0
+        # block for a moment
+        while True:
+
+            print("start trading portfolio")
+
+            sleep(8)
+
+            try:
+
+                portfolio_synch.update_trading_portfolios.startup_update()
+
+            except:
+
+                sleep(600)
+
+            print("Updaded trading portfolios")
 
     def print_squares(self, thread_name, numbers):
 
@@ -157,15 +172,20 @@ class update_data:
 
         thread3 = threading.Thread(target=self.task_3,
                                    args=())
+
+        thread4 = threading.Thread(target=self.task_4,
+                                   args=())
         threads = []
         # Start the threads
         thread1.start()
         thread2.start()
         thread3.start()
+        thread4.start()
 
         threads.append(thread1)
         threads.append(thread2)
         threads.append(thread3)
+        threads.append(thread4)
 
         # Join the threads before
         loop:  bool = True
@@ -185,6 +205,7 @@ class update_data:
         thread1.join()
         thread2.join()
         thread3.join()
+        thread4.join()
 
         self.startup_data_transformation()
 
