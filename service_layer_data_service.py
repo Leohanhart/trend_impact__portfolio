@@ -21,6 +21,7 @@ from core_utils.save_temp_data import save_and_load_temp_data
 import pandas
 import numpy as np
 import pandas as pd
+import initializer_tickers_main
 
 
 class return_trend_analyses(object):
@@ -41,6 +42,7 @@ class return_trend_analyses(object):
             DESCRIPTION.
 
         """
+
         data = database_querys_main.database_querys.get_trend_kalman(ticker)
 
         # fixes date stamp
@@ -797,14 +799,29 @@ class analyses_support(object):
         return resp
 
 
+class maintenance_tickers(object):
+
+    @staticmethod
+    def add_or_remove_ticker(ticker: str = ""):
+
+        if ticker:
+
+            initializer_tickers_main.initiaze_singel_ticker(ticker)
+
+            return 200
+
+        else:
+
+            return 404
+
+
 if __name__ == "__main__":
 
     try:
 
-        x = return_trend_analyses().get_user_trades(
-            "49a55c9c-8dbd-11ed-8abb-001a7dda7110")
-
-        print(x)
+        x = maintenance_tickers().add_or_remove_ticker(
+            "XLK"
+        )
     except Exception as e:
 
         print(e)
