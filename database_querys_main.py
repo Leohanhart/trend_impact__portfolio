@@ -1228,6 +1228,45 @@ class database_querys:
 
         session.close()
 
+    def delete_trend_kamal(ticker: str):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = session.query(Analyses_trend_kamal).filter(
+            Analyses_trend_kamal.id == ticker,
+        ).first()
+
+        # check if ticker exsists
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
+        x = session.query(Analyses_trend_kamal_performance).filter(
+            Analyses_trend_kamal_performance.id == ticker,
+        ).first()
+
+        # check if ticker exsists
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
+        session.close()
+
     def delete_analyses_trend_kamal_archive(model):
         """
 
@@ -1332,6 +1371,9 @@ class database_querys:
             x.message = message + " " + date_time
 
             session.commit()
+
+        session.close()
+        return
 
     def log_item_get(as_pandas: bool = True, as_json: bool = True):
 
@@ -1523,7 +1565,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_all_active_tickers()
+        x = database_querys.delete_trend_kamal("ATNF")
 
         # x = database_querys.get_logs()
         print(x)
