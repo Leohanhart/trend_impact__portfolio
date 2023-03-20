@@ -19,3 +19,4 @@ pandas==1.4.1
 datasets==2.9.0
 finquant==0.2.2
 statsmodels==0.13.2
+yahooquery==2.2.2
