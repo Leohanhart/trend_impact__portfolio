@@ -119,14 +119,6 @@ def return_all_trend_specs():
     return Response(data)
 
 
-@app.get("/avalible_tickers")
-def return_all_tickers():
-
-    data = services.return_trend_analyses.get_all_tickers()
-
-    return Response(data)
-
-
 @app.get("/avalible_portfolios")
 def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6):
 
@@ -202,6 +194,22 @@ def return_logs(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker:
 
     data = services.crud_user_trades.remove_user_trade(uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110",
                                                        ticker_name=ticker)
+
+    return data
+
+
+@app.get("/avalible_tickers")
+def return_all_tickers():
+
+    data = services.return_trend_analyses.get_all_tickers()
+
+    return Response(data)
+
+
+@app.post("/add_or_maintain_ticker")
+def add_or_maintain_ticker(ticker: str = ""):
+
+    data = services.maintenance_tickers.add_or_remove_ticker(ticker)
 
     return data
 
