@@ -900,8 +900,10 @@ class add_kko_portfolio:
         serialized_list_of_sides = json.dumps(sides_list)
         model.list_of_sides = serialized_list_of_sides
 
+        risk_metrics = risk_managment_controllers(model)
         # perfomnace data =
-        performance_data = {trend: "Leo_Was_Here"}
+        performance_data = risk_metrics.details
+
         serialized_list_of_perfomance_data = json.dumps(performance_data)
         model.list_of_performance = serialized_list_of_perfomance_data
 
@@ -921,6 +923,64 @@ class add_kko_portfolio:
         model.createdAt = d1
 
         database_querys.database_querys.update_portfolio(model)
+        return
+
+
+class risk_managment_controllers:
+
+    details = {}
+
+    def __init__(self, model):
+
+        self.details['id'] = model.portfolio_id
+        self.details['prc_long'] = self.get_avg_side(model)
+        self.details['marks'] = "Leo was here"
+        self.get_daily_fillble(model)
+
+    def get_avg_side(self, model):
+        a = model.list_of_sides
+        res = a.strip('][').split(', ')
+        res = list(map(int, res))
+
+        res = [0 if x == -1 else x for x in res]
+        avg_side = sum(res) / len(res)
+
+        return avg_side
+
+    def get_daily_fillble(self, model):
+
+        # get tickers
+        a = model.list_of_tickers
+        res = a.strip('][').split(', ')
+        res = [sub.replace('"', '') for sub in res]
+
+        list_avg_amount = []
+        list_avg_volume = []
+        list_avg_price = []
+
+        # avg price
+
+        for i in res:
+
+            power_object = stock_object.power_stock_object(
+                stock_ticker=i)
+            # 21 for on mondth
+            data = power_object.stock_data.tail(21)
+            value = round((data.Volume.mean().round() * 0.01)
+                          * data.Close.mean())
+            value_volume = (data.Volume.mean().round() * 0.01)
+            value_close = data.Close.mean().round()
+
+            list_avg_amount.append(value)
+            list_avg_volume.append(value_volume)
+            list_avg_price.append(value_close)
+
+        self.details["1pc_fillble"] = total_amount = sum(list_avg_amount)
+        self.details["1pc_totalvolume"] = total_volume = sum(list_avg_volume)
+        self.details["avg_price"] = total_price = sum(
+            list_avg_price) / len(list_avg_price)
+        self.details["total_avg_rounds"] = total_rounds = total_volume / 200
+
         return
 
 
@@ -1855,7 +1915,10 @@ class kko_portfolio_update_manager:
                     continue
 
             # creates portfolio
-            portfolio = portfolio_constructor_manager(data)
+            try:
+                portfolio = portfolio_constructor_manager(data)
+            except:
+                continue
 
             print("Setup portfolio ", pseudo_portfo)
 
