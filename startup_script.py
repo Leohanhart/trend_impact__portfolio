@@ -55,14 +55,14 @@ import database_querys_main
 def update_tickers_weekly():
 
     # mutex.acquire()
-
+    pass
     # update tickers
 
-    initializer_tickers_main.initiaze_tickers()
+    # initializer_tickers_main.initiaze_tickers()
 
     # update analyses
 
-    update_analyses(periode="W")
+    # update_analyses(periode="W")
 
     # mutex.release()
 
