@@ -38,6 +38,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import and_, or_, not_
 
+from threading import Thread
+from threading import Lock
+
 
 class database_querys:
 
@@ -63,7 +66,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -91,7 +94,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -118,7 +121,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -152,7 +155,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -187,7 +190,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -220,7 +223,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -254,7 +257,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -272,28 +275,32 @@ class database_querys:
         return ticker
 
     def get_trend_kalman(ticker: str = None):
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
-        query_string = session.query(Analyses_trend_kamal).filter(
-            Analyses_trend_kamal.id == ticker,
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            query_string = session.query(Analyses_trend_kamal).filter(
+                Analyses_trend_kamal.id == ticker,
 
 
-        ).statement.compile()
+            ).statement.compile()
 
-        df = pd.read_sql_query(query_string, session.bind)
+            df = pd.read_sql_query(query_string, session.bind)
 
-        # close session
-        session.close()
+            # close session
+            session.close()
 
-        # return frame.
-        return df
+            # return frame.
+            return df
 
     def get_all_trend_kalman():
+
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -322,72 +329,73 @@ class database_querys:
         None.
 
         """
+        lock = Lock()
+        with lock:
+            # creates database engine.
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        # creates database engine.
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        query_string = session.query(Analyses_archive_kamal).filter(
-            Analyses_archive_kamal.ticker == ticker,
-            Analyses_archive_kamal.periode == periode
-
-
-        ).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
-
-        # close session
-        session.close()
-
-        # return frame.
-        return df
-
-        if type(ticker) == str:
-
-            # if pandas, return all.
-            if as_pandas:
-
-                if periode == "D" or periode == "W":
-
-                    query_string = session.query(Analyses_archive_kamal).filter(
-                        Analyses_archive_kamal.ticker == ticker,
-                        Analyses_archive_kamal.periode == periode
+            query_string = session.query(Analyses_archive_kamal).filter(
+                Analyses_archive_kamal.ticker == ticker,
+                Analyses_archive_kamal.periode == periode
 
 
-                    ).statement.compile()  # .all()
-                    # load dataframe with query
+            ).statement.compile()
 
-                    df = pd.read_sql_query(query_string, session.bind)
+            df = pd.read_sql_query(query_string, session.bind)
 
-                    # close session
-                    session.close()
+            # close session
+            session.close()
 
-                    # return frame.
-                    return df
+            # return frame.
+            return df
 
-                elif periode != None:
+            if type(ticker) == str:
 
-                    # generate query
-                    query_string = session.query(Analyses_archive_kamal).filter(
-                        Analyses_archive_kamal.ticker == ticker,
-                        Analyses_archive_kamal.periode == "D"
-                    ).statement.compile()  # .all()
-                    # load dataframe with query
+                # if pandas, return all.
+                if as_pandas:
 
-                    df = pd.read_sql_query(query_string, session.bind)
+                    if periode == "D" or periode == "W":
 
-                    # close session
-                    session.close()
+                        query_string = session.query(Analyses_archive_kamal).filter(
+                            Analyses_archive_kamal.ticker == ticker,
+                            Analyses_archive_kamal.periode == periode
 
-                    # return frame.
-                    return df
+
+                        ).statement.compile()  # .all()
+                        # load dataframe with query
+
+                        df = pd.read_sql_query(query_string, session.bind)
+
+                        # close session
+                        session.close()
+
+                        # return frame.
+                        return df
+
+                    elif periode != None:
+
+                        # generate query
+                        query_string = session.query(Analyses_archive_kamal).filter(
+                            Analyses_archive_kamal.ticker == ticker,
+                            Analyses_archive_kamal.periode == "D"
+                        ).statement.compile()  # .all()
+                        # load dataframe with query
+
+                        df = pd.read_sql_query(query_string, session.bind)
+
+                        # close session
+                        session.close()
+
+                        # return frame.
+                        return df
 
     def get_trend_kalman_performance(ticker: str = "", periode: str = "D", as_pandas: bool = True):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -446,7 +454,7 @@ class database_querys:
     def get_trend_and_performance_kamal():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -467,7 +475,7 @@ class database_querys:
     def get_trends_and_sector():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -493,7 +501,7 @@ class database_querys:
             raise Exception("No portfolio matching ID")
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -539,7 +547,7 @@ class database_querys:
     def get_trading_portfolio(id_: str = None):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -566,7 +574,7 @@ class database_querys:
     def update_trading_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -634,7 +642,7 @@ class database_querys:
             raise Exception("No portfolio matching ID")
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -660,7 +668,7 @@ class database_querys:
     def get_logs():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -677,7 +685,7 @@ class database_querys:
     def add_log_to_logbook(text: str = ""):
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -696,7 +704,7 @@ class database_querys:
     def add_user_trade(user_id: str, user_ticker):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -724,7 +732,7 @@ class database_querys:
     def get_user_trade(user_id: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -746,7 +754,7 @@ class database_querys:
     def delete_user_trade(user_id: str, user_ticker):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -773,7 +781,7 @@ class database_querys:
     def get_portfolio(id_: str = "", strategy: str = ""):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -817,7 +825,7 @@ class database_querys:
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -882,7 +890,7 @@ class database_querys:
     def delete_portfolio(portfio_id: str = ""):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -905,218 +913,223 @@ class database_querys:
         session.close()
 
     def update_analyses_trend_kamal(model):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                                   )
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
-                               )
-        Session = sessionmaker(bind=engine)
-        session = Session()
+            x = session.query(Analyses_trend_kamal).filter(
+                Analyses_trend_kamal.id == model.ticker,
+                Analyses_trend_kamal.periode == model.periode,
+            ).first()
 
-        x = session.query(Analyses_trend_kamal).filter(
-            Analyses_trend_kamal.id == model.ticker,
-            Analyses_trend_kamal.periode == model.periode,
-        ).first()
+            now = datetime.now()  # current date and time
 
-        now = datetime.now()  # current date and time
+            date_time = now.strftime("%d-%m-%Y, %H:%M:%S")
 
-        date_time = now.strftime("%d-%m-%Y, %H:%M:%S")
+            # check if ticker exsists
+            if x == None:
 
-        # check if ticker exsists
-        if x == None:
+                Analyses = Analyses_trend_kamal(
+                    # id = 1,
+                    id=model.ticker,
+                    periode=model.periode,
+                    trend=model.trend,
+                    duration=model.duration,
+                    profile=model.profile,
+                    profile_std=model.profile_std,
+                    volatility=model.volatility,
+                    current_yield=model.current_yield,
+                    max_drawdown=model.max_drawdown,
+                    exp_return=model.exp_return,
+                    max_yield=float(model.max_yield),
+                    last_update=now
+                )
 
-            Analyses = Analyses_trend_kamal(
-                # id = 1,
-                id=model.ticker,
-                periode=model.periode,
-                trend=model.trend,
-                duration=model.duration,
-                profile=model.profile,
-                profile_std=model.profile_std,
-                volatility=model.volatility,
-                current_yield=model.current_yield,
-                max_drawdown=model.max_drawdown,
-                exp_return=model.exp_return,
-                max_yield=float(model.max_yield),
-                last_update=now
-            )
+                session.add(Analyses)
+             #   session.flush()
+                session.commit()
+                session.close()
 
-            session.add(Analyses)
-         #   session.flush()
-            session.commit()
+            # else work with it.
+            else:
+
+                if x.trend != model.trend:
+                    x.trend = model.trend
+
+                if x.duration != model.duration:
+
+                    x.duration = model.duration
+
+                if x.profile != model.profile:
+
+                    x.profile = model.profile
+
+                if x.profile_std != model.profile_std:
+
+                    x.profile_std = model.profile_std
+
+                if x.volatility != model.volatility:
+
+                    x.volatility = model.volatility
+
+                if x.current_yield != model.current_yield:
+
+                    x.current_yield = model.current_yield
+
+                if x.max_drawdown != model.max_drawdown:
+
+                    x.max_drawdown = model.max_drawdown
+
+                if x.exp_return != model.exp_return:
+
+                    x.exp_return = model.exp_return
+
+                if x.max_yield != model.max_yield:
+
+                    x.max_yield = model.max_yield
+
+                x.last_update = now
+
+                session.commit()
+                session.close()
+
             session.close()
-
-        # else work with it.
-        else:
-
-            if x.trend != model.trend:
-                x.trend = model.trend
-
-            if x.duration != model.duration:
-
-                x.duration = model.duration
-
-            if x.profile != model.profile:
-
-                x.profile = model.profile
-
-            if x.profile_std != model.profile_std:
-
-                x.profile_std = model.profile_std
-
-            if x.volatility != model.volatility:
-
-                x.volatility = model.volatility
-
-            if x.current_yield != model.current_yield:
-
-                x.current_yield = model.current_yield
-
-            if x.max_drawdown != model.max_drawdown:
-
-                x.max_drawdown = model.max_drawdown
-
-            if x.exp_return != model.exp_return:
-
-                x.exp_return = model.exp_return
-
-            if x.max_yield != model.max_yield:
-
-                x.max_yield = model.max_yield
-
-            x.last_update = now
-
-            session.commit()
-            session.close()
-
-        session.close()
         return
 
     def update_analyses_trend_kamal_archive(model, check_if_exsits: bool = False):
-
-        add_report = {}
-
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
-                               )
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        x = session.query(Analyses_archive_kamal).filter(
-            Analyses_archive_kamal.ticker == model.ticker,
-            Analyses_archive_kamal.year_start == model.year_start,
-            Analyses_archive_kamal.month_start == model.month_start,
-            Analyses_archive_kamal.date_start == model.date_start,
-            Analyses_archive_kamal.periode == model.periode
-        ).first()
-
-        # check if ticker exsists
-        if x == None:
-
-            add_report["status"] = "NEW"
-
-            Analyses = Analyses_archive_kamal(
-                # id = 1,
-                # id = model.ticker,
-                ticker=model.ticker,
-                year_start=model.year_start,
-                month_start=model.month_start,
-                date_start=model.date_start,
-                weeknr_start=model.weeknr_start,
-                year_end=model.year_end,
-                month_end=model.month_end,
-                date_end=model.date_end,
-                weeknr_end=model.weeknr_end,
-                periode=model.periode,
-                trend=model.trend,
-                duration=model.duration,
-                profile=model.profile,
-                profile_std=model.profile_std,
-                volatility=model.volatility,
-                current_yield=model.current_yield,
-                max_drawdown=model.max_drawdown,
-                exp_return=model.exp_return,
-                max_yield=float(model.max_yield)
-
-            )
-
-            session.add(Analyses)
-         #   session.flush()
-            session.commit()
+        
+        lock = Lock()
+        
+        with lock:
+            
+            add_report = {}
+    
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                                   )
+            Session = sessionmaker(bind=engine)
+            session = Session()
+    
+            x = session.query(Analyses_archive_kamal).filter(
+                Analyses_archive_kamal.ticker == model.ticker,
+                Analyses_archive_kamal.year_start == model.year_start,
+                Analyses_archive_kamal.month_start == model.month_start,
+                Analyses_archive_kamal.date_start == model.date_start,
+                Analyses_archive_kamal.periode == model.periode
+            ).first()
+    
+            # check if ticker exsists
+            if x == None:
+    
+                add_report["status"] = "NEW"
+    
+                Analyses = Analyses_archive_kamal(
+                    # id = 1,
+                    # id = model.ticker,
+                    ticker=model.ticker,
+                    year_start=model.year_start,
+                    month_start=model.month_start,
+                    date_start=model.date_start,
+                    weeknr_start=model.weeknr_start,
+                    year_end=model.year_end,
+                    month_end=model.month_end,
+                    date_end=model.date_end,
+                    weeknr_end=model.weeknr_end,
+                    periode=model.periode,
+                    trend=model.trend,
+                    duration=model.duration,
+                    profile=model.profile,
+                    profile_std=model.profile_std,
+                    volatility=model.volatility,
+                    current_yield=model.current_yield,
+                    max_drawdown=model.max_drawdown,
+                    exp_return=model.exp_return,
+                    max_yield=float(model.max_yield)
+    
+                )
+    
+                session.add(Analyses)
+             #   session.flush()
+                session.commit()
+                session.close()
+    
+            # else work with it.
+            else:
+    
+                add_report["status"] = "EXISTS"
+    
+                if x.year_end != model.year_end:
+                    add_report["status"] = "MODIFIED"
+                    x.year_end = int(model.year_end)
+    
+                if x.month_end != model.month_end:
+                    add_report["status"] = "MODIFIED"
+                    x.month_end = int(model.month_end)
+    
+                if x.date_end != model.date_end:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.date_end = int(model.date_end)
+    
+                if x.trend != model.trend:
+                    add_report["status"] = "MODIFIED"
+                    x.trend = int(model.trend)
+    
+                if x.duration != model.duration:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.duration = int(model.duration)
+    
+                if x.profile != model.profile:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.profile = int(model.profile)
+    
+                if x.profile_std != model.profile_std:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.profile_std = int(model.profile_std)
+    
+                if x.volatility != model.volatility:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.volatility = model.volatility
+    
+                if x.current_yield != model.current_yield:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.current_yield = model.current_yield
+    
+                if x.max_drawdown != model.max_drawdown:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.max_drawdown = model.max_drawdown
+    
+                if x.exp_return != model.exp_return:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.exp_return = model.exp_return
+    
+                if x.max_yield != model.max_yield:
+                    add_report["status"] = "MODIFIED"
+    
+                    x.max_yield = model.max_yield
+    
+                session.commit()
+                session.close()
+    
             session.close()
 
-        # else work with it.
-        else:
-
-            add_report["status"] = "EXISTS"
-
-            if x.year_end != model.year_end:
-                add_report["status"] = "MODIFIED"
-                x.year_end = int(model.year_end)
-
-            if x.month_end != model.month_end:
-                add_report["status"] = "MODIFIED"
-                x.month_end = int(model.month_end)
-
-            if x.date_end != model.date_end:
-                add_report["status"] = "MODIFIED"
-
-                x.date_end = int(model.date_end)
-
-            if x.trend != model.trend:
-                add_report["status"] = "MODIFIED"
-                x.trend = int(model.trend)
-
-            if x.duration != model.duration:
-                add_report["status"] = "MODIFIED"
-
-                x.duration = int(model.duration)
-
-            if x.profile != model.profile:
-                add_report["status"] = "MODIFIED"
-
-                x.profile = int(model.profile)
-
-            if x.profile_std != model.profile_std:
-                add_report["status"] = "MODIFIED"
-
-                x.profile_std = int(model.profile_std)
-
-            if x.volatility != model.volatility:
-                add_report["status"] = "MODIFIED"
-
-                x.volatility = model.volatility
-
-            if x.current_yield != model.current_yield:
-                add_report["status"] = "MODIFIED"
-
-                x.current_yield = model.current_yield
-
-            if x.max_drawdown != model.max_drawdown:
-                add_report["status"] = "MODIFIED"
-
-                x.max_drawdown = model.max_drawdown
-
-            if x.exp_return != model.exp_return:
-                add_report["status"] = "MODIFIED"
-
-                x.exp_return = model.exp_return
-
-            if x.max_yield != model.max_yield:
-                add_report["status"] = "MODIFIED"
-
-                x.max_yield = model.max_yield
-
-            session.commit()
-            session.close()
-
-        session.close()
-
-        return add_report
+            return add_report
 
     def update_analyses_trend_kamal_performance(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -1206,7 +1219,7 @@ class database_querys:
     def delete_portfolio_with_id(id_: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -1231,7 +1244,7 @@ class database_querys:
     def delete_trend_kamal(ticker: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1282,35 +1295,36 @@ class database_querys:
             DESCRIPTION.
 
         """
-
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
-                               )
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        x = session.query(Analyses_archive_kamal).filter(
-            Analyses_archive_kamal.ticker == model.ticker,
-            Analyses_archive_kamal.year_start == model.year_start,
-            Analyses_archive_kamal.month_start == model.month_start,
-            Analyses_archive_kamal.date_start == model.date_start,
-            Analyses_archive_kamal.periode == model.periode
-        ).first()
-
-        # check if ticker exsists
-        if x == None:
-
-            return False
-
-        # else work with it.
-        else:
-
-            session.delete(x)
-            session.commit()
-
-        session.close()
-
-        return True
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                                   )
+            Session = sessionmaker(bind=engine)
+            session = Session()
+    
+            x = session.query(Analyses_archive_kamal).filter(
+                Analyses_archive_kamal.ticker == model.ticker,
+                Analyses_archive_kamal.year_start == model.year_start,
+                Analyses_archive_kamal.month_start == model.month_start,
+                Analyses_archive_kamal.date_start == model.date_start,
+                Analyses_archive_kamal.periode == model.periode
+            ).first()
+    
+            # check if ticker exsists
+            if x == None:
+    
+                return False
+    
+            # else work with it.
+            else:
+    
+                session.delete(x)
+                session.commit()
+    
+            session.close()
+    
+            return True
 
     def return_portoflolios():
         pass
@@ -1351,7 +1365,7 @@ class database_querys:
         now = datetime.now()  # current date and time
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1379,7 +1393,7 @@ class database_querys:
 
         # if not as pandas return as query.
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
+        engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
 

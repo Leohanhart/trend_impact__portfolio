@@ -77,8 +77,12 @@ class update_kaufman_kalman_analyses(object):
 
         tickers = None
 
+        print("started up")
+
         # load tickers
         if last_update_first:
+
+            print("before query")
 
             tickers = database_querys.database_querys.get_all_trend_kalman()
 
@@ -86,11 +90,15 @@ class update_kaufman_kalman_analyses(object):
 
             tickers = tickers_.id.to_list()
 
+            print("after query")
+
         else:
 
             tickers = database_querys.database_querys.get_all_active_tickers()
 
         trade_data = None
+
+        print("started up2 ")
 
         for periode_in in periodes:
             for ticker in tickers:

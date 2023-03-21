@@ -44,7 +44,9 @@ class update_data:
             try:
 
                 update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all()
-            except:
+            except Exception as e:
+                print("Error in thread = ", e)
+
                 sleep(60)
             database_querys.database_querys.add_log_to_logbook(
                 "ended trend_update in portfolio construction")
@@ -64,8 +66,8 @@ class update_data:
             try:
 
                 update = update_portfolio_trends.kko_portfolio_update_manager()
-            except:
-
+            except Exception as e:
+                print("Error in thread = ", e)
                 sleep(60)
 
             database_querys.database_querys.add_log_to_logbook(
@@ -87,8 +89,11 @@ class update_data:
             database_querys.database_querys.add_log_to_logbook(
                 "started trendperformance archive")
             try:
+
                 update_stats_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
-            except:
+                sleep(5)
+            except Exception as e:
+                print("Error in thread = ", e)
 
                 sleep(60)
 
@@ -113,7 +118,9 @@ class update_data:
 
                 portfolio_synch.update_trading_portfolios.startup_update()
 
-            except:
+                sleep(5)
+            except Exception as e:
+                print("Error in thread = ", e)
 
                 sleep(3600)
 
@@ -129,9 +136,11 @@ class update_data:
 
             sleep(4)
             try:
+
                 update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all(
                     last_update_first=True)
-            except:
+            except Exception as e:
+                print("Error in thread = ", e)
                 sleep(60)
 
             print("Updaded trading portfolios")
@@ -197,7 +206,7 @@ class update_data:
                                    args=())
         threads = []
         # Start the threads
-        thread1.start()
+        # thread1.start()
         thread2.start()
         thread3.start()
         thread4.start()
@@ -252,6 +261,7 @@ if __name__ == "__main__":
     try:
         x = update_data()
         x.start_update_scedule()
+        sleep(2000)
 
     except Exception as e:
 
