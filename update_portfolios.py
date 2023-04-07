@@ -14,12 +14,12 @@ import portfolio_synchronization as portfolio_synch
 # system
 from time import sleep
 from threading import Thread, Event
+from multiprocessing import Process
 import threading
-from concurrent.futures import ThreadPoolExecutor
-import concurrent.futures
-from concurrent.futures import wait
-from concurrent.futures import FIRST_EXCEPTION
+
 from loguru import logger
+from multiprocessing import Process
+
 
 class update_data:
 
@@ -29,7 +29,7 @@ class update_data:
 
     def __init__(self):
 
-        Thread()
+        #Thread()
         self.start_update_scedule()
 
     def task(self):
@@ -133,33 +133,44 @@ class update_data:
         
         logger.info("starting trend update")
         # start regular trendupdate
-        thread1 = threading.Thread(target=self.task,
+        thread1 = Process(target=self.task,
                                    args=())
+        
+        sleep(0.5)
         
         logger.info("starting portfolio creation")
         # starts update portfolii manager. 
         thread2 = thread_2 = Thread(target=self.task_2)
         
+        sleep(0.5)
+        
         logger.info("starting up archive")
         # starts archive kaufman
-        thread3 = threading.Thread(target=self.task_3,
+        thread3 = Process(target=self.task_3,
                                    args=())
+        
+        sleep(0.5)
         
         logger.info("starting hourly update trading portfolio")
         # start update trading portfolio.
-        thread4 = threading.Thread(target=self.task_4,
+        thread4 = Process(target=self.task_4,
                                    args=())
+        sleep(0.5)
         
         logger.info("starting up trendupdate revers.")
         # start regulare trend update reverse. 
-        thread5 = threading.Thread(target=self.task_5,
+        thread5 = Process(target=self.task_5,
                                    args=())
         threads = []
         # Start the threads
         thread1.start()
+        sleep(0.5)
         thread2.start()
+        sleep(0.5)
         thread3.start()
+        sleep(0.5)
         thread4.start()
+        sleep(0.5)
         thread5.start()
         
         logger.info("threads started.")
