@@ -41,6 +41,12 @@ import statistics
 import startup_support as support
 # custom target function
 
+import sqlalchemy
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy import and_, or_, not_
+from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio, Logbook, User_trades
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -993,6 +999,9 @@ class create_kko_tickers_selection:
         VERY important
         - First method is kind of created to make small lists of stocks.
         -second method is more pragmatish without caring about rest.
+        
+        In main, query can take easyly up to 60 seoncs to start, chance is big it can take 5 if 
+        application is multi threded.
 
         Parameters
         ----------
@@ -1016,16 +1025,36 @@ class create_kko_tickers_selection:
 
             """
             # gets data
+            #df = database_querys.database_querys.try_trend_kalman_performance()
+            
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            
+            
+            query_string = session.query(Analyses_trend_kamal_performance).statement.compile() 
+            
+            
+            try: 
+                df = pd.read_sql_query(query_string, session.bind)
+            except Exception as e:
+                print("rerror")
+                print(e)
+            
+            # close session
+            session.close()
 
-            df = database_querys.database_querys.get_trend_kalman_performance(
-                periode="D")
-
+            # return frame.
+            
+            
+            
+            
             # first select half of amount of trades.
             df = df.loc[df['amount_of_trades_y2'] >
                         df["amount_of_trades_y2"].median()]
-
+            
             # high winrates, takes higest BEST 82,5%
-
             p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
                                                              df.total_profitible_trades_y2.mean()) / 4)
 
@@ -1056,18 +1085,20 @@ class create_kko_tickers_selection:
 
 
             """
+            
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
                 periode="D")
-
+            
+            
             # first select half of amount of trades.
             df = df.loc[df['amount_of_trades_y2'] > 13]
-
+            
             df = df.loc[df['total_profitible_trades_y2'] > 95]
-
+            
             df = df.sort_values(
                 by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
-
+            
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
 
@@ -1075,7 +1106,7 @@ class create_kko_tickers_selection:
             # df = df.head(25)
             #
             tickers_for_portfolio = list(df.id.values)
-
+            
             self.selected_tickers = tickers_for_portfolio
             return
 
@@ -1263,24 +1294,30 @@ class kko_portfolio_update_manager:
         min_amount_tickers, min_sharp_ratio = details
 
         old_portfolios = []
-
+      
         #
         if min_amount_tickers == 5:
             #
+            
             old_portfolios = self.return_all_old_portfolios()
-
+        
+        
         # retreives the list with old portoflio's that will be deleted in the end.
         old_portfolios = self.return_all_old_portfolios()
-
+        
+        
         # get the tickers
-        selection = create_kko_tickers_selection(methode_two=True)
-
+        selection = create_kko_tickers_selection(methode_one=True)
+        
+        
+        
         tickers_selected = selection.selected_tickers
-
+        
         # shuffel selection.
         for i in range(0, 10):
             random.shuffle(tickers_selected)
-
+        
+    
         items = self.create_data_of_tickers(
             selection.selected_tickers)
 
@@ -1418,7 +1455,7 @@ class kko_portfolio_update_manager:
             min_amount_tickers, min_sharp_ratio = details
 
         # get the tickers
-        selection = create_kko_tickers_selection(methode_test=True)
+        selection = create_kko_tickers_selection(methode_two=True)
 
         tickers_selected = selection.selected_tickers
 
@@ -1920,7 +1957,7 @@ class kko_portfolio_update_manager:
             except:
                 continue
 
-            print("Setup portfolio ", pseudo_portfo)
+            #print("Setup portfolio ", pseudo_portfo)
 
             if portfolio.error == True:
                 continue
@@ -2154,7 +2191,7 @@ class kko_portfolio_update_manager:
             DESCRIPTION.
 
         """
-
+        print(1.2)
         portfolios = database_querys.database_querys.get_portfolio()
 
         # if there are no portfolios, return 5 and 0
@@ -2166,7 +2203,7 @@ class kko_portfolio_update_manager:
 
         height_sharpr = high_amount.total_sharp_y2.to_list()[0]
         height_amount = high_amount.portfolio_amount.to_list()[0]
-
+        print(1.3)
         return (height_amount, height_sharpr)
 
     def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
