@@ -26,6 +26,7 @@ from itertools import combinations
 from finquant.portfolio import build_portfolio
 from finquant.efficient_frontier import EfficientFrontier
 
+from loguru import logger
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
 
 from collections import ChainMap
@@ -77,12 +78,12 @@ class update_kaufman_kalman_analyses(object):
 
         tickers = None
 
-        print("started up")
+        logger.info("starting up trend update inside.")
 
         # load tickers
         if last_update_first:
 
-            print("before query")
+            
 
             tickers = database_querys.database_querys.get_all_trend_kalman()
 
@@ -90,15 +91,18 @@ class update_kaufman_kalman_analyses(object):
 
             tickers = tickers_.id.to_list()
 
-            print("after query")
+            
 
         else:
-
+            
+            logger.info("starting up query fort tickers.")
             tickers = database_querys.database_querys.get_all_active_tickers()
-
+            
+            logger.info("Query is done")
+            
         trade_data = None
 
-        print("started up2 ")
+        logger.info("starting up trend annalyses, tickers loaded and ready to go")
 
         for periode_in in periodes:
             for ticker in tickers:
@@ -106,12 +110,16 @@ class update_kaufman_kalman_analyses(object):
                 if periode_in == "D":
 
                     if last_update_first:
-                        print("update reverse trend-analyses for ticker =", ticker)
+                        logger.info("update reverse trend-analyses for ticker =", ticker)
                     else:
 
-                        print("update trend-analyses for ticker =", ticker)
+                        logger.info("update trend-analyses for ticker =", ticker)
 
                     try:
+                        
+                        # add ticker 
+                        
+                        
                         power_object = stock_object.power_stock_object(
                             stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
 
