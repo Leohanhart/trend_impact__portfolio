@@ -28,6 +28,7 @@ from finquant.efficient_frontier import EfficientFrontier
 
 from loguru import logger
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
+from initializer_tickers_main import initiaze_singel_ticker
 
 from collections import ChainMap
 import uuid
@@ -57,7 +58,6 @@ class update_all_trend_analyses(object):
 
 
 class update_kaufman_kalman_analyses(object):
-
     def update_all(last_update_first: bool = False):
         """
 
@@ -83,26 +83,24 @@ class update_kaufman_kalman_analyses(object):
         # load tickers
         if last_update_first:
 
-            
-
             tickers = database_querys.database_querys.get_all_trend_kalman()
 
-            tickers_ = tickers.sort_values(by=['last_update'])
+            tickers_ = tickers.sort_values(by=["last_update"])
 
             tickers = tickers_.id.to_list()
 
-            
-
         else:
-            
+
             logger.info("starting up query fort tickers.")
             tickers = database_querys.database_querys.get_all_active_tickers()
-            
+
             logger.info("Query is done")
-            
+
         trade_data = None
 
-        logger.info("starting up trend annalyses, tickers loaded and ready to go")
+        logger.info(
+            "starting up trend annalyses, tickers loaded and ready to go"
+        )
 
         for periode_in in periodes:
             for ticker in tickers:
@@ -110,24 +108,44 @@ class update_kaufman_kalman_analyses(object):
                 if periode_in == "D":
 
                     if last_update_first:
-                        logger.info("update reverse trend-analyses for ticker =", ticker)
+                        logger.info(
+                            "update reverse trend-analyses for ticker =",
+                            ticker,
+                        )
                     else:
 
-                        logger.info("update trend-analyses for ticker =", ticker)
+                        logger.info(
+                            "update trend-analyses for ticker =", ticker
+                        )
 
                     try:
-                        
-                        # add ticker 
-                        
-                        
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
 
-                        model = update_kaufman_support.return_full_analyses_dict(
-                            stock_data=power_object.stock_data, ticker_name=power_object.stock_ticker, max_levels=10, periode="D")
+                        # add ticker
+                        initalizer_ticker = initiaze_singel_ticker(ticker)
+
+                        if not database_querys.database_querys.check_if_ticker_is_allowd(
+                            ticker_name=ticker
+                        ):
+                            continue
+
+                        power_object = stock_object.power_stock_object(
+                            stock_ticker=ticker,
+                            simplyfied_load=True,
+                            periode_weekly=False,
+                        )
+
+                        model = (
+                            update_kaufman_support.return_full_analyses_dict(
+                                stock_data=power_object.stock_data,
+                                ticker_name=power_object.stock_ticker,
+                                max_levels=10,
+                                periode="D",
+                            )
+                        )
 
                         database_querys.database_querys.update_analyses_trend_kamal(
-                            model)
+                            model
+                        )
 
                         del power_object
                         del model
@@ -140,13 +158,23 @@ class update_kaufman_kalman_analyses(object):
                     try:
 
                         power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker, simplyfied_load=True, periode_weekly=True)
+                            stock_ticker=ticker,
+                            simplyfied_load=True,
+                            periode_weekly=True,
+                        )
 
-                        model = update_kaufman_support.return_full_analyses_dict(
-                            stock_data=power_object.stock_data, ticker_name=power_object.stock_ticker, max_levels=10, periode="W")
+                        model = (
+                            update_kaufman_support.return_full_analyses_dict(
+                                stock_data=power_object.stock_data,
+                                ticker_name=power_object.stock_ticker,
+                                max_levels=10,
+                                periode="W",
+                            )
+                        )
 
                         database_querys.database_querys.update_analyses_trend_kamal(
-                            model)
+                            model
+                        )
 
                         del power_object
                         del model
@@ -161,7 +189,7 @@ class update_kaufman_kalman_analyses(object):
     def update_full_analyses():
         """
 
-        updates all tickers in analyses_trend_kamal_archive and analyses_trend_kamal_performance. 
+        updates all tickers in analyses_trend_kamal_archive and analyses_trend_kamal_performance.
 
 
 
@@ -194,13 +222,21 @@ class update_kaufman_kalman_analyses(object):
                         print("start update archive of ", ticker)
 
                         power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
+                            stock_ticker=ticker,
+                            simplyfied_load=True,
+                            periode_weekly=False,
+                        )
 
-                        archive_data = update_archive_kaufmal(stock_data=power_object.stock_data, periode=periode_in,
-                                                              min_range=30, ticker=ticker)
+                        archive_data = update_archive_kaufmal(
+                            stock_data=power_object.stock_data,
+                            periode=periode_in,
+                            min_range=30,
+                            ticker=ticker,
+                        )
 
                         performance_specs = update_trend_performance(
-                            ticker, periode_in)
+                            ticker, periode_in
+                        )
 
                         print("finish update archive of ", ticker)
 
@@ -213,13 +249,13 @@ class update_kaufman_kalman_analyses(object):
 
 
 class update_kaufman_support(object):
-
     @staticmethod
-    def return_full_analyses_dict(stock_data,
-                                  ticker_name: str = "",
-                                  max_levels: int = 10,
-                                  periode: str = None
-                                  ):
+    def return_full_analyses_dict(
+        stock_data,
+        ticker_name: str = "",
+        max_levels: int = 10,
+        periode: str = None,
+    ):
         """
         returns full dict with ['profile', 'profile_std', 'trend', 'duration', 'current_yield', 'max_drawdown', 'exp_return', 'max_yield']
 
@@ -236,16 +272,19 @@ class update_kaufman_support(object):
         """
 
         kaufman_ma = update_kaufman_support.return_kaufman_ma_frame(
-            stock__data__frame=stock_data)
+            stock__data__frame=stock_data
+        )
 
         kaufman_and_kamal = update_kaufman_support.add_kalman_filter_to_data(
-            kaufman_ma)
+            kaufman_ma
+        )
 
-        dict_info = update_kaufman_support.return_profiles_data(dataframe_input=kaufman_and_kamal,
-                                                                max_levels=max_levels,
-                                                                std_based_levels=False,
-                                                                stock__data__frame=stock_data
-                                                                )
+        dict_info = update_kaufman_support.return_profiles_data(
+            dataframe_input=kaufman_and_kamal,
+            max_levels=max_levels,
+            std_based_levels=False,
+            stock__data__frame=stock_data,
+        )
 
         dict_info["ticker"] = ticker_name
         dict_info["periode"] = periode
@@ -257,7 +296,7 @@ class update_kaufman_support(object):
     @staticmethod
     def package_dict_in_class(my_dict):
         """
-        creates class with dict. 
+        creates class with dict.
 
         Parameters
         ----------
@@ -272,7 +311,6 @@ class update_kaufman_support(object):
         """
 
         class Dict2Class(object):
-
             def __init__(self, my_dict):
 
                 for key in my_dict:
@@ -284,8 +322,8 @@ class update_kaufman_support(object):
 
     @staticmethod
     def KAMA(price, n=10, pow1=2, pow2=30):
-        ''' kama indicator '''
-        ''' accepts pandas dataframe of prices '''
+        """kama indicator"""
+        """ accepts pandas dataframe of prices """
 
         absDiffx = abs(price - price.shift(1))
 
@@ -293,7 +331,9 @@ class update_kaufman_support(object):
         ER_den = ER_num.rolling(n).sum()
         ER = ER_num / ER_den
 
-        sc = (ER*(2.0/(pow1+1)-2.0/(pow2+1.0))+2/(pow2+1.0)) ** 2.0
+        sc = (
+            ER * (2.0 / (pow1 + 1) - 2.0 / (pow2 + 1.0)) + 2 / (pow2 + 1.0)
+        ) ** 2.0
 
         answer = np.zeros(sc.size)
         N = len(answer)
@@ -307,11 +347,15 @@ class update_kaufman_support(object):
                     answer[i] = price[i]
                     first_value = False
                 else:
-                    answer[i] = answer[i-1] + sc[i] * (price[i] - answer[i-1])
+                    answer[i] = answer[i - 1] + sc[i] * (
+                        price[i] - answer[i - 1]
+                    )
         return answer
 
     @staticmethod
-    def return_kaufman_ma_frame(stock__data__frame=None, return_as_list: bool = True):
+    def return_kaufman_ma_frame(
+        stock__data__frame=None, return_as_list: bool = True
+    ):
         """
 
 
@@ -327,7 +371,8 @@ class update_kaufman_support(object):
         """
         # dit organiseert een lijst met
         kama = update_kaufman_support.KAMA(
-            stock__data__frame.Close, n=10, pow1=2, pow2=30)
+            stock__data__frame.Close, n=10, pow1=2, pow2=30
+        )
         data = kama.tolist()
         if return_as_list:
             # remove Na's
@@ -360,19 +405,19 @@ class update_kaufman_support(object):
 
         kf = KF(initial_state_mean=1, n_dim_obs=1)
 
-        #kf = kf.em(x.dropna().values, n_iter=5)
+        # kf = kf.em(x.dropna().values, n_iter=5)
 
         state_means, _ = kf.filter(x.dropna().values)
 
-        d = {'a': np.asarray(x), 'b': np.asarray(state_means)}
+        d = {"a": np.asarray(x), "b": np.asarray(state_means)}
 
-        sm = pd.DataFrame(state_means, index=x.index, columns=['state'])
+        sm = pd.DataFrame(state_means, index=x.index, columns=["state"])
 
         sma = x.rolling(window=10).mean()
 
-        x['Data'] = sm  # kalman filter.
+        x["Data"] = sm  # kalman filter.
 
-        x['rolling'] = sma
+        x["rolling"] = sma
 
         return x
 
@@ -401,24 +446,29 @@ class update_kaufman_support(object):
         days_per_year = 252  # trading days per year
         ann_factor = days_per_year / window
 
-        df['log_rtn'] = np.log(df['Close']).diff()
+        df["log_rtn"] = np.log(df["Close"]).diff()
 
         # Var Swap (returns are not demeaned)
-        df['real_var'] = np.square(df['log_rtn']).rolling(
-            window).sum() * ann_factor
-        df['real_vol'] = np.sqrt(df['real_var'])
+        df["real_var"] = (
+            np.square(df["log_rtn"]).rolling(window).sum() * ann_factor
+        )
+        df["real_vol"] = np.sqrt(df["real_var"])
 
         # Classical (returns are demeaned, dof=1)
-        df['real_var'] = df['log_rtn'].rolling(window).var() * ann_factor
-        df['real_vol'] = np.sqrt(df['real_var'])
+        df["real_var"] = df["log_rtn"].rolling(window).var() * ann_factor
+        df["real_vol"] = np.sqrt(df["real_var"])
 
-        volatility = round(float(df.real_vol.tail(1))*100, 2)
+        volatility = round(float(df.real_vol.tail(1)) * 100, 2)
 
         return volatility
 
-    def return_max_drawdown(stock__data__frame=None, position_side: int = 1, return_time_serie: bool = False):
+    def return_max_drawdown(
+        stock__data__frame=None,
+        position_side: int = 1,
+        return_time_serie: bool = False,
+    ):
         """
-        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python        
+        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python
 
         Parameters
         ----------
@@ -439,25 +489,32 @@ class update_kaufman_support(object):
 
             # Calculate the max drawdown in the past window days for each day in the series.
             # Use min_periods=1 if you want to let the first 252 days data have an expanding window
-            Roll_Max = stock__data__frame['Adj Close'].rolling(
-                window, min_periods=1).max()
-            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Roll_Max = (
+                stock__data__frame["Adj Close"]
+                .rolling(window, min_periods=1)
+                .max()
+            )
+            Daily_Drawdown = stock__data__frame["Adj Close"] / Roll_Max - 1.0
 
             # Next we calculate the minimum (negative) daily drawdown in that window.
             # Again, use min_periods=1 if you want to allow the expanding window
             Max_Daily_Drawdown = Daily_Drawdown.rolling(
-                window, min_periods=1).min()
+                window, min_periods=1
+            ).min()
 
             # return in right format,
             if not return_time_serie:
-                return round(float(Max_Daily_Drawdown.min()*100), 3)
+                return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
 
         else:
-            Roll_Max = stock__data__frame['Adj Close'].rolling(
-                window, min_periods=1).min()
-            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Roll_Max = (
+                stock__data__frame["Adj Close"]
+                .rolling(window, min_periods=1)
+                .min()
+            )
+            Daily_Drawdown = stock__data__frame["Adj Close"] / Roll_Max - 1.0
             Dd_test = Daily_Drawdown * -1
 
             # Next we calculate the minimum (negative) daily drawdown in that window.
@@ -465,12 +522,17 @@ class update_kaufman_support(object):
             Max_Daily_Drawdown = Dd_test.rolling(window, min_periods=1).min()
             # return in right format,
             if not return_time_serie:
-                return round(float(Max_Daily_Drawdown.min()*100), 3)
+                return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
 
     @staticmethod
-    def return_profiles_data(dataframe_input, max_levels: int = 5, std_based_levels: bool = False, stock__data__frame: type = None):
+    def return_profiles_data(
+        dataframe_input,
+        max_levels: int = 5,
+        std_based_levels: bool = False,
+        stock__data__frame: type = None,
+    ):
         """
 
 
@@ -503,7 +565,7 @@ class update_kaufman_support(object):
         z = x.Data.diff()
 
         # tails data so begin error is deleted
-        y = y.tail(len(y)-5)
+        y = y.tail(len(y) - 5)
 
         # sets last profile
         last_dp = float(y.tail(1))
@@ -527,7 +589,8 @@ class update_kaufman_support(object):
             xp = op[op.Data > 0]
             # sts std profile.
             output_data["profile_std"] = round(
-                last_dp / (float(xp.std()) * 3 / max_levels))
+                last_dp / (float(xp.std()) * 3 / max_levels)
+            )
 
         else:
 
@@ -541,7 +604,8 @@ class update_kaufman_support(object):
             op = pd.DataFrame(y)
             xp = op[op.Data < 0]
             output_data["profile_std"] = round(
-                last_dp / (float(xp.std()) * 3 / max_levels))
+                last_dp / (float(xp.std()) * 3 / max_levels)
+            )
 
         ###
         # determen trend direction
@@ -579,10 +643,16 @@ class update_kaufman_support(object):
             startprice = round(float(data_total.Open.head(1)), 2)
             min_price = round(data_total.High.min(), 2)
             cur_price = round(float(data_total.Close.tail(1)), 2)
-            max_yield = round(((max_price/startprice)-1)*100, 2)
-            current_yield = round(((cur_price/startprice)-1)*100, 2)
-            max_drawdown = round(update_kaufman_support.return_max_drawdown(
-                stock__data__frame=data_total, position_side=1, return_time_serie=False), 2)
+            max_yield = round(((max_price / startprice) - 1) * 100, 2)
+            current_yield = round(((cur_price / startprice) - 1) * 100, 2)
+            max_drawdown = round(
+                update_kaufman_support.return_max_drawdown(
+                    stock__data__frame=data_total,
+                    position_side=1,
+                    return_time_serie=False,
+                ),
+                2,
+            )
             exp_return = round(current_yield / output_data["duration"], 2)
 
             output_data["current_yield"] = current_yield
@@ -595,10 +665,18 @@ class update_kaufman_support(object):
             min_price = round(data_total.High.min(), 2)
             startprice = round(float(data_total.Open.head(1)), 2)
             cur_price = round(float(data_total.Close.tail(1)), 2)
-            max_yield = round((((min_price/startprice)-1)*100)*-1, 2)
-            current_yield = round((((cur_price/startprice)-1)*100)*-1, 2)
-            max_drawdown = round(update_kaufman_support.return_max_drawdown(
-                stock__data__frame=data_total, position_side=-1, return_time_serie=False), 2)
+            max_yield = round((((min_price / startprice) - 1) * 100) * -1, 2)
+            current_yield = round(
+                (((cur_price / startprice) - 1) * 100) * -1, 2
+            )
+            max_drawdown = round(
+                update_kaufman_support.return_max_drawdown(
+                    stock__data__frame=data_total,
+                    position_side=-1,
+                    return_time_serie=False,
+                ),
+                2,
+            )
             exp_return = round(current_yield / output_data["duration"], 2)
 
             output_data["current_yield"] = current_yield
@@ -607,7 +685,8 @@ class update_kaufman_support(object):
             output_data["max_yield"] = max_yield
 
         output_data["volatility"] = update_kaufman_support.retrun_volatiltiy(
-            stock_data_frame=stock__data__frame)
+            stock_data_frame=stock__data__frame
+        )
 
         # start date
         date = data_total.tail(1).index[0]
@@ -648,7 +727,7 @@ class update_kaufman_support(object):
         return output_data
 
 
-class update_archive_kaufmal():
+class update_archive_kaufmal:
     """
     TEST: if old datapoint gets refershed
             if next itteration matches database if exsits, so no fill errror loop occures.
@@ -668,7 +747,13 @@ class update_archive_kaufmal():
     last_date_use_date: int = 0
     last_durration: int = -1
 
-    def __init__(self, stock_data, periode: str = "D", min_range: int = 30, ticker: str = ""):
+    def __init__(
+        self,
+        stock_data,
+        periode: str = "D",
+        min_range: int = 30,
+        ticker: str = "",
+    ):
 
         # if problems, delete all data.
         #
@@ -692,9 +777,12 @@ class update_archive_kaufmal():
             # add data
             work_data = stock_data.head(i)
 
-            model = update_kaufman_support.return_full_analyses_dict(stock_data=work_data, ticker_name=ticker, max_levels=10,
-                                                                     periode=periode
-                                                                     )
+            model = update_kaufman_support.return_full_analyses_dict(
+                stock_data=work_data,
+                ticker_name=ticker,
+                max_levels=10,
+                periode=periode,
+            )
 
             # stockdata frame
             self.data_slides.append(model)
@@ -718,7 +806,8 @@ class update_archive_kaufmal():
                     # delete old model.
 
                     database_querys.database_querys.update_analyses_trend_kamal_archive(
-                        model)
+                        model
+                    )
 
                     i = i - model.duration
 
@@ -728,12 +817,13 @@ class update_archive_kaufmal():
                 print("No archive found")
 
             report = database_querys.database_querys.update_analyses_trend_kamal_archive(
-                model)
+                model
+            )
 
             if report["status"] == "EXISTS":
                 break
 
-           # print(self.__dict__)
+            # print(self.__dict__)
             # reset lengt
             i = i - model.duration
 
@@ -758,13 +848,16 @@ class update_archive_kaufmal():
         """
         for i in range(0, len(self.data_slides)):
             database_querys.database_querys.delete_analyses_trend_kamal_archive(
-                self.data_slides[i])
+                self.data_slides[i]
+            )
 
     def check_if_need_overwrite(self, model_old, model_new):
 
-        if(model_old.year_start == model_new.year_start and
-           model_old.month_start == model_new.month_start and
-           model_old.date_start == model_new.date_start):
+        if (
+            model_old.year_start == model_new.year_start
+            and model_old.month_start == model_new.month_start
+            and model_old.date_start == model_new.date_start
+        ):
             return True
         else:
             return False
@@ -797,7 +890,8 @@ class update_archive_kaufmal():
 
         # get data.
         report = database_querys.database_querys.get_trend_kalman_data(
-            ticker=ticker, periode=periode)
+            ticker=ticker, periode=periode
+        )
 
         # tails data.
         report = report.tail(1)
@@ -807,19 +901,20 @@ class update_archive_kaufmal():
 
         # create model of data.
         raport_class = update_kaufman_support.package_dict_in_class(
-            new_raport[0])
+            new_raport[0]
+        )
 
         return raport_class
 
 
 class update_trend_performance:
     """
-    - AVG return / volatility. We need that for later. 
-    - 2 years, 5 years. 
+    - AVG return / volatility. We need that for later.
+    - 2 years, 5 years.
 
-    IMPRORTANT, create empty field for score, after analyses, a score 
-    will be added on behaf of profitibly, focussing for seperation. 
-    Score from on to 10. 
+    IMPRORTANT, create empty field for score, after analyses, a score
+    will be added on behaf of profitibly, focussing for seperation.
+    Score from on to 10.
 
     """
 
@@ -827,7 +922,8 @@ class update_trend_performance:
 
         # get the data
         df = database_querys.database_querys.get_trend_kalman_data(
-            ticker=ticker, periode=periode)
+            ticker=ticker, periode=periode
+        )
 
         # error check.
         if len(df) < 10 and len(df) > 2:
@@ -844,8 +940,11 @@ class update_trend_performance:
 
         overall_performance = self.create_performance_details(df, "all")
 
-        all_data = {**details_two_years, **
-                    details_five_years, **overall_performance}
+        all_data = {
+            **details_two_years,
+            **details_five_years,
+            **overall_performance,
+        }
 
         all_data["ticker"] = ticker
         all_data["periode"] = periode
@@ -856,7 +955,8 @@ class update_trend_performance:
         model = update_kaufman_support().package_dict_in_class(model)
 
         database_querys.database_querys.update_analyses_trend_kamal_performance(
-            model)
+            model
+        )
 
     def create_performance_details(self, dataframe, name=""):
         df = dataframe
@@ -867,35 +967,42 @@ class update_trend_performance:
         data["amount_of_trades_" + name] = ty_amount_of_trades = len(df)
 
         # sets total return
-        data["total_return_" +
-             name] = ty_total_return = round(df.current_yield.sum(), 2)
+        data["total_return_" + name] = ty_total_return = round(
+            df.current_yield.sum(), 2
+        )
 
         # total mean
-        data["total_average_return_" +
-             name] = ty_total_mean_return = round(df.current_yield.mean(), 2)
+        data["total_average_return_" + name] = ty_total_mean_return = round(
+            df.current_yield.mean(), 2
+        )
 
         # sets
-        ty_amount_positive_trades = len(df.loc[df['current_yield'] > 0])
+        ty_amount_positive_trades = len(df.loc[df["current_yield"] > 0])
 
         # sets amoutn negative trades.
-        ty_amount_negative_trades = len(df.loc[df['current_yield'] < 0])
+        ty_amount_negative_trades = len(df.loc[df["current_yield"] < 0])
 
         # set percentage -- needed for volatility returns.
 
         try:
-            ty_perctage_positive_trades = round(
-                ty_amount_positive_trades / ty_amount_of_trades, 2)*100
+            ty_perctage_positive_trades = (
+                round(ty_amount_positive_trades / ty_amount_of_trades, 2) * 100
+            )
         except:
             ty_perctage_positive_trades = 0
 
-        data["total_profitible_trades_" + name] = ty_perctage_positive_trades = round(
-            ty_amount_positive_trades / ty_amount_of_trades, 2)*100
+        data[
+            "total_profitible_trades_" + name
+        ] = ty_perctage_positive_trades = (
+            round(ty_amount_positive_trades / ty_amount_of_trades, 2) * 100
+        )
 
         try:
             # sets percentage negative trades.
 
-            ty_perctage_negative_trades = round(
-                ty_amount_negative_trades / ty_amount_of_trades, 2)*100
+            ty_perctage_negative_trades = (
+                round(ty_amount_negative_trades / ty_amount_of_trades, 2) * 100
+            )
 
         except:
 
@@ -904,7 +1011,8 @@ class update_trend_performance:
         try:
             # sets mean, lost trades.
             ty_average_negative_trades = round(
-                df.loc[df['current_yield'] < 0].exp_return.mean())
+                df.loc[df["current_yield"] < 0].exp_return.mean()
+            )
 
         except:
             ty_average_negative_trades = 0
@@ -912,44 +1020,53 @@ class update_trend_performance:
         try:
             # sets mean, winning trades.
             ty_average_positive_trades = round(
-                df.loc[df['current_yield'] > 0].exp_return.mean())
+                df.loc[df["current_yield"] > 0].exp_return.mean()
+            )
 
         except:
 
             ty_average_positive_trades = 0
         # set trades long
-        ty_trades_long = len(df.loc[df['trend'] > 0])
+        ty_trades_long = len(df.loc[df["trend"] > 0])
 
-        ty_trades_short = len(df.loc[df['trend'] < 0])
+        ty_trades_short = len(df.loc[df["trend"] < 0])
 
         ty_expected_return = df.exp_return.mean()
 
         try:
 
-            ty_exp_return_volatility = round(self.get_expected_return_volatility(ty_perctage_positive_trades,
-                                                                                 ty_perctage_negative_trades,
-                                                                                 ty_average_positive_trades,
-                                                                                 ty_average_negative_trades), 2)
+            ty_exp_return_volatility = round(
+                self.get_expected_return_volatility(
+                    ty_perctage_positive_trades,
+                    ty_perctage_negative_trades,
+                    ty_average_positive_trades,
+                    ty_average_negative_trades,
+                ),
+                2,
+            )
         except:
 
             ty_exp_return_volatility = 0
 
         data["total_exp_volatility_" + name] = ty_exp_return_volatility
 
-        data["total_volatility_" +
-             name] = ty_volatility = round(df.volatility.mean())
+        data["total_volatility_" + name] = ty_volatility = round(
+            df.volatility.mean()
+        )
 
-        data["total_sharp_" +
-             name] = ty_sharp = round(ty_total_mean_return / ty_volatility, 2)
+        data["total_sharp_" + name] = ty_sharp = round(
+            ty_total_mean_return / ty_volatility, 2
+        )
 
         return data
 
-    def get_expected_return_volatility(self,
-                                       chance_a: float,
-                                       chance_b: float,
-                                       exp_return_a: float,
-                                       exp_return_b: float
-                                       ):
+    def get_expected_return_volatility(
+        self,
+        chance_a: float,
+        chance_b: float,
+        exp_return_a: float,
+        exp_return_b: float,
+    ):
         """
 
         https://www.youtube.com/watch?v=bE1Uq-sUFh8
@@ -982,7 +1099,7 @@ class update_trend_performance:
 
         start_year = int(last_row.year_end) - amount_of_years
 
-        df = df.loc[df['year_end'] > start_year]
+        df = df.loc[df["year_end"] > start_year]
 
         return df
 
@@ -999,31 +1116,39 @@ After that we will look at the Expected return and the volatility of expected re
 
 
 class update_trend_kamal_portfolio_selection:
-
     def __init__(self, methode_one: bool = True):
 
         if methode_one:
 
-            """ 
-            Methode one is basicly filterd on winrate, cutted and 
+            """
+            Methode one is basicly filterd on winrate, cutted and
             """
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
-                periode="D")
+                periode="D"
+            )
 
             # first select half of amount of trades.
-            df = df.loc[df['amount_of_trades_y2'] >
-                        df["amount_of_trades_y2"].median()]
+            df = df.loc[
+                df["amount_of_trades_y2"] > df["amount_of_trades_y2"].median()
+            ]
 
             # high winrates, takes higest BEST 82,5%
-            p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
-                                                             df.total_profitible_trades_y2.mean()) / 4)
+            p = df.total_profitible_trades_y2.max() - round(
+                (
+                    df.total_profitible_trades_y2.max()
+                    - df.total_profitible_trades_y2.mean()
+                )
+                / 4
+            )
 
             #
-            df = df.loc[df['total_profitible_trades_y2'] > p]
+            df = df.loc[df["total_profitible_trades_y2"] > p]
 
             df = df.sort_values(
-                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+                by=["total_sharp_y2", "total_sharp_y5", "total_sharp_all"],
+                ascending=False,
+            )
 
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
@@ -1033,7 +1158,8 @@ class update_trend_kamal_portfolio_selection:
 
             # create correlation matrix
             correlations_tickers = create_correlation_matrix(
-                tickers=tickers_for_portfolio)
+                tickers=tickers_for_portfolio
+            )
 
             # one way to create a dataframe
             df = pd.DataFrame(correlations_tickers.data)
@@ -1053,7 +1179,7 @@ class update_trend_kamal_portfolio_selection:
 
             # adds those to list.
             # this options out commanded is fuckt because of wrong python version.
-            #res = [list(ele) for ele in options]
+            # res = [list(ele) for ele in options]
             res = [list(ele) for i, ele in enumerate(options)]
             list_of_options.extend(res)
 
@@ -1075,7 +1201,8 @@ class update_trend_kamal_portfolio_selection:
                 tickers_selected = list_of_options[i]
 
                 data = self.create_data_frame_of_tickers(
-                    tickers_selected, ticker_options)
+                    tickers_selected, ticker_options
+                )
 
                 portfolio = portfolio_constructor_manager(data)
 
@@ -1171,13 +1298,20 @@ class create_correlation_matrix:
 
                     #
                     power_objectA = stock_object.power_stock_object(
-                        stock_ticker=tickerA, simplyfied_load=True, periode_weekly=False)
+                        stock_ticker=tickerA,
+                        simplyfied_load=True,
+                        periode_weekly=False,
+                    )
                     power_objectB = stock_object.power_stock_object(
-                        stock_ticker=tickerB, simplyfied_load=True, periode_weekly=False)
+                        stock_ticker=tickerB,
+                        simplyfied_load=True,
+                        periode_weekly=False,
+                    )
 
                     #
                     correlation = power_objectA.stock_data.Change.corr(
-                        power_objectB.stock_data.Change)
+                        power_objectB.stock_data.Change
+                    )
 
                     new_core = round(correlation, 2)
 
@@ -1242,7 +1376,13 @@ class portfolio_constructor_manager:
     # 2 year expected return
     max_sharp_y2_expected_return: float = None
 
-    def __init__(self, data, name_strategie: str = "undefined", periode=500, days_untill_ex: int = 21):
+    def __init__(
+        self,
+        data,
+        name_strategie: str = "undefined",
+        periode=500,
+        days_untill_ex: int = 21,
+    ):
         """
         Insert data in the format needed for financial quant.
 
@@ -1280,15 +1420,23 @@ class portfolio_constructor_manager:
 
         # creates frames of porfolios
         self.portfolio_strat_low_vol_stocks = self.process__stocks__to__df(
-            opt_w.iloc[0], self.the_id_low_vol)
+            opt_w.iloc[0], self.the_id_low_vol
+        )
         self.portfolio_strat_high_sharp_stocks = self.process__stocks__to__df(
-            opt_w.iloc[1], self.the_id_sharp__)
+            opt_w.iloc[1], self.the_id_sharp__
+        )
 
         # create specs
-        self.portfolio_strat_low_vol_details = self.process__portfolio_specs__to__df(
-            opt_res.iloc[:1, ::], self.the_id_low_vol)
-        self.portfolio_strat_high_sharp_details = self.process__portfolio_specs__to__df(
-            opt_res.iloc[1:2, ::], self.the_id_sharp__)
+        self.portfolio_strat_low_vol_details = (
+            self.process__portfolio_specs__to__df(
+                opt_res.iloc[:1, ::], self.the_id_low_vol
+            )
+        )
+        self.portfolio_strat_high_sharp_details = (
+            self.process__portfolio_specs__to__df(
+                opt_res.iloc[1:2, ::], self.the_id_sharp__
+            )
+        )
 
         # set matrix
         self.set_matrix()
@@ -1307,20 +1455,31 @@ class portfolio_constructor_manager:
         # setting up dataframe for drawdown functions
         ts_low_df = pd.DataFrame(low_volatile_summed)
         ts_low_df.rename(
-            columns={ts_low_df.columns[0]: 'Adj Close'}, inplace=True)
+            columns={ts_low_df.columns[0]: "Adj Close"}, inplace=True
+        )
 
         low_vol_max_drawdown = self.return_max_drawdown(ts_low_df)
         low_vol_expected_return = low_volatile_summed.pct_change().mean() * 100
 
         self.min_vol_y2_expected_return = low_vol_expected_return
         self.min_vol_y2_max_drawdown = low_vol_max_drawdown
-        self.min_vol_y2_return = round(((float(low_volatile_summed.tail(
-            1)) - float(low_volatile_summed.head(1))) / float(low_volatile_summed.tail(1)))*100, 2)
+        self.min_vol_y2_return = round(
+            (
+                (
+                    float(low_volatile_summed.tail(1))
+                    - float(low_volatile_summed.head(1))
+                )
+                / float(low_volatile_summed.tail(1))
+            )
+            * 100,
+            2,
+        )
         #####
 
         # create stock_data details for high sharp.
         balances_high_sharp = list(
-            self.high_sharp_frame.balance.to_dict().values())
+            self.high_sharp_frame.balance.to_dict().values()
+        )
         # sets data balanced
         high_sharp_data = data * balances_high_sharp
         high_sharp_summed = high_sharp_data.sum(axis=1)
@@ -1334,21 +1493,36 @@ class portfolio_constructor_manager:
         # setting up dataframe for drawdown functions
         ts_low_df = pd.DataFrame(high_sharp_summed)
         ts_low_df.rename(
-            columns={ts_low_df.columns[0]: 'Adj Close'}, inplace=True)
+            columns={ts_low_df.columns[0]: "Adj Close"}, inplace=True
+        )
 
         low_vol_max_drawdown = self.return_max_drawdown(ts_low_df)
         low_vol_expected_return = low_volatile_summed.pct_change().mean() * 100
 
         self.max_sharp_y2_expected_return = low_vol_expected_return
         self.max_sharp_y2_max_drawdown = low_vol_max_drawdown
-        self.max_sharp_y2_return = round(((float(high_sharp_summed.tail(
-            1)) - float(high_sharp_summed.head(1))) / float(high_sharp_summed.tail(1)))*100, 2)
+        self.max_sharp_y2_return = round(
+            (
+                (
+                    float(high_sharp_summed.tail(1))
+                    - float(high_sharp_summed.head(1))
+                )
+                / float(high_sharp_summed.tail(1))
+            )
+            * 100,
+            2,
+        )
 
         return
 
-    def return_max_drawdown(self, stock__data__frame=None, position_side: int = 1, return_time_serie: bool = False):
+    def return_max_drawdown(
+        self,
+        stock__data__frame=None,
+        position_side: int = 1,
+        return_time_serie: bool = False,
+    ):
         """
-        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python        
+        source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python
 
         Parameters
         ----------
@@ -1369,25 +1543,32 @@ class portfolio_constructor_manager:
 
             # Calculate the max drawdown in the past window days for each day in the series.
             # Use min_periods=1 if you want to let the first 252 days data have an expanding window
-            Roll_Max = stock__data__frame['Adj Close'].rolling(
-                window, min_periods=1).max()
-            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Roll_Max = (
+                stock__data__frame["Adj Close"]
+                .rolling(window, min_periods=1)
+                .max()
+            )
+            Daily_Drawdown = stock__data__frame["Adj Close"] / Roll_Max - 1.0
 
             # Next we calculate the minimum (negative) daily drawdown in that window.
             # Again, use min_periods=1 if you want to allow the expanding window
             Max_Daily_Drawdown = Daily_Drawdown.rolling(
-                window, min_periods=1).min()
+                window, min_periods=1
+            ).min()
 
             # return in right format,
             if not return_time_serie:
-                return round(float(Max_Daily_Drawdown.min()*100), 3)
+                return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
 
         else:
-            Roll_Max = stock__data__frame['Adj Close'].rolling(
-                window, min_periods=1).min()
-            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Roll_Max = (
+                stock__data__frame["Adj Close"]
+                .rolling(window, min_periods=1)
+                .min()
+            )
+            Daily_Drawdown = stock__data__frame["Adj Close"] / Roll_Max - 1.0
             Dd_test = Daily_Drawdown * -1
 
             # Next we calculate the minimum (negative) daily drawdown in that window.
@@ -1395,7 +1576,7 @@ class portfolio_constructor_manager:
             Max_Daily_Drawdown = Dd_test.rolling(window, min_periods=1).min()
             # return in right format,
             if not return_time_serie:
-                return round(float(Max_Daily_Drawdown.min()*100), 3)
+                return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
 
@@ -1422,40 +1603,48 @@ class portfolio_constructor_manager:
         df = df.reset_index()
 
         # sets uuID
-        df['id'] = UUid
+        df["id"] = UUid
 
         # sets the mame of the strategie
-        df['selection strategie'] = self.name_strategie
+        df["selection strategie"] = self.name_strategie
 
         # sets created AT datestring - so you can see when constructed
-        df['createdAt'] = self.get_date_string()
+        df["createdAt"] = self.get_date_string()
 
         # sets experation -- so when it can not longer be used.
-        df['expiresAt'] = self.get_date_string(self.days_untill_ex)
+        df["expiresAt"] = self.get_date_string(self.days_untill_ex)
 
         # sets bool for trading
-        df['Traded'] = False
+        df["Traded"] = False
 
         # sets status, if portolio trade is over, just make in-active.
-        df['Trade_active'] = True
+        df["Trade_active"] = True
 
         # sets total lengt of stocks
-        df['total_amount_stocks'] = len(self.portfolio_strat_low_vol_stocks)
+        df["total_amount_stocks"] = len(self.portfolio_strat_low_vol_stocks)
 
-        df['user_id'] = "0"
+        df["user_id"] = "0"
 
-        df['pnl'] = 0.00
+        df["pnl"] = 0.00
 
         # renames the frame.
-        df = df.rename(columns={df.columns[0]: "optimization strategie",
-
-
-
-                                })
+        df = df.rename(
+            columns={
+                df.columns[0]: "optimization strategie",
+            }
+        )
 
         # re organizes index.
-        columns_titles = ['id', 'selection strategie', 'optimization strategie', 'Expected Return', 'Volatility',
-                          'Sharpe Ratio',   'createdAt', 'expiresAt']
+        columns_titles = [
+            "id",
+            "selection strategie",
+            "optimization strategie",
+            "Expected Return",
+            "Volatility",
+            "Sharpe Ratio",
+            "createdAt",
+            "expiresAt",
+        ]
 
         # reindex dataframe
         df = df.reindex(columns=columns_titles)
@@ -1471,11 +1660,12 @@ class portfolio_constructor_manager:
         df = df.reset_index()
 
         # sets id column.
-        df['id'] = UUid
+        df["id"] = UUid
 
         # renames the frame.
         df = df.rename(
-            columns={df.columns[0]: "ticker", df.columns[1]: 'balance'})
+            columns={df.columns[0]: "ticker", df.columns[1]: "balance"}
+        )
 
         # re organizes index.
         columns_titles = ["id", "ticker", "balance"]
@@ -1525,7 +1715,6 @@ class portfolio_constructor_manager:
 
 
 class create_time_serie_with_kamalstrategie:
-
     def __init__(self, ticker):
         """
         https://stackoverflow.com/questions/29370057/select-dataframe-rows-between-two-dates
@@ -1541,14 +1730,15 @@ class create_time_serie_with_kamalstrategie:
         None.
 
         """
-       # return signals
+        # return signals
         power_object = stock_object.power_stock_object(
-            stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
+            stock_ticker=ticker, simplyfied_load=True, periode_weekly=False
+        )
 
-       # stockdata
+        # stockdata
         sdata = power_object.stock_data
 
-       # stock.data.change
+        # stock.data.change
         cdata = power_object.stock_data.Change
 
         # set openprice
@@ -1556,35 +1746,55 @@ class create_time_serie_with_kamalstrategie:
 
         cdata = self.filter_pandas_stock_years(cdata, 35)
 
-       # gets the data
+        # gets the data
         data = database_querys.database_querys.get_trend_kalman_data(
-            ticker=ticker)
+            ticker=ticker
+        )
 
-       # filter last 2years
+        # filter last 2years
         data = self.filter_pandas_years(data, 35)
 
-       # selects the right columns
-        data = data[['year_start', 'month_start', 'date_start',
-                     'year_end', 'month_end', 'date_end', 'trend']]
+        # selects the right columns
+        data = data[
+            [
+                "year_start",
+                "month_start",
+                "date_start",
+                "year_end",
+                "month_end",
+                "date_end",
+                "trend",
+            ]
+        ]
 
-       # create date objects
-        data_obj = data.to_dict(orient='records')
+        # create date objects
+        data_obj = data.to_dict(orient="records")
 
         df = dfu = cdata
 
-       # select mask = changevalue, df.update, finished
+        # select mask = changevalue, df.update, finished
         for i in data_obj:
 
             if i["trend"] == 1:
                 continue
 
             # creates startdate
-            date_start = str(i["year_start"]) + "-" + \
-                str(i["month_start"]) + "-" + str(i["date_start"])
+            date_start = (
+                str(i["year_start"])
+                + "-"
+                + str(i["month_start"])
+                + "-"
+                + str(i["date_start"])
+            )
 
             # create enddates
-            date_end = str(i["year_end"]) + "-" + \
-                str(i["month_end"]) + "-" + str(i["date_end"])
+            date_end = (
+                str(i["year_end"])
+                + "-"
+                + str(i["month_end"])
+                + "-"
+                + str(i["date_end"])
+            )
 
             # creates mask
             mask = (df.index > date_start) & (df.index <= date_end)
@@ -1628,7 +1838,7 @@ class create_time_serie_with_kamalstrategie:
 
         start_year = int(last_row.year_end) - amount_of_years
 
-        df = df.loc[df['year_end'] > start_year]
+        df = df.loc[df["year_end"] > start_year]
 
         return df
 
@@ -1677,7 +1887,7 @@ if __name__ == "__main__":
 
         power_object = stock_object.power_stock_object(stock_ticker = "ACRX", simplyfied_load = True, periode_weekly = True)
 
-        x = update_kaufman_support.return_kaufman_ma_frame(stock__data__frame=power_object.stock_data)   
+        x = update_kaufman_support.return_kaufman_ma_frame(stock__data__frame=power_object.stock_data)
         print(x)
         z = update_kaufman_support.add_kalman_filter_to_data(x)
         print(z)
@@ -1690,17 +1900,17 @@ if __name__ == "__main__":
         print("END")
         """
 
-        #tickers = ['ABM', 'PYCR', 'MBINP', 'TWIN', 'IDA', 'ICD', 'OHI', 'ADC', 'ALX', 'ESNT', 'ABNB', 'CWH', 'UTSI', 'QLYS', 'SEIC', 'VLYPP', 'VRAR', 'SNPS', 'AGTI', 'RYAN', 'HEQ', 'DSGN', 'MCHP', 'CNM', 'CD']
-        #ding_ = create_correlation_matrix(tickers)
+        # tickers = ['ABM', 'PYCR', 'MBINP', 'TWIN', 'IDA', 'ICD', 'OHI', 'ADC', 'ALX', 'ESNT', 'ABNB', 'CWH', 'UTSI', 'QLYS', 'SEIC', 'VLYPP', 'VRAR', 'SNPS', 'AGTI', 'RYAN', 'HEQ', 'DSGN', 'MCHP', 'CNM', 'CD']
+        # ding_ = create_correlation_matrix(tickers)
         # print(ding_.data)
 
-        #obj = create_time_serie_with_kamalstrategie("IDA")
+        # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        #x = update_kaufman_kalman_analyses.update_full_analyses()
+        # x = update_kaufman_kalman_analyses.update_full_analyses()
         while True:
             # update_kaufman_kalman_analyses.update_full_analyses()
             update_kaufman_kalman_analyses.update_all(last_update_first=True)
-       # update_trend_performance("AAPL", "D")
+    # update_trend_performance("AAPL", "D")
 
     except Exception as e:
 
