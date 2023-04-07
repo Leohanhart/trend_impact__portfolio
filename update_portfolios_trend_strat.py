@@ -1295,7 +1295,7 @@ class kko_portfolio_update_manager:
 
         old_portfolios = []
       
-        #
+        # delete old portfolios. 
         if min_amount_tickers == 5:
             #
             
@@ -2191,7 +2191,7 @@ class kko_portfolio_update_manager:
             DESCRIPTION.
 
         """
-        print(1.2)
+        
         portfolios = database_querys.database_querys.get_portfolio()
 
         # if there are no portfolios, return 5 and 0
@@ -2203,7 +2203,7 @@ class kko_portfolio_update_manager:
 
         height_sharpr = high_amount.total_sharp_y2.to_list()[0]
         height_amount = high_amount.portfolio_amount.to_list()[0]
-        print(1.3)
+        
         return (height_amount, height_sharpr)
 
     def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
