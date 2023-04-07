@@ -219,6 +219,12 @@ class update_kaufman_kalman_analyses(object):
 
                     try:
 
+                        initalizer_ticker = initiaze_singel_ticker(ticker)
+
+                        if not database_querys.database_querys.check_if_ticker_is_allowd(
+                            ticker_name=ticker
+                        ):
+                            continue
                         print("start update archive of ", ticker)
 
                         power_object = stock_object.power_stock_object(
