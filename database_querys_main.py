@@ -43,7 +43,9 @@ from threading import Lock
 
 
 class database_querys:
+    
 
+    
     @staticmethod
     def get_all_active_tickers():
         """
@@ -64,23 +66,24 @@ class database_querys:
              'AEAC']
 
         """
-
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        query_string = session.query(Ticker).statement.compile()  # .all()
-
-        df = pd.read_sql_query(query_string, session.bind)
-
-        session.close()
-
-        data = df[df.active == True]
-
-        data = data.id.to_list()
-
-        return data
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+    
+            query_string = session.query(Ticker).statement.compile()  # .all()
+    
+            df = pd.read_sql_query(query_string, session.bind)
+    
+            session.close()
+    
+            data = df[df.active == True]
+    
+            data = data.id.to_list()
+    
+            return data
 
     @staticmethod
     def get_all_active_industrys():
@@ -392,64 +395,96 @@ class database_querys:
                         # return frame.
                         return df
 
-    def get_trend_kalman_performance(ticker: str = "", periode: str = "D", as_pandas: bool = True):
+    def try_trend_kalman_performance(ticker: str = "", periode: str = "D", as_pandas: bool = True):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
-
-        if periode == "D" and ticker != "":
-
-            query_string = session.query(Analyses_trend_kamal_performance).filter(
-                Analyses_trend_kamal_performance.id == ticker,
-                Analyses_trend_kamal_performance.periode == periode
-
-
-            ).statement.compile()  # .all()
-            # load dataframe with query
-
+        
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        
+        print("BINRGO")
+        query_string = session.query(Analyses_trend_kamal_performance).statement.compile() 
+        print("HIIIIIII")
+        try: 
             df = pd.read_sql_query(query_string, session.bind)
+        except Exception as e:
+            print("rerror")
+            print(e)
+        print("HAAAAAAAAA")
+        # close session
+        session.close()
 
-            # close session
-            session.close()
+        # return frame.
+        return df
+        
+     
 
-            # return frame.
-            return df
-
-        elif periode == "D" and ticker == "":
-
-            query_string = session.query(Analyses_trend_kamal_performance).filter(
-
-                Analyses_trend_kamal_performance.periode == periode
-
-
-            ).statement.compile()  # .all()
-            # load dataframe with query
-
-            df = pd.read_sql_query(query_string, session.bind)
-
-            # close session
-            session.close()
-
-            # return frame.
-            return df
-
-        elif periode != None:
-
-            # generate query
-            query_string = session.query(Analyses_trend_kamal_performance).filter(
-                Analyses_trend_kamal_performance.periode == "D"
-            ).statement.compile()  # .all()
-            # load dataframe with query
-
-            df = pd.read_sql_query(query_string, session.bind)
-
-            # close session
-            session.close()
-
-            # return frame.
-            return df
+    def get_trend_kalman_performance(ticker: str = "", periode: str = "D", as_pandas: bool = True):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+    
+            if periode == "D" and ticker != "":
+                
+                print(8.1)
+                query_string = session.query(Analyses_trend_kamal_performance).filter(
+                    Analyses_trend_kamal_performance.id == ticker,
+                    Analyses_trend_kamal_performance.periode == periode
+    
+    
+                ).statement.compile()  # .all()
+                # load dataframe with query
+                print(8.2)
+                df = pd.read_sql_query(query_string, session.bind)
+                
+                print(8.3)
+                # close session
+                session.close()
+    
+                # return frame.
+                return df
+    
+            elif periode == "D" and ticker == "":
+                print(9.3)
+                
+                db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+                engine = create_engine(db_path, echo=True)
+                Session = sessionmaker(bind=engine)
+                session = Session()
+                
+                query_string = session.query(Analyses_trend_kamal_performance).statement.compile()  # .all()
+                # load dataframe with query
+                print(9.4)
+                df = pd.read_sql_query(query_string, session.bind)
+                print(9.5)
+                # close session
+                session.close()
+                print(9.6)
+                # return frame.
+                return df
+    
+            elif periode != None:
+                
+                print(10.1)
+                # generate query
+                query_string = session.query(Analyses_trend_kamal_performance).statement.compile()  # .all()
+                # load dataframe with query
+                print(10.2)
+                df = pd.read_sql_query(query_string, session.bind)
+                print(10.3)
+                # close session
+                session.close()
+    
+                # return frame.
+                return df
 
     def get_trend_and_performance_kamal():
 
@@ -779,48 +814,50 @@ class database_querys:
         session.close()
 
     def get_portfolio(id_: str = "", strategy: str = ""):
-
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
-                               )
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        x = session.query(Portfolio).filter(
-            Portfolio.portfolio_id == id_,
-        ).first()
-
-        query_string: str
-
-        if id_:
-
-            query_string = session.query(Portfolio).filter(
+        lock = Lock()
+        with lock:
+            
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True  # , check_same_thread=True
+                                   )
+            Session = sessionmaker(bind=engine)
+            session = Session()
+        
+            x = session.query(Portfolio).filter(
                 Portfolio.portfolio_id == id_,
-            ).statement.compile()
-
-        elif strategy:
-
-            query_string = session.query(Portfolio).filter(
-                Portfolio.portfolio_strategy == strategy
-            ).statement.compile()
-
-        elif id_ and strategy:
-            query_string = session.query(Portfolio).filter(
-                Portfolio.portfolio_strategy == strategy,
-                Portfolio.portfolio_id == id_
-            ).statement.compile()
-
-        else:
-
-            query_string = session.query(Portfolio).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
-
-        # close session
-        session.close()
-
-        # return frame.
-        return df
+            ).first()
+        
+            query_string: str
+        
+            if id_:
+        
+                query_string = session.query(Portfolio).filter(
+                    Portfolio.portfolio_id == id_,
+                ).statement.compile()
+        
+            elif strategy:
+        
+                query_string = session.query(Portfolio).filter(
+                    Portfolio.portfolio_strategy == strategy
+                ).statement.compile()
+        
+            elif id_ and strategy:
+                query_string = session.query(Portfolio).filter(
+                    Portfolio.portfolio_strategy == strategy,
+                    Portfolio.portfolio_id == id_
+                ).statement.compile()
+        
+            else:
+        
+                query_string = session.query(Portfolio).statement.compile()
+        
+            df = pd.read_sql_query(query_string, session.bind)
+        
+            # close session
+            session.close()
+        
+            # return frame.
+            return df
 
     def update_portfolio(model):
 
@@ -1579,7 +1616,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.delete_trend_kamal("ATNF")
+        x = database_querys.try_trend_kalman_performance()
 
         # x = database_querys.get_logs()
         print(x)
