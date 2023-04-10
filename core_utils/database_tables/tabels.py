@@ -26,7 +26,7 @@ class Ticker(Base):
 
     """
 
-    __tablename__ = 'tickers'
+    __tablename__ = "tickers"
 
     id = Column(String, unique=True, primary_key=True)
     sector = Column(String)
@@ -44,7 +44,7 @@ class Analyses_Moneyflow(Base):
 
     """
 
-    __tablename__ = 'analyses_moneyflow'
+    __tablename__ = "analyses_moneyflow"
 
     id = Column(String, unique=True, primary_key=True)
     periode_mon = Column(String)
@@ -65,7 +65,7 @@ class Analyses_Moneyflow_Daily(Base):
 
     """
 
-    __tablename__ = 'analyses_moneyflow_daily'
+    __tablename__ = "analyses_moneyflow_daily"
 
     id = Column(String, unique=True, primary_key=True)
     periode_mon = Column(String)
@@ -86,7 +86,7 @@ class Analyses_Liquidityimpact(Base):
 
     """
 
-    __tablename__ = 'analyses_liquidityimpact'
+    __tablename__ = "analyses_liquidityimpact"
 
     id = Column(String, unique=True, primary_key=True)
     periode_liq = Column(String)
@@ -107,7 +107,7 @@ class Analyses_Liquidityimpact_Daily(Base):
 
     """
 
-    __tablename__ = 'analyses_liquidityimpact_daily'
+    __tablename__ = "analyses_liquidityimpact_daily"
 
     id = Column(String, unique=True, primary_key=True)
     periode_liq = Column(String)
@@ -128,7 +128,7 @@ class Analyses_Industry(Base):
 
     """
 
-    __tablename__ = 'analyses_industry'
+    __tablename__ = "analyses_industry"
 
     id = Column(String, unique=True, primary_key=True)
     last_mon = Column(Float)
@@ -159,7 +159,8 @@ class Analyses_Industry_Forecast(Base):
     Boolean = Column(String)
 
     """
-    __tablename__ = 'analyses_industry_forecast'
+
+    __tablename__ = "analyses_industry_forecast"
     id = Column(String, unique=True, primary_key=True)
     forecast_mon = Column(Float)
     forecast_liq = Column(Float)
@@ -169,13 +170,13 @@ class Analyses_Industry_Forecast(Base):
 class Analyses_Sector(Base):
     """
 
-    Last is last score. 
+    Last is last score.
     profile is statistic profile.
-    avg_total is average on total. 
+    avg_total is average on total.
 
     """
 
-    __tablename__ = 'analyses_sector'
+    __tablename__ = "analyses_sector"
 
     id = Column(String, unique=True, primary_key=True)
     last_mon = Column(Float)
@@ -206,7 +207,8 @@ class Analyses_Sector_Forecast(Base):
     Boolean = Column(String)
 
     """
-    __tablename__ = 'analyses_sector_forecast'
+
+    __tablename__ = "analyses_sector_forecast"
 
     id = Column(String, unique=True, primary_key=True)
     forecast_mon = Column(Float)
@@ -223,7 +225,7 @@ class unit_tests_and_errors(Base):
 
     """
 
-    __tablename__ = 'unit_tests_and_errors'
+    __tablename__ = "unit_tests_and_errors"
 
     id = Column(String, unique=True, primary_key=True)
     error = Column(Boolean)
@@ -232,7 +234,7 @@ class unit_tests_and_errors(Base):
 
 class Logbook(Base):
 
-    __tablename__ = 'logbook'
+    __tablename__ = "logbook"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     created = Column(DateTime, default=func.now())
@@ -241,7 +243,7 @@ class Logbook(Base):
 
 class log(Base):
 
-    __tablename__ = 'logs_and_reports'
+    __tablename__ = "logs_and_reports"
 
     id = Column(Integer, primary_key=True)
     message = Column(String)
@@ -265,8 +267,11 @@ class Analyses_archive_flowimpact(Base):
     Score = Column(Float)
     close = Column(Float)
 
-    __table_args__ = (UniqueConstraint('ticker', 'year', 'month', 'date', name='_tickers_unique_value'),
-                      )
+    __table_args__ = (
+        UniqueConstraint(
+            "ticker", "year", "month", "date", name="_tickers_unique_value"
+        ),
+    )
 
 
 class Analyses_archive_performance(Base):
@@ -289,8 +294,17 @@ class Analyses_archive_performance(Base):
     yield_1m = Column(Float)
     yield_1q = Column(Float)
 
-    __table_args__ = (UniqueConstraint('ticker', 'year', 'month', 'date', 'periode', 'side', name='_tickers_unique_value'),
-                      )
+    __table_args__ = (
+        UniqueConstraint(
+            "ticker",
+            "year",
+            "month",
+            "date",
+            "periode",
+            "side",
+            name="_tickers_unique_value",
+        ),
+    )
 
 
 class Analyses_trend_kamal(Base):
@@ -302,7 +316,7 @@ class Analyses_trend_kamal(Base):
 
     """
 
-    __tablename__ = 'analyses_trend_kamal'
+    __tablename__ = "analyses_trend_kamal"
 
     id = Column(String, unique=True, primary_key=True)
     periode = Column(String)
@@ -327,7 +341,7 @@ class Analyses_archive_kamal(Base):
 
     """
 
-    __tablename__ = 'analyses_trend_kamal_archive'
+    __tablename__ = "analyses_trend_kamal_archive"
 
     id = Column(Integer, primary_key=True)
     ticker = Column(String)
@@ -352,8 +366,16 @@ class Analyses_archive_kamal(Base):
     exp_return = Column(Float)
     max_yield = Column(Float)
 
-    __table_args__ = (UniqueConstraint('ticker', 'year_start', 'month_start', 'date_start', 'periode', name='_tickers_unique_value'),
-                      )
+    __table_args__ = (
+        UniqueConstraint(
+            "ticker",
+            "year_start",
+            "month_start",
+            "date_start",
+            "periode",
+            name="_tickers_unique_value",
+        ),
+    )
 
 
 class Analyses_trend_kamal_performance(Base):
@@ -365,7 +387,7 @@ class Analyses_trend_kamal_performance(Base):
 
     """
 
-    __tablename__ = 'analyses_trend_kamal_performance'
+    __tablename__ = "analyses_trend_kamal_performance"
 
     id = Column(String, unique=True, primary_key=True)
     periode = Column(String)
@@ -385,7 +407,7 @@ class Analyses_trend_kamal_performance(Base):
 
 
 class Portfolio(Base):
-    __tablename__ = 'portfolio'
+    __tablename__ = "portfolio"
     id = Column(Integer, primary_key=True)
     portfolio_id = Column(String, nullable=False, unique=True)
     portfolio_strategy = Column(String, nullable=False)
@@ -400,8 +422,17 @@ class Portfolio(Base):
     createdAt = Column(String, nullable=False)
 
 
+class PortfolioArchive(Base):
+    __tablename__ = "portfolio_archive"
+
+    portfolio_id = Column(
+        String, primary_key=True, nullable=False, unique=True
+    )
+    created = Column(DateTime, default=func.now())
+
+
 class TradingPortfolio(Base):
-    __tablename__ = 'trading_portfolio'
+    __tablename__ = "trading_portfolio"
     id = Column(Integer, primary_key=True)
     portfolio_id = Column(String, nullable=False)
     portfolio_strategy = Column(String, nullable=False)
@@ -417,7 +448,7 @@ class TradingPortfolio(Base):
 
 
 class closed_portfolio(Base):
-    __tablename__ = 'closed_portfolio'
+    __tablename__ = "closed_portfolio"
     id = Column(Integer, primary_key=True)
     portfolio_id = Column(String, nullable=False)
     portfolio_strategy = Column(String, nullable=False)
@@ -434,11 +465,12 @@ class closed_portfolio(Base):
 
 class User_trades(Base):
 
-    __tablename__ = 'user_trades'
+    __tablename__ = "user_trades"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String)
     ticker = Column(String)
 
-    __table_args__ = (UniqueConstraint('user_id', 'ticker', name='_tickers_unique_value'),
-                      )
+    __table_args__ = (
+        UniqueConstraint("user_id", "ticker", name="_tickers_unique_value"),
+    )

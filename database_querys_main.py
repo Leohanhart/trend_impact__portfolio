@@ -33,6 +33,7 @@ from core_utils.database_tables.tabels import (
     Analyses_archive_kamal,
     Analyses_trend_kamal_performance,
     Portfolio,
+    PortfolioArchive,
     Logbook,
     User_trades,
 )
@@ -844,6 +845,18 @@ class database_querys:
 
         print(text)
 
+    def add_portfolio_to_archive(id_portfolio: str):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        archive = PortfolioArchive(portfolio_id=id_portfolio)
+        session.add(archive)
+        session.commit()
+        session.close()
+
     def add_user_trade(user_id: str, user_ticker):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -983,6 +996,29 @@ class database_querys:
             # return frame.
             return df
 
+    def get_portfolio_archive():
+
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            query_string = session.query(
+                PortfolioArchive
+            ).statement.compile()  # .all()
+
+            df = pd.read_sql_query(query_string, session.bind)
+
+            session.close()
+
+            data = df[df.active == True]
+
+            data = data.id.to_list()
+
+            return data
+
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
@@ -1016,6 +1052,10 @@ class database_querys:
             session.add(Analyses)
             session.commit()
             session.close()
+
+            database_querys.add_portfolio_to_archive(
+                id_portfolio=model.portfolio_id
+            )
 
         else:
 
@@ -1051,6 +1091,33 @@ class database_querys:
 
         session.close()
         return
+
+    def delete_portfolio_archive(id_portfolio: str):
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = (
+            session.query(Portfolio)
+            .filter(
+                PortfolioArchive.portfolio_id == id_portfolio,
+            )
+            .first()
+        )
+
+        # check if ticker exsists
+        if x == None:
+
+            return False
+
+        # else work with it.
+        else:
+
+            session.delete(x)
+            session.commit()
+
+        session.close()
 
     def delete_portfolio(portfio_id: str = ""):
 
@@ -1782,7 +1849,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.try_trend_kalman_performance()
+        x = database_querys.add_portfolio_to_archive(id_portfolio="testrt")
 
         # x = database_querys.get_logs()
         print(x)
