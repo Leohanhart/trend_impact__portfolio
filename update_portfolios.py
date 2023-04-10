@@ -14,12 +14,12 @@ import portfolio_synchronization as portfolio_synch
 # system
 from time import sleep
 from threading import Thread, Event
+from multiprocessing import Process
 import threading
-from concurrent.futures import ThreadPoolExecutor
-import concurrent.futures
-from concurrent.futures import wait
-from concurrent.futures import FIRST_EXCEPTION
+
 from loguru import logger
+from multiprocessing import Process
+
 
 class update_data:
 
@@ -29,7 +29,7 @@ class update_data:
 
     def __init__(self):
 
-        Thread()
+        # Thread()
         self.start_update_scedule()
 
     def task(self):
@@ -38,8 +38,6 @@ class update_data:
         # block for a moment
         while True:
 
-            
-            
             try:
 
                 update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all()
@@ -47,7 +45,6 @@ class update_data:
                 print("Error in thread = ", e)
 
                 sleep(60)
-
 
     def task_2(self):
 
@@ -57,14 +54,11 @@ class update_data:
 
             # report a message
             try:
-                
+
                 update = update_portfolio_trends.kko_portfolio_update_manager()
             except Exception as e:
                 print("Error in thread = ", e)
                 sleep(60)
-
-
-
 
     def task_3(self):
 
@@ -73,7 +67,6 @@ class update_data:
         while True:
 
             # report a message
-
 
             try:
 
@@ -84,27 +77,21 @@ class update_data:
 
                 sleep(60)
 
-
     def task_4(self):
 
         i = 0
         # block for a moment
         while True:
 
-
-
-
             try:
 
                 portfolio_synch.update_trading_portfolios.startup_update()
 
-
             except Exception as e:
-                
+
                 print("Error in thread = ", e)
 
                 sleep(3600)
-
 
     def task_5(self):
 
@@ -112,56 +99,57 @@ class update_data:
         # block for a moment
         while True:
 
-
             try:
 
                 update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all(
-                    last_update_first=True)
+                    last_update_first=True
+                )
             except Exception as e:
                 print("Error in thread = ", e)
                 sleep(60)
 
-           
-
-
     def startup_data_transformation(self):
-        """
-       
-
-        """
+        """ """
         # function with different parameters
-        
+
         logger.info("starting trend update")
         # start regular trendupdate
-        thread1 = threading.Thread(target=self.task,
-                                   args=())
-        
+        thread1 = Process(target=self.task, args=())
+
+        sleep(0.5)
+
         logger.info("starting portfolio creation")
-        # starts update portfolii manager. 
+        # starts update portfolii manager.
         thread2 = thread_2 = Thread(target=self.task_2)
-        
+
+        sleep(0.5)
+
         logger.info("starting up archive")
         # starts archive kaufman
-        thread3 = threading.Thread(target=self.task_3,
-                                   args=())
-        
+        thread3 = Process(target=self.task_3, args=())
+
+        sleep(0.5)
+
         logger.info("starting hourly update trading portfolio")
         # start update trading portfolio.
-        thread4 = threading.Thread(target=self.task_4,
-                                   args=())
-        
+        thread4 = Process(target=self.task_4, args=())
+        sleep(0.5)
+
         logger.info("starting up trendupdate revers.")
-        # start regulare trend update reverse. 
-        thread5 = threading.Thread(target=self.task_5,
-                                   args=())
+        # start regulare trend update reverse.
+        thread5 = Process(target=self.task_5, args=())
         threads = []
         # Start the threads
         thread1.start()
+        sleep(0.5)
         thread2.start()
+        sleep(0.5)
         thread3.start()
+        sleep(0.5)
         thread4.start()
+        sleep(0.5)
         thread5.start()
-        
+
         logger.info("threads started.")
         threads.append(thread1)
         threads.append(thread2)
@@ -170,7 +158,7 @@ class update_data:
         threads.append(thread5)
 
         # Join the threads before
-        loop:  bool = True
+        loop: bool = True
         while loop:
             for thread in threads:
                 if not thread.is_alive():
@@ -195,10 +183,12 @@ class update_data:
         print(0.1)
 
         database_querys.database_querys.add_log_to_logbook(
-            "Started update data_transformation.")
+            "Started update data_transformation."
+        )
 
         proces_background = threading.Thread(
-            name='daemon_dtf', target=self.startup_data_transformation)
+            name="daemon_dtf", target=self.startup_data_transformation
+        )
         proces_background.setDaemon(True)
         proces_background.start()
         # proces_background.join()
