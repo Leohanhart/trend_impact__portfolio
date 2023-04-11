@@ -51,6 +51,7 @@ from sqlalchemy import and_, or_, not_
 
 from threading import Thread
 from threading import Lock
+from datetime import datetime, timedelta
 
 
 class database_querys:
@@ -103,6 +104,51 @@ class database_querys:
                 return False
 
             return True
+
+    @staticmethod
+    def get_expired_portfolio_archives(amount_of_days: int = 62):
+        """
+
+
+        Parameters
+        ----------
+        amount_of_days : int, optional
+            DESCRIPTION. The default is 62.
+
+        Returns
+        -------
+        None.
+
+        """
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Number of days before expiration date to filter by
+            n_days = amount_of_days
+
+            # Subtract n days from current date and time
+            cutoff_date = datetime.now() - timedelta(days=n_days)
+
+            # Query for orders that have expired within the last n days
+            session = Session()
+            query_string = (
+                session.query(PortfolioArchive)
+                .filter(PortfolioArchive.created <= cutoff_date)
+                .statement.compile()
+            )
+            df = pd.read_sql_query(query_string, session.bind)
+
+            session.close()
+
+            df.portfolio_id
+
+            list_expired_tickers = df.portfolio_id.to_list()
+
+            return list_expired_tickers
 
     @staticmethod
     def get_all_active_tickers():
@@ -846,16 +892,19 @@ class database_querys:
         print(text)
 
     def add_portfolio_to_archive(id_portfolio: str):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(
+                db_path, echo=True
+            )  # , check_same_thread=True
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        archive = PortfolioArchive(portfolio_id=id_portfolio)
-        session.add(archive)
-        session.commit()
-        session.close()
+            archive = PortfolioArchive(portfolio_id=id_portfolio)
+            session.add(archive)
+            session.commit()
+            session.close()
 
     def add_user_trade(user_id: str, user_ticker):
 
@@ -1093,59 +1142,67 @@ class database_querys:
         return
 
     def delete_portfolio_archive(id_portfolio: str):
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
-        x = (
-            session.query(Portfolio)
-            .filter(
-                PortfolioArchive.portfolio_id == id_portfolio,
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(
+                db_path, echo=True
+            )  # , check_same_thread=True
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            x = (
+                session.query(Portfolio)
+                .filter(
+                    PortfolioArchive.portfolio_id == id_portfolio,
+                )
+                .first()
             )
-            .first()
-        )
 
-        # check if ticker exsists
-        if x == None:
+            # check if ticker exsists
+            if x == None:
 
-            return False
+                return False
 
-        # else work with it.
-        else:
+            # else work with it.
+            else:
 
-            session.delete(x)
-            session.commit()
+                session.delete(x)
+                session.commit()
 
-        session.close()
+            session.close()
 
     def delete_portfolio(portfio_id: str = ""):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(
+                db_path, echo=True
+            )  # , check_same_thread=True
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        x = (
-            session.query(Portfolio)
-            .filter(
-                Portfolio.portfolio_id == portfio_id,
+            x = (
+                session.query(Portfolio)
+                .filter(
+                    Portfolio.portfolio_id == portfio_id,
+                )
+                .first()
             )
-            .first()
-        )
 
-        # check if ticker exsists
-        if x == None:
+            # check if ticker exsists
+            if x == None:
 
-            return False
+                return False
 
-        # else work with it.
-        else:
+            # else work with it.
+            else:
 
-            session.delete(x)
-            session.commit()
+                session.delete(x)
+                session.commit()
 
-        session.close()
+            session.close()
 
     def update_analyses_trend_kamal(model):
         lock = Lock()
@@ -1495,7 +1552,10 @@ class database_querys:
         # else work with it.
         else:
 
+            database_querys.delete_portfolio_archive(id_portfolio=id_)
+
             session.delete(x)
+
             session.commit()
 
         session.close()
@@ -1849,7 +1909,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.add_portfolio_to_archive(id_portfolio="testrt")
+        x = database_querys.get_expired_portfolio_archives(0)
 
         # x = database_querys.get_logs()
         print(x)
