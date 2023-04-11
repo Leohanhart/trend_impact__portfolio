@@ -39,6 +39,7 @@ import random
 from datetime import datetime
 import statistics
 import startup_support as support
+
 # custom target function
 
 import sqlalchemy
@@ -46,15 +47,25 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy import and_, or_, not_
-from core_utils.database_tables.tabels import Ticker, log, Analyses_trend_kamal, TradingPortfolio, Analyses_archive_kamal, Analyses_trend_kamal_performance, Portfolio, Logbook, User_trades
+from core_utils.database_tables.tabels import (
+    Ticker,
+    log,
+    Analyses_trend_kamal,
+    TradingPortfolio,
+    Analyses_archive_kamal,
+    Analyses_trend_kamal_performance,
+    Portfolio,
+    Logbook,
+    User_trades,
+)
 
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 
 class update_trend_kamal_portfolio_selection:
-
     def __init__(self, methode_one: bool = True):
 
         if methode_one:
@@ -64,21 +75,30 @@ class update_trend_kamal_portfolio_selection:
             """
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
-                periode="D")
+                periode="D"
+            )
 
             # first select half of amount of trades.
-            df = df.loc[df['amount_of_trades_y2'] >
-                        df["amount_of_trades_y2"].median()]
+            df = df.loc[
+                df["amount_of_trades_y2"] > df["amount_of_trades_y2"].median()
+            ]
 
             # high winrates, takes higest BEST 82,5%
-            p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
-                                                             df.total_profitible_trades_y2.mean()) / 4)
+            p = df.total_profitible_trades_y2.max() - round(
+                (
+                    df.total_profitible_trades_y2.max()
+                    - df.total_profitible_trades_y2.mean()
+                )
+                / 4
+            )
 
             #
-            df = df.loc[df['total_profitible_trades_y2'] > p]
+            df = df.loc[df["total_profitible_trades_y2"] > p]
 
             df = df.sort_values(
-                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+                by=["total_sharp_y2", "total_sharp_y5", "total_sharp_all"],
+                ascending=False,
+            )
 
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
@@ -134,7 +154,8 @@ class update_trend_kamal_portfolio_selection:
                 tickers_selected = list_of_options[i]
 
                 data = self.create_data_frame_of_tickers(
-                    tickers_selected, ticker_options)
+                    tickers_selected, ticker_options
+                )
 
                 portfolio = portfolio_constructor_manager(data)
 
@@ -230,13 +251,20 @@ class create_correlation_matrix:
 
                     #
                     power_objectA = stock_object.power_stock_object(
-                        stock_ticker=tickerA, simplyfied_load=True, periode_weekly=False)
+                        stock_ticker=tickerA,
+                        simplyfied_load=True,
+                        periode_weekly=False,
+                    )
                     power_objectB = stock_object.power_stock_object(
-                        stock_ticker=tickerB, simplyfied_load=True, periode_weekly=False)
+                        stock_ticker=tickerB,
+                        simplyfied_load=True,
+                        periode_weekly=False,
+                    )
 
                     #
                     correlation = power_objectA.stock_data.Change.corr(
-                        power_objectB.stock_data.Change)
+                        power_objectB.stock_data.Change
+                    )
 
                     new_core = round(correlation, 2)
 
@@ -305,7 +333,13 @@ class portfolio_constructor_manager:
 
     # amount of stocks
 
-    def __init__(self, data, name_strategie: str = "undefined", periode=500, days_untill_ex: int = 21):
+    def __init__(
+        self,
+        data,
+        name_strategie: str = "undefined",
+        periode=500,
+        days_untill_ex: int = 21,
+    ):
         """
         Insert data in the format needed for financial quant.
 
@@ -361,15 +395,23 @@ class portfolio_constructor_manager:
 
         # creates frames of porfolios
         self.portfolio_strat_low_vol_stocks = self.process__stocks__to__df(
-            opt_w.iloc[0], self.the_id_low_vol)
+            opt_w.iloc[0], self.the_id_low_vol
+        )
         self.portfolio_strat_high_sharp_stocks = self.process__stocks__to__df(
-            opt_w.iloc[1], self.the_id_sharp__)
+            opt_w.iloc[1], self.the_id_sharp__
+        )
 
         # create specs
-        self.portfolio_strat_low_vol_details = self.process__portfolio_specs__to__df(
-            opt_res.iloc[:1, ::], self.the_id_low_vol)
-        self.portfolio_strat_high_sharp_details = self.process__portfolio_specs__to__df(
-            opt_res.iloc[1:2, ::], self.the_id_sharp__)
+        self.portfolio_strat_low_vol_details = (
+            self.process__portfolio_specs__to__df(
+                opt_res.iloc[:1, ::], self.the_id_low_vol
+            )
+        )
+        self.portfolio_strat_high_sharp_details = (
+            self.process__portfolio_specs__to__df(
+                opt_res.iloc[1:2, ::], self.the_id_sharp__
+            )
+        )
 
         # set matrix
         self.set_matrix()
@@ -379,8 +421,9 @@ class portfolio_constructor_manager:
         sharp_dict = x_data.to_dict(orient="records")
         self.Imax_sharp_volatility = round(sharp_dict[0]["Volatility"], 2)
         self.Imax_sharp_expected_return = round(
-            sharp_dict[0]['Expected Return'], 2)
-        self.Imax_sharp_sharp_ratio = round(sharp_dict[0]['Sharpe Ratio'], 2)
+            sharp_dict[0]["Expected Return"], 2
+        )
+        self.Imax_sharp_sharp_ratio = round(sharp_dict[0]["Sharpe Ratio"], 2)
         ####
 
         # create stock_data details for low vol.
@@ -395,20 +438,31 @@ class portfolio_constructor_manager:
         # setting up dataframe for drawdown functions
         ts_low_df = pd.DataFrame(low_volatile_summed)
         ts_low_df.rename(
-            columns={ts_low_df.columns[0]: 'Adj Close'}, inplace=True)
+            columns={ts_low_df.columns[0]: "Adj Close"}, inplace=True
+        )
 
         low_vol_max_drawdown = self.return_max_drawdown(ts_low_df)
         low_vol_expected_return = low_volatile_summed.pct_change().mean() * 100
 
         self.min_vol_y2_expected_return = low_vol_expected_return
         self.min_vol_y2_max_drawdown = low_vol_max_drawdown
-        self.min_vol_y2_return = round(((float(low_volatile_summed.tail(
-            1)) - float(low_volatile_summed.head(1))) / float(low_volatile_summed.tail(1)))*100, 2)
+        self.min_vol_y2_return = round(
+            (
+                (
+                    float(low_volatile_summed.tail(1))
+                    - float(low_volatile_summed.head(1))
+                )
+                / float(low_volatile_summed.tail(1))
+            )
+            * 100,
+            2,
+        )
         #####
 
         # create stock_data details for high sharp.
         balances_high_sharp = list(
-            self.high_sharp_frame.balance.to_dict().values())
+            self.high_sharp_frame.balance.to_dict().values()
+        )
         # round the values
         balances_high_sharp = [round(num, 2) for num in balances_high_sharp]
         # sets data balanced
@@ -424,19 +478,34 @@ class portfolio_constructor_manager:
         # setting up dataframe for drawdown functions
         ts_low_df = pd.DataFrame(high_sharp_summed)
         ts_low_df.rename(
-            columns={ts_low_df.columns[0]: 'Adj Close'}, inplace=True)
+            columns={ts_low_df.columns[0]: "Adj Close"}, inplace=True
+        )
 
         low_vol_max_drawdown = self.return_max_drawdown(ts_low_df)
         low_vol_expected_return = low_volatile_summed.pct_change().mean() * 100
 
         self.max_sharp_y2_expected_return = low_vol_expected_return
         self.max_sharp_y2_max_drawdown = low_vol_max_drawdown
-        self.max_sharp_y2_return = round(((float(high_sharp_summed.tail(
-            1)) - float(high_sharp_summed.head(1))) / float(high_sharp_summed.tail(1)))*100, 2)
+        self.max_sharp_y2_return = round(
+            (
+                (
+                    float(high_sharp_summed.tail(1))
+                    - float(high_sharp_summed.head(1))
+                )
+                / float(high_sharp_summed.tail(1))
+            )
+            * 100,
+            2,
+        )
 
         return
 
-    def return_max_drawdown(self, stock__data__frame=None, position_side: int = 1, return_time_serie: bool = False):
+    def return_max_drawdown(
+        self,
+        stock__data__frame=None,
+        position_side: int = 1,
+        return_time_serie: bool = False,
+    ):
         """
         source: https://quant.stackexchange.com/questions/18094/how-can-i-calculate-the-maximum-drawdown-mdd-in-python
 
@@ -459,25 +528,32 @@ class portfolio_constructor_manager:
 
             # Calculate the max drawdown in the past window days for each day in the series.
             # Use min_periods=1 if you want to let the first 252 days data have an expanding window
-            Roll_Max = stock__data__frame['Adj Close'].rolling(
-                window, min_periods=1).max()
-            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Roll_Max = (
+                stock__data__frame["Adj Close"]
+                .rolling(window, min_periods=1)
+                .max()
+            )
+            Daily_Drawdown = stock__data__frame["Adj Close"] / Roll_Max - 1.0
 
             # Next we calculate the minimum (negative) daily drawdown in that window.
             # Again, use min_periods=1 if you want to allow the expanding window
             Max_Daily_Drawdown = Daily_Drawdown.rolling(
-                window, min_periods=1).min()
+                window, min_periods=1
+            ).min()
 
             # return in right format,
             if not return_time_serie:
-                return round(float(Max_Daily_Drawdown.min()*100), 3)
+                return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
 
         else:
-            Roll_Max = stock__data__frame['Adj Close'].rolling(
-                window, min_periods=1).min()
-            Daily_Drawdown = stock__data__frame['Adj Close']/Roll_Max - 1.0
+            Roll_Max = (
+                stock__data__frame["Adj Close"]
+                .rolling(window, min_periods=1)
+                .min()
+            )
+            Daily_Drawdown = stock__data__frame["Adj Close"] / Roll_Max - 1.0
             Dd_test = Daily_Drawdown * -1
 
             # Next we calculate the minimum (negative) daily drawdown in that window.
@@ -485,7 +561,7 @@ class portfolio_constructor_manager:
             Max_Daily_Drawdown = Dd_test.rolling(window, min_periods=1).min()
             # return in right format,
             if not return_time_serie:
-                return round(float(Max_Daily_Drawdown.min()*100), 3)
+                return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
 
@@ -512,40 +588,48 @@ class portfolio_constructor_manager:
         df = df.reset_index()
 
         # sets uuID
-        df['id'] = UUid
+        df["id"] = UUid
 
         # sets the mame of the strategie
-        df['selection strategie'] = self.name_strategie
+        df["selection strategie"] = self.name_strategie
 
         # sets created AT datestring - so you can see when constructed
-        df['createdAt'] = self.get_date_string()
+        df["createdAt"] = self.get_date_string()
 
         # sets experation -- so when it can not longer be used.
-        df['expiresAt'] = self.get_date_string(self.days_untill_ex)
+        df["expiresAt"] = self.get_date_string(self.days_untill_ex)
 
         # sets bool for trading
-        df['Traded'] = False
+        df["Traded"] = False
 
         # sets status, if portolio trade is over, just make in-active.
-        df['Trade_active'] = True
+        df["Trade_active"] = True
 
         # sets total lengt of stocks
-        df['total_amount_stocks'] = len(self.portfolio_strat_low_vol_stocks)
+        df["total_amount_stocks"] = len(self.portfolio_strat_low_vol_stocks)
 
-        df['user_id'] = "0"
+        df["user_id"] = "0"
 
-        df['pnl'] = 0.00
+        df["pnl"] = 0.00
 
         # renames the frame.
-        df = df.rename(columns={df.columns[0]: "optimization strategie",
-
-
-
-                                })
+        df = df.rename(
+            columns={
+                df.columns[0]: "optimization strategie",
+            }
+        )
 
         # re organizes index.
-        columns_titles = ['id', 'selection strategie', 'optimization strategie', 'Expected Return', 'Volatility',
-                          'Sharpe Ratio',   'createdAt', 'expiresAt']
+        columns_titles = [
+            "id",
+            "selection strategie",
+            "optimization strategie",
+            "Expected Return",
+            "Volatility",
+            "Sharpe Ratio",
+            "createdAt",
+            "expiresAt",
+        ]
 
         # reindex dataframe
         df = df.reindex(columns=columns_titles)
@@ -561,11 +645,12 @@ class portfolio_constructor_manager:
         df = df.reset_index()
 
         # sets id column.
-        df['id'] = UUid
+        df["id"] = UUid
 
         # renames the frame.
         df = df.rename(
-            columns={df.columns[0]: "ticker", df.columns[1]: 'balance'})
+            columns={df.columns[0]: "ticker", df.columns[1]: "balance"}
+        )
 
         # re organizes index.
         columns_titles = ["id", "ticker", "balance"]
@@ -615,7 +700,6 @@ class portfolio_constructor_manager:
 
 
 class create_time_serie_with_kamalstrategie:
-
     def __init__(self, ticker):
         """
         https://stackoverflow.com/questions/29370057/select-dataframe-rows-between-two-dates
@@ -631,19 +715,18 @@ class create_time_serie_with_kamalstrategie:
         None.
 
         """
-       # return signals
-        power_object = stock_object.power_stock_object(
-            stock_ticker=ticker)
+        # return signals
+        power_object = stock_object.power_stock_object(stock_ticker=ticker)
 
-       # stockdata
+        # stockdata
         sdata = power_object.stock_data
 
         if sdata.empty:
             return 404
 
         itms = list(sdata.columns.to_list())
-       # stock.data.change
-        if 'Change' not in itms:
+        # stock.data.change
+        if "Change" not in itms:
 
             cdata = power_object.stock_data.Close
 
@@ -656,35 +739,55 @@ class create_time_serie_with_kamalstrategie:
 
         cdata = self.filter_pandas_stock_years(cdata, 35)
 
-       # gets the data
+        # gets the data
         data = database_querys.database_querys.get_trend_kalman_data(
-            ticker=ticker)
+            ticker=ticker
+        )
 
-       # filter last 2years
+        # filter last 2years
         data = self.filter_pandas_years(data, 35)
 
-       # selects the right columns
-        data = data[['year_start', 'month_start', 'date_start',
-                     'year_end', 'month_end', 'date_end', 'trend']]
+        # selects the right columns
+        data = data[
+            [
+                "year_start",
+                "month_start",
+                "date_start",
+                "year_end",
+                "month_end",
+                "date_end",
+                "trend",
+            ]
+        ]
 
-       # create date objects
-        data_obj = data.to_dict(orient='records')
+        # create date objects
+        data_obj = data.to_dict(orient="records")
 
         df = dfu = cdata
 
-       # select mask = changevalue, df.update, finished
+        # select mask = changevalue, df.update, finished
         for i in data_obj:
 
             if i["trend"] == 1:
                 continue
 
             # creates startdate
-            date_start = str(i["year_start"]) + "-" + \
-                str(i["month_start"]) + "-" + str(i["date_start"])
+            date_start = (
+                str(i["year_start"])
+                + "-"
+                + str(i["month_start"])
+                + "-"
+                + str(i["date_start"])
+            )
 
             # create enddates
-            date_end = str(i["year_end"]) + "-" + \
-                str(i["month_end"]) + "-" + str(i["date_end"])
+            date_end = (
+                str(i["year_end"])
+                + "-"
+                + str(i["month_end"])
+                + "-"
+                + str(i["date_end"])
+            )
 
             # creates mask
             mask = (df.index > date_start) & (df.index <= date_end)
@@ -728,7 +831,7 @@ class create_time_serie_with_kamalstrategie:
 
         start_year = int(last_row.year_end) - amount_of_years
 
-        df = df.loc[df['year_end'] > start_year]
+        df = df.loc[df["year_end"] > start_year]
 
         return df
 
@@ -799,7 +902,8 @@ class create_kko_portfolios:
             tickers_selected = list_of_options[i]
 
             data = self.create_data_frame_of_tickers(
-                tickers_selected, ticker_options)
+                tickers_selected, ticker_options
+            )
 
             portfolio = portfolio_constructor_manager(data)
 
@@ -877,7 +981,8 @@ class add_kko_portfolio:
         model.portfolio_strategy = "TREND_STRAT_KKO_HS"
         # create amount
         model.portfolio_amount = int(
-            len(portfolio.high_sharp_frame.ticker.to_list()))
+            len(portfolio.high_sharp_frame.ticker.to_list())
+        )
 
         tickers = portfolio.high_sharp_frame.ticker.to_list()
         serialized_list_of_tickers = json.dumps(tickers)
@@ -915,7 +1020,8 @@ class add_kko_portfolio:
 
         # create an
         total_expected_return = round(
-            portfolio.max_sharp_y2_expected_return, 2)
+            portfolio.max_sharp_y2_expected_return, 2
+        )
         model.total_expected_return = portfolio.Imax_sharp_expected_return
 
         total_sharp = round(portfolio.max_sharp_y2_return, 2)
@@ -929,6 +1035,11 @@ class add_kko_portfolio:
         model.createdAt = d1
 
         database_querys.database_querys.update_portfolio(model)
+
+        database_querys.database_querys.add_portfolio_to_archive(
+            model.portfolio_id
+        )
+
         return
 
 
@@ -938,14 +1049,14 @@ class risk_managment_controllers:
 
     def __init__(self, model):
 
-        self.details['id'] = model.portfolio_id
-        self.details['prc_long'] = self.get_avg_side(model)
-        self.details['marks'] = "Leo was here"
+        self.details["id"] = model.portfolio_id
+        self.details["prc_long"] = self.get_avg_side(model)
+        self.details["marks"] = "Leo was here"
         self.get_daily_fillble(model)
 
     def get_avg_side(self, model):
         a = model.list_of_sides
-        res = a.strip('][').split(', ')
+        res = a.strip("][").split(", ")
         res = list(map(int, res))
 
         res = [0 if x == -1 else x for x in res]
@@ -957,8 +1068,8 @@ class risk_managment_controllers:
 
         # get tickers
         a = model.list_of_tickers
-        res = a.strip('][').split(', ')
-        res = [sub.replace('"', '') for sub in res]
+        res = a.strip("][").split(", ")
+        res = [sub.replace('"', "") for sub in res]
 
         list_avg_amount = []
         list_avg_volume = []
@@ -968,13 +1079,13 @@ class risk_managment_controllers:
 
         for i in res:
 
-            power_object = stock_object.power_stock_object(
-                stock_ticker=i)
+            power_object = stock_object.power_stock_object(stock_ticker=i)
             # 21 for on mondth
             data = power_object.stock_data.tail(21)
-            value = round((data.Volume.mean().round() * 0.01)
-                          * data.Close.mean())
-            value_volume = (data.Volume.mean().round() * 0.01)
+            value = round(
+                (data.Volume.mean().round() * 0.01) * data.Close.mean()
+            )
+            value_volume = data.Volume.mean().round() * 0.01
             value_close = data.Close.mean().round()
 
             list_avg_amount.append(value)
@@ -983,8 +1094,9 @@ class risk_managment_controllers:
 
         self.details["1pc_fillble"] = total_amount = sum(list_avg_amount)
         self.details["1pc_totalvolume"] = total_volume = sum(list_avg_volume)
-        self.details["avg_price"] = total_price = sum(
-            list_avg_price) / len(list_avg_price)
+        self.details["avg_price"] = total_price = sum(list_avg_price) / len(
+            list_avg_price
+        )
         self.details["total_avg_rounds"] = total_rounds = total_volume / 200
 
         return
@@ -994,13 +1106,18 @@ class create_kko_tickers_selection:
 
     selected_tickers: list
 
-    def __init__(self, methode_one: bool = False, methode_two: bool = False, methode_test: bool = False):
+    def __init__(
+        self,
+        methode_one: bool = False,
+        methode_two: bool = False,
+        methode_test: bool = False,
+    ):
         """
         VERY important
         - First method is kind of created to make small lists of stocks.
         -second method is more pragmatish without caring about rest.
-        
-        In main, query can take easyly up to 60 seoncs to start, chance is big it can take 5 if 
+
+        In main, query can take easyly up to 60 seoncs to start, chance is big it can take 5 if
         application is multi threded.
 
         Parameters
@@ -1025,44 +1142,49 @@ class create_kko_tickers_selection:
 
             """
             # gets data
-            #df = database_querys.database_querys.try_trend_kalman_performance()
-            
+            # df = database_querys.database_querys.try_trend_kalman_performance()
+
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=True)
             Session = sessionmaker(bind=engine)
             session = Session()
-            
-            
-            query_string = session.query(Analyses_trend_kamal_performance).statement.compile() 
-            
-            
-            try: 
+
+            query_string = session.query(
+                Analyses_trend_kamal_performance
+            ).statement.compile()
+
+            try:
                 df = pd.read_sql_query(query_string, session.bind)
             except Exception as e:
                 print("rerror")
                 print(e)
-            
+
             # close session
             session.close()
 
             # return frame.
-            
-            
-            
-            
+
             # first select half of amount of trades.
-            df = df.loc[df['amount_of_trades_y2'] >
-                        df["amount_of_trades_y2"].median()]
-            
+            df = df.loc[
+                df["amount_of_trades_y2"] > df["amount_of_trades_y2"].median()
+            ]
+
             # high winrates, takes higest BEST 82,5%
-            p = df.total_profitible_trades_y2.max() - round((df.total_profitible_trades_y2.max() -
-                                                             df.total_profitible_trades_y2.mean()) / 4)
+            p = df.total_profitible_trades_y2.max() - round(
+                (
+                    df.total_profitible_trades_y2.max()
+                    - df.total_profitible_trades_y2.mean()
+                )
+                / 4
+            )
 
             #
-            df = df.loc[df['total_profitible_trades_y2'] > p]
+            df = df.loc[df["total_profitible_trades_y2"] > p]
 
             df = df.sort_values(
-                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+                by=["total_sharp_y2", "total_sharp_y5", "total_sharp_all"],
+                ascending=False,
+            )
 
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
@@ -1085,20 +1207,22 @@ class create_kko_tickers_selection:
 
 
             """
-            
+
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
-                periode="D")
-            
-            
+                periode="D"
+            )
+
             # first select half of amount of trades.
-            df = df.loc[df['amount_of_trades_y2'] > 13]
-            
-            df = df.loc[df['total_profitible_trades_y2'] > 95]
-            
+            df = df.loc[df["amount_of_trades_y2"] > 13]
+
+            df = df.loc[df["total_profitible_trades_y2"] > 95]
+
             df = df.sort_values(
-                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
-            
+                by=["total_sharp_y2", "total_sharp_y5", "total_sharp_all"],
+                ascending=False,
+            )
+
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
 
@@ -1106,7 +1230,7 @@ class create_kko_tickers_selection:
             # df = df.head(25)
             #
             tickers_for_portfolio = list(df.id.values)
-            
+
             self.selected_tickers = tickers_for_portfolio
             return
 
@@ -1121,15 +1245,18 @@ class create_kko_tickers_selection:
             """
             # gets data
             df = database_querys.database_querys.get_trend_kalman_performance(
-                periode="D")
+                periode="D"
+            )
 
             # first select half of amount of trades.
-            df = df.loc[df['amount_of_trades_y2'] > 13]
+            df = df.loc[df["amount_of_trades_y2"] > 13]
 
-            df = df.loc[df['total_profitible_trades_y2'] > 95]
+            df = df.loc[df["total_profitible_trades_y2"] > 95]
 
             df = df.sort_values(
-                by=["total_sharp_y2",  "total_sharp_y5", "total_sharp_all"], ascending=False)
+                by=["total_sharp_y2", "total_sharp_y5", "total_sharp_all"],
+                ascending=False,
+            )
 
             # opoinaly remove. if there are more than 25 the system chrashs haha
             # it takes ages for the correlation matrix.
@@ -1210,7 +1337,7 @@ class kko_portfolio_gardian:
 
     def amount_5_stocks_criteria(self):
 
-        if self.min_balance > ((100 / (self.amount_stocks * 2))/100):
+        if self.min_balance > ((100 / (self.amount_stocks * 2)) / 100):
             if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
                 if self.portfolio.Imax_sharp_expected_return > 0.15:
                     self.allowd = True
@@ -1257,8 +1384,9 @@ class kko_portfolio_gardian:
         """
         self.portfolio = portfolio
         self.amount_stocks = self.return_amount_of_stocks(portfolio)
-        self.boundery_low = 100/self.amount_stocks * \
-            (self.lower_boundery / 100)
+        self.boundery_low = (
+            100 / self.amount_stocks * (self.lower_boundery / 100)
+        )
         self.min_balance = round((portfolio.min_sharp * 100), 2)
         self.min_shapr = portfolio.min_sharp * 100
 
@@ -1284,7 +1412,7 @@ class kko_portfolio_update_manager:
 
         min_amount_tickers: int = 5
         max_rotations: int = 10000
-        max_stocks: int = 50
+        max_stocks: int = 25
         min_sharp_ratio: int = 0
 
         # find last amount and sharp.
@@ -1294,32 +1422,25 @@ class kko_portfolio_update_manager:
         min_amount_tickers, min_sharp_ratio = details
 
         old_portfolios = []
-      
-        # delete old portfolios. 
-        if min_amount_tickers == 5:
-            #
-            
-            old_portfolios = self.return_all_old_portfolios()
-        
-        
-        # retreives the list with old portoflio's that will be deleted in the end.
-        old_portfolios = self.return_all_old_portfolios()
-        
-        
+
+        # delete old portfolios.
+
+        portfolio_ids = (
+            database_querys.database_querys.get_expired_portfolio_archives(45)
+        )
+
+        self.delete_list_portrfolios(portfolio_ids)
+
         # get the tickers
         selection = create_kko_tickers_selection(methode_one=True)
-        
-        
-        
+
         tickers_selected = selection.selected_tickers
-        
+
         # shuffel selection.
         for i in range(0, 10):
             random.shuffle(tickers_selected)
-        
-    
-        items = self.create_data_of_tickers(
-            selection.selected_tickers)
+
+        items = self.create_data_of_tickers(selection.selected_tickers)
 
         tickers = list(items.keys())
 
@@ -1327,9 +1448,14 @@ class kko_portfolio_update_manager:
         # self.create_all_options(selection.selected_tickers, 5)
 
         self.continues_portfolio_creation(
-            items, tickers, 'thread 0', min_amount_tickers, max_rotations, max_stocks, min_sharp_ratio)
-
-        self.delete_list_portrfolios(old_portfolios)
+            items,
+            tickers,
+            "thread 0",
+            min_amount_tickers,
+            max_rotations,
+            max_stocks,
+            min_sharp_ratio,
+        )
 
         return
         """
@@ -1429,9 +1555,9 @@ class kko_portfolio_update_manager:
         """
 
 
-        first split the list of options so that the data unit doesent overload. 
+        first split the list of options so that the data unit doesent overload.
 
-        befor split randomise the list. 
+        befor split randomise the list.
 
 
         """
@@ -1444,7 +1570,8 @@ class kko_portfolio_update_manager:
         if support.check_if_today_is_first_the_month():
 
             database_querys.database_querys.add_log_to_logbook(
-                "Deleted all portfolio's and re-newd cycle")
+                "Deleted all portfolio's and re-newd cycle"
+            )
             self.remove_all_portfolios()
 
         else:
@@ -1463,8 +1590,7 @@ class kko_portfolio_update_manager:
         for i in range(0, 10):
             random.shuffle(tickers_selected)
 
-        items = self.create_data_of_tickers(
-            selection.selected_tickers)
+        items = self.create_data_of_tickers(selection.selected_tickers)
 
         tickers = list(items.keys())
 
@@ -1506,8 +1632,9 @@ class kko_portfolio_update_manager:
         
         """
 
-        thread0 = threading.Thread(target=self.the_kill_switch,
-                                   args=(2, False))
+        thread0 = threading.Thread(
+            target=self.the_kill_switch, args=(2, False)
+        )
         """
         thread1 = threading.Thread(target=self.create_single_options,
                                    args=(items[1], lists_[0], "thread 1"))
@@ -1523,12 +1650,18 @@ class kko_portfolio_update_manager:
                                    args=(items[1], lists_[4], "thread 5"))
         """
 
-        thread6 = threading.Thread(target=self.continues_portfolio_creation,
-                                   args=(items, tickers, "thread 6",
-                                         min_amount_tickers,
-                                         max_rotations,
-                                         max_stocks,
-                                         min_sharp_ratio))
+        thread6 = threading.Thread(
+            target=self.continues_portfolio_creation,
+            args=(
+                items,
+                tickers,
+                "thread 6",
+                min_amount_tickers,
+                max_rotations,
+                max_stocks,
+                min_sharp_ratio,
+            ),
+        )
 
         """
         random.shuffle(tickers)
@@ -1628,9 +1761,9 @@ class kko_portfolio_update_manager:
         threads.append(thread15)
         threads.append(thread16)
         """
-        print('threads have started')
+        print("threads have started")
         # Join the threads before
-        loop:  bool = True
+        loop: bool = True
         while loop:
 
             for thread in threads:
@@ -1758,7 +1891,8 @@ class kko_portfolio_update_manager:
             tickers_selected = list_of_options[i]
 
             data = self.create_data_frame_of_tickers(
-                tickers_selected, ticker_options)
+                tickers_selected, ticker_options
+            )
 
             portfolio = portfolio_constructor_manager(data)
 
@@ -1770,7 +1904,9 @@ class kko_portfolio_update_manager:
 
         return
 
-    def create_single_options(self, data_service, list_of_options: list, thread_name="thread 1 "):
+    def create_single_options(
+        self, data_service, list_of_options: list, thread_name="thread 1 "
+    ):
         """
 
 
@@ -1801,7 +1937,8 @@ class kko_portfolio_update_manager:
             tickers_selected = list_of_options[i]
 
             data = self.create_data_frame_of_tickers(
-                tickers_selected, data_service)
+                tickers_selected, data_service
+            )
 
             portfolio = portfolio_constructor_manager(data)
 
@@ -1816,13 +1953,16 @@ class kko_portfolio_update_manager:
 
         return
 
-    def continues_portfolio_creation(self, data_service,
-                                     tickers_in: list,
-                                     thread_name="thread 1 ",
-                                     amount_per_portfolio: int = 5,
-                                     amount_if_itterations_before_next_step=10000,
-                                     max_amount_per_portfolio=50,
-                                     minimum_sharp_last=0):
+    def continues_portfolio_creation(
+        self,
+        data_service,
+        tickers_in: list,
+        thread_name="thread 1 ",
+        amount_per_portfolio: int = 5,
+        amount_if_itterations_before_next_step=10000,
+        max_amount_per_portfolio=50,
+        minimum_sharp_last=0,
+    ):
         """
 
 
@@ -1875,7 +2015,7 @@ class kko_portfolio_update_manager:
 
         # var for suggested portfolio.
         suggested_portfolio = None
-        max_nr = (len(tickers_in)-1)
+        max_nr = len(tickers_in) - 1
         rng = numpy.random.RandomState(2)
 
         # while killswitch is off: run for ever.
@@ -1935,10 +2075,11 @@ class kko_portfolio_update_manager:
 
             # creates data with the portfolio
             data = self.create_data_frame_of_tickers(
-                suggested_portfolio, data_service)
+                suggested_portfolio, data_service
+            )
 
             # Remove NA's
-            data = data.tail(len(data)-1)
+            data = data.tail(len(data) - 1)
 
             # check if is contains error's
             if data.isna().values.any():
@@ -1957,13 +2098,17 @@ class kko_portfolio_update_manager:
             except:
                 continue
 
-            #print("Setup portfolio ", pseudo_portfo)
+            # print("Setup portfolio ", pseudo_portfo)
 
             if portfolio.error == True:
                 continue
 
             # checks for sharp ratio managment, if list is empty or not full, fill, if sharp is not above average, remove.
-            if not sharp_ratios or len(sharp_ratios) < 100 and minimum_sharp_last == 0:
+            if (
+                not sharp_ratios
+                or len(sharp_ratios) < 100
+                and minimum_sharp_last == 0
+            ):
 
                 sharp_ratios.append(portfolio.Imax_sharp_sharp_ratio)
 
@@ -2021,7 +2166,7 @@ class kko_portfolio_update_manager:
             try:
 
                 nr = tickers_out.index(i)
-                #prc = nr / len(tickers_out)
+                # prc = nr / len(tickers_out)
 
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
@@ -2036,7 +2181,9 @@ class kko_portfolio_update_manager:
 
         return ticker_options
 
-    def create_data_and_filter_tickers(self, list_of_stocks: list, amount_of_stocks: int):
+    def create_data_and_filter_tickers(
+        self, list_of_stocks: list, amount_of_stocks: int
+    ):
         tickers_out = list_of_stocks
         # create function that creates all kind off ticker combinations
         # 5 - 10.
@@ -2054,10 +2201,15 @@ class kko_portfolio_update_manager:
             try:
 
                 nr = tickers_out.index(i)
-                #prc = nr / len(tickers_out)
+                # prc = nr / len(tickers_out)
 
-                print(i, " is added to data, we are at =",
-                      str(nr), " of ", str(len(tickers_out)))
+                print(
+                    i,
+                    " is added to data, we are at =",
+                    str(nr),
+                    " of ",
+                    str(len(tickers_out)),
+                )
 
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
@@ -2075,7 +2227,7 @@ class kko_portfolio_update_manager:
         res = [list(ele) for i, ele in enumerate(options)]
         list_of_options.extend(res)
 
-        return[list_of_options, ticker_options]
+        return [list_of_options, ticker_options]
 
     def create_data_frame_of_tickers(self, tickers: list, data: dict):
         """
@@ -2131,15 +2283,22 @@ class kko_portfolio_update_manager:
 
     def return_equal_lists(self, data, amount_of_lists=3):
 
-        amount_per_list = int(round(len(data)/amount_of_lists))
+        amount_per_list = int(round(len(data) / amount_of_lists))
 
-        chunks = [data[x:x+amount_per_list]
-                  for x in range(0, len(data), amount_per_list)]
+        chunks = [
+            data[x : x + amount_per_list]
+            for x in range(0, len(data), amount_per_list)
+        ]
 
         return chunks
 
-    def create_lists_with_limit(self, tickers_in: list, mode: str = "random", amount_per_portfolio: int = 10,
-                                amount_portfoio: int = 1000):
+    def create_lists_with_limit(
+        self,
+        tickers_in: list,
+        mode: str = "random",
+        amount_per_portfolio: int = 10,
+        amount_portfoio: int = 1000,
+    ):
         """
 
 
@@ -2165,7 +2324,7 @@ class kko_portfolio_update_manager:
 
         while len(list_of_portfolios) < amount_portfoio:
 
-            number = random.randint(0, (len(tickers_in)-1))
+            number = random.randint(0, (len(tickers_in) - 1))
 
             ticker = tickers_in[number]
 
@@ -2181,7 +2340,7 @@ class kko_portfolio_update_manager:
 
     def get_last_details(self):
         """
-        returns amount of minimaal number, and sharp. 
+        returns amount of minimaal number, and sharp.
 
         Returns
         -------
@@ -2191,7 +2350,7 @@ class kko_portfolio_update_manager:
             DESCRIPTION.
 
         """
-        
+
         portfolios = database_querys.database_querys.get_portfolio()
 
         # if there are no portfolios, return 5 and 0
@@ -2199,16 +2358,17 @@ class kko_portfolio_update_manager:
             return (5, 0)
 
         high_amount = portfolios.sort_values(
-            ['portfolio_amount', 'total_sharp_y2'], ascending=False)
+            ["portfolio_amount", "total_sharp_y2"], ascending=False
+        )
 
         height_sharpr = high_amount.total_sharp_y2.to_list()[0]
         height_amount = high_amount.portfolio_amount.to_list()[0]
-        
+
         return (height_amount, height_sharpr)
 
     def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
         """
-        destroys thread after certain time so that the system can reset. 
+        destroys thread after certain time so that the system can reset.
 
         Parameters
         ----------
@@ -2243,7 +2403,7 @@ class kko_portfolio_update_manager:
     def return_all_old_portfolios(self):
         """
 
-        returns a list of portfolios. 
+        returns a list of portfolios.
 
         Returns
         -------
@@ -2294,7 +2454,6 @@ class kko_portfolio_update_manager:
 
 
 class kk_manager(object):
-
     @staticmethod
     def run_the_portfolio_update_system():
 
@@ -2305,7 +2464,6 @@ class kk_manager(object):
 
 
 class create_stats(object):
-
     @staticmethod
     def return_backtest(tickers: list = []):
 
@@ -2338,7 +2496,8 @@ class create_stats(object):
         tickers_selected = tickers_out
 
         data = create_stats.create_data_frame_of_tickers(
-            tickers_selected, ticker_options)
+            tickers_selected, ticker_options
+        )
 
         portfolio = portfolio_constructor_manager(data)
 
@@ -2437,6 +2596,7 @@ class kko_strat_model:
     o stands for optimzed
 
     """
+
     portfolio_id: str
     portfolio_strategy: str
     portfolio_amount: int
@@ -2481,8 +2641,8 @@ if __name__ == "__main__":
         #    tickers=["ADMA", "ALT", "AFYA", "AEPPZ", "ACET"])
         startup_ = kko_portfolio_update_manager()
         # update_kaufman_kalman_analyses.update_full_analyses()
-       # update_kaufman_kalman_analyses.update_all()
-       # update_trend_performance("AAPL", "D")
+    # update_kaufman_kalman_analyses.update_all()
+    # update_trend_performance("AAPL", "D")
 
     except Exception as e:
 

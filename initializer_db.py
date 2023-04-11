@@ -16,9 +16,10 @@ import os
 
 def initialization():
     # path_db =constants.DATABASE_MAIN_PATH OLD
-    #path_db =constants.SQLALCHEMY_DATABASE_URI_layer_zero
+    # path_db =constants.SQLALCHEMY_DATABASE_URI_layer_zero
     engine = create_engine(
-        'sqlite:///core_data/flowimpact_api_db.db', echo=True)
+        "sqlite:///core_data/flowimpact_api_db.db", echo=True
+    )
 
     Base = declarative_base()
 
@@ -31,7 +32,7 @@ def initialization():
 
         """
 
-        __tablename__ = 'tickers'
+        __tablename__ = "tickers"
 
         id = Column(String, unique=True, primary_key=True)
         sector = Column(String)
@@ -48,7 +49,7 @@ def initialization():
 
         """
 
-        __tablename__ = 'unit_tests_and_errors'
+        __tablename__ = "unit_tests_and_errors"
 
         id = Column(String, unique=True, primary_key=True)
         error = Column(Boolean)
@@ -56,19 +57,20 @@ def initialization():
 
     class logbook(Base):
 
-        __tablename__ = 'logbook'
+        __tablename__ = "logbook"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
         created = Column(DateTime, default=func.now())
         message = Column(String)
 
     class log(Base):
-        __tablename__ = 'logs_and_reports'
+        __tablename__ = "logs_and_reports"
 
         id = Column(Integer, primary_key=True)
         message = Column(String)
-        time_created = Column(DateTime(timezone=True),
-                              server_default=func.now())
+        time_created = Column(
+            DateTime(timezone=True), server_default=func.now()
+        )
         time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     class Analyses_trend_kamal(Base):
@@ -80,7 +82,7 @@ def initialization():
 
         """
 
-        __tablename__ = 'analyses_trend_kamal'
+        __tablename__ = "analyses_trend_kamal"
 
         id = Column(String, unique=True, primary_key=True)
         periode = Column(String)
@@ -104,7 +106,7 @@ def initialization():
 
         """
 
-        __tablename__ = 'analyses_trend_kamal_archive'
+        __tablename__ = "analyses_trend_kamal_archive"
 
         id = Column(Integer, primary_key=True)
         ticker = Column(String)
@@ -129,8 +131,16 @@ def initialization():
         exp_return = Column(Float)
         max_yield = Column(Float)
 
-        __table_args__ = (UniqueConstraint('ticker', 'year_start', 'month_start', 'date_start', 'periode', name='_tickers_unique_value'),
-                          )
+        __table_args__ = (
+            UniqueConstraint(
+                "ticker",
+                "year_start",
+                "month_start",
+                "date_start",
+                "periode",
+                name="_tickers_unique_value",
+            ),
+        )
 
     class Analyses_trend_kamal_performance(Base):
         """
@@ -141,7 +151,7 @@ def initialization():
 
         """
 
-        __tablename__ = 'analyses_trend_kamal_performance'
+        __tablename__ = "analyses_trend_kamal_performance"
 
         id = Column(String, unique=True, primary_key=True)
         periode = Column(String)
@@ -160,7 +170,7 @@ def initialization():
         profible_profile = Column(Integer, nullable=True)
 
     class portfolio(Base):
-        __tablename__ = 'portfolio'
+        __tablename__ = "portfolio"
         id = Column(Integer, primary_key=True)
         portfolio_id = Column(String, nullable=False, unique=True)
         portfolio_strategy = Column(String, nullable=False)
@@ -174,8 +184,16 @@ def initialization():
         total_volatility_y2 = Column(Float)
         createdAt = Column(String, nullable=False)
 
+    class PortfolioArchive(Base):
+        __tablename__ = "portfolio_archive"
+
+        portfolio_id = Column(
+            String, primary_key=True, nullable=False, unique=True
+        )
+        created = Column(DateTime, default=func.now())
+
     class trading_portfolio(Base):
-        __tablename__ = 'trading_portfolio'
+        __tablename__ = "trading_portfolio"
         id = Column(Integer, primary_key=True)
         portfolio_id = Column(String, nullable=False)
         portfolio_strategy = Column(String, nullable=False)
@@ -190,7 +208,7 @@ def initialization():
         updatedAt = Column(String, nullable=False)
 
     class closed_portfolio(Base):
-        __tablename__ = 'closed_portfolio'
+        __tablename__ = "closed_portfolio"
         id = Column(Integer, primary_key=True)
         portfolio_id = Column(String, nullable=False)
         portfolio_strategy = Column(String, nullable=False)
@@ -208,14 +226,17 @@ def initialization():
 
     class user_trades(Base):
 
-        __tablename__ = 'user_trades'
+        __tablename__ = "user_trades"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
         user_id = Column(String)
         ticker = Column(String)
 
-        __table_args__ = (UniqueConstraint('user_id', 'ticker', name='_tickers_unique_value'),
-                          )
+        __table_args__ = (
+            UniqueConstraint(
+                "user_id", "ticker", name="_tickers_unique_value"
+            ),
+        )
 
 
 if __name__ == "__main__":
