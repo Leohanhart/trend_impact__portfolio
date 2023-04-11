@@ -126,6 +126,9 @@ class update_kaufman_kalman_analyses(object):
                         if not database_querys.database_querys.check_if_ticker_is_allowd(
                             ticker_name=ticker
                         ):
+                            logger.warning(
+                                f"update trend-analyses for ticker = {ticker}",
+                            )
                             continue
 
                         power_object = stock_object.power_stock_object(
