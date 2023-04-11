@@ -22,27 +22,22 @@ import os
 def initialization():
     db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
     engine = create_engine(
-        "sqlite:///../../core_data/flowimpact_api_db.db", echo=True)
+        "sqlite:///../../core_data/flowimpact_api_db.db", echo=True
+    )
     Base = declarative_base()
 
     class Table(Base):
-        """
-        id = Column(String, unique = True, primary_key=True)
-        sector = Column(String)
-        industry = Column(String)
-        Boolean = Column(String)
 
-        """
+        __tablename__ = "portfolio_archive"
 
-        __tablename__ = 'logbook'
-
-        id = Column(Integer, primary_key=True, autoincrement=True)
+        portfolio_id = Column(
+            String, primary_key=True, nullable=False, unique=True
+        )
         created = Column(DateTime, default=func.now())
-        message = Column(String)
 
     Base.metadata.create_all(engine)
 
-    #os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
+    # os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
 
 
 if __name__ == "__main__":
