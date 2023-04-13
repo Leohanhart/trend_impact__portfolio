@@ -354,6 +354,10 @@ class Analyses_archive_kamal(Base):
 
     id = Column(Integer, primary_key=True)
     ticker = Column(String)
+
+    start_date = Column(Date)
+    end_date = Column(Date)
+
     year_start = Column(Integer)
     month_start = Column(Integer)
     date_start = Column(Integer)
