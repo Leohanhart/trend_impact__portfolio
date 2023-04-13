@@ -223,7 +223,7 @@ class update_kaufman_kalman_analyses(object):
         ]
 
         # this adds tickers that are not in the archive of trend analyses achive.
-        if not tickers:
+        if tickers:
             for ticker in tickers:
                 database_querys.database_querys.add_or_update_archive_of_trend_archive(
                     ticker_id=ticker
@@ -1946,8 +1946,8 @@ if __name__ == "__main__":
         # print(obj)
         # x = update_kaufman_kalman_analyses.update_full_analyses()
         while True:
-            # update_kaufman_kalman_analyses.update_full_analyses()
-            update_kaufman_kalman_analyses.update_all(last_update_first=True)
+            update_kaufman_kalman_analyses.update_full_analyses()
+            # update_kaufman_kalman_analyses.update_all(last_update_first=True)
     # update_trend_performance("AAPL", "D")
 
     except Exception as e:
