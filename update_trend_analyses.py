@@ -209,9 +209,32 @@ class update_kaufman_kalman_analyses(object):
         # load periodes
         periodes = ["D"]
 
-        # load tickers
-        tickers = database_querys.database_querys.get_all_active_tickers()
+        # load tickers, these tickers are not check if already exsitsing in archive
+        tickers_all = database_querys.database_querys.get_all_active_tickers()
 
+        # this returns list of tickers in the order of last update first out.
+        loaded_tickers_trend_archive = (
+            database_querys.database_querys.get_archive_of_trend_archive()
+        )
+
+        # these tickers are not in archive, this line removes tickers that are in archive
+        tickers = [
+            x for x in tickers_all if x not in loaded_tickers_trend_archive
+        ]
+
+        # this adds tickers that are not in the archive of trend analyses achive.
+        if tickers:
+            for ticker in tickers:
+                database_querys.database_querys.add_or_update_archive_of_trend_archive(
+                    ticker_id=ticker
+                )
+
+        # now reload tickers in the right (last update first out) order
+        tickers = (
+            database_querys.database_querys.get_archive_of_trend_archive()
+        )
+
+        # nuw all
         trade_data = None
 
         for periode_in in periodes:
@@ -252,6 +275,12 @@ class update_kaufman_kalman_analyses(object):
                     except Exception as e:
 
                         print(e)
+
+                    finally:
+
+                        database_querys.database_querys.add_or_update_archive_of_trend_archive(
+                            ticker_id=ticker
+                        )
 
                 else:
                     continue
@@ -1917,8 +1946,8 @@ if __name__ == "__main__":
         # print(obj)
         # x = update_kaufman_kalman_analyses.update_full_analyses()
         while True:
-            # update_kaufman_kalman_analyses.update_full_analyses()
-            update_kaufman_kalman_analyses.update_all(last_update_first=True)
+            update_kaufman_kalman_analyses.update_full_analyses()
+            # update_kaufman_kalman_analyses.update_all(last_update_first=True)
     # update_trend_performance("AAPL", "D")
 
     except Exception as e:

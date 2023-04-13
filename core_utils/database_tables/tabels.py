@@ -4,7 +4,16 @@ Created on Mon Apr 11 16:09:54 2022
 
 @author: Gebruiker
 """
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, JSON
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Float,
+    DateTime,
+    JSON,
+    Date,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy import create_engine
@@ -429,6 +438,12 @@ class PortfolioArchive(Base):
         String, primary_key=True, nullable=False, unique=True
     )
     created = Column(DateTime, default=func.now())
+
+
+class TrendArchiveArchive(Base):
+    __tablename__ = "trend_archive_archive"
+    archive_id = Column(String, primary_key=True, nullable=False, unique=True)
+    updated_at = Column(DateTime)
 
 
 class TradingPortfolio(Base):

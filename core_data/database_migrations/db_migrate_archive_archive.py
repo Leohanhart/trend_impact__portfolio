@@ -9,7 +9,7 @@ Created on Mon Oct 24 14:18:38 2022
 @author: Gebruiker
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, Date
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -27,13 +27,11 @@ def initialization():
     Base = declarative_base()
 
     class Table(Base):
-
-        __tablename__ = "portfolio_archive"
-
+        __tablename__ = "trend_archive_archive"
         archive_id = Column(
             String, primary_key=True, nullable=False, unique=True
         )
-        created = Column(DateTime, default=func.now())
+        updated_at = Column(DateTime)
 
     Base.metadata.create_all(engine)
 
