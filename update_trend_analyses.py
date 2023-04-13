@@ -609,7 +609,7 @@ class update_kaufman_support(object):
         last_dp = float(y.tail(1))
 
         # detirmen trend level.
-        # if positive
+        # if positive (long)
         if last_dp > 0:
 
             # sets to the max
@@ -653,7 +653,7 @@ class update_kaufman_support(object):
         else:
             output_data["trend"] = -1
 
-        ###
+        #### durration
         # durretation of a trend.
         for i in range(1, len(z)):
             if last_dp_trend > 0:
@@ -666,6 +666,8 @@ class update_kaufman_support(object):
                     break
 
         # if stock data is not 0 :?
+        #### you could potentially here check the last record and see if the trend is the same
+        ## if there is a thrend reset the data.
 
         # tails data to valide point
         sdata = stock__data__frame.tail(len(z))
@@ -729,6 +731,8 @@ class update_kaufman_support(object):
         # start date
         date = data_total.tail(1).index[0]
 
+        output_data["end_date"] = date.date()
+
         #
         output_data["date_end"] = date.day
 
@@ -743,6 +747,8 @@ class update_kaufman_support(object):
 
         # does the same for the startdate of the stock.
         date = data_total.head(1).index[0]
+
+        output_data["start_date"] = date.date()
 
         #
         output_data["date_start"] = date.day
@@ -815,6 +821,7 @@ class update_archive_kaufmal:
             # add data
             work_data = stock_data.head(i)
 
+            # returns model with the data
             model = update_kaufman_support.return_full_analyses_dict(
                 stock_data=work_data,
                 ticker_name=ticker,
