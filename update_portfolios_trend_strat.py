@@ -1098,7 +1098,7 @@ class risk_managment_controllers:
             list_avg_price
         )
         self.details["total_avg_rounds"] = total_rounds = total_volume / 200
-
+        self.details["avg_fill_per_round"] = round(total_amount / total_rounds)
         return
 
 
