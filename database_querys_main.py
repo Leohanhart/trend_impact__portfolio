@@ -178,7 +178,11 @@ class database_querys:
             Session = sessionmaker(bind=engine)
             session = Session()
 
-            query_string = session.query(Ticker).statement.compile()  # .all()
+            query_string = (
+                session.query(Ticker)
+                .filter(Ticker.active == True)
+                .statement.compile()
+            )  # .all()
 
             df = pd.read_sql_query(query_string, session.bind)
 
@@ -957,59 +961,67 @@ class database_querys:
         return df
 
     def add_or_update_archive_of_trend_archive(ticker_id: str):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(
+                db_path, echo=True
+            )  # , check_same_thread=True
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
-        Session = sessionmaker(bind=engine)
-        session = Session()
+            query_string: str
 
-        query_string: str
-
-        x = (
-            session.query(TrendArchiveArchive)
-            .filter(TrendArchiveArchive.archive_id == ticker_id)
-            .first()
-        )
-
-        if x == None:
-
-            today = date.today()
-
-            archive = TrendArchiveArchive(
-                archive_id=str(ticker_id), updated_at=datetime.now()
+            x = (
+                session.query(TrendArchiveArchive)
+                .filter(TrendArchiveArchive.archive_id == ticker_id)
+                .first()
             )
 
-            session.add(archive)
-            session.commit()
-            session.close()
+            if x == None:
 
-            return
-        else:
+                today = date.today()
 
-            x.updated_at = datetime.now()
-            session.commit()
-            session.close()
+                archive = TrendArchiveArchive(
+                    archive_id=str(ticker_id), updated_at=datetime.now()
+                )
 
-            session.close()
+                session.add(archive)
+                session.commit()
+                session.close()
 
-            return
+                return
+            else:
+
+                x.updated_at = datetime.now()
+                session.commit()
+                session.close()
+
+                session.close()
+
+                return
 
     def get_archive_of_trend_archive():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(
+                db_path, echo=True
+            )  # , check_same_thread=True
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
-        Session = sessionmaker(bind=engine)
-        session = Session()
+            query_string = session.query(
+                TrendArchiveArchive
+            ).statement.compile()
 
-        query_string = session.query(TrendArchiveArchive).statement.compile()
+            df = pd.read_sql_query(query_string, session.bind)
 
-        df = pd.read_sql_query(query_string, session.bind)
+            df = df.sort_values("updated_at", ascending=True)
 
-        df = df.sort_values("updated_at", ascending=False)
+            data = df.archive_id.to_list()
 
-        data = df.archive_id.to_list()
-
-        return data
+            return data
 
     def delete_user_trade(user_id: str, user_ticker):
 
@@ -1965,7 +1977,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.add_or_update_archive_of_trend_archive("AAL")
+        x = database_querys.get_all_active_tickers()
 
         # x = database_querys.get_logs()
         print(x)
