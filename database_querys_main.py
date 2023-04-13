@@ -1403,6 +1403,8 @@ class database_querys:
                     # id = 1,
                     # id = model.ticker,
                     ticker=model.ticker,
+                    start_date=model.start_date,
+                    end_date=model.end_date,
                     year_start=model.year_start,
                     month_start=model.month_start,
                     date_start=model.date_start,
@@ -1432,6 +1434,14 @@ class database_querys:
             else:
 
                 add_report["status"] = "EXISTS"
+
+                if x.end_date != model.end_date:
+                    add_report["status"] = "MODIFIED"
+                    x.end_date = model.end_date
+
+                if x.start_date != model.start_date:
+                    add_report["status"] = "MODIFIED"
+                    x.start_date = model.start_date
 
                 if x.year_end != model.year_end:
                     add_report["status"] = "MODIFIED"
