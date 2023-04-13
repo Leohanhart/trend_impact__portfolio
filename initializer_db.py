@@ -110,6 +110,7 @@ def initialization():
 
         id = Column(Integer, primary_key=True)
         ticker = Column(String)
+
         year_start = Column(Integer)
         month_start = Column(Integer)
         date_start = Column(Integer)
@@ -191,6 +192,13 @@ def initialization():
             String, primary_key=True, nullable=False, unique=True
         )
         created = Column(DateTime, default=func.now())
+
+    class TrendArchiveArchive(Base):
+        __tablename__ = "trend_archive_archive"
+        archive_id = Column(
+            String, primary_key=True, nullable=False, unique=True
+        )
+        updated_at = Column(DateTime)
 
     class trading_portfolio(Base):
         __tablename__ = "trading_portfolio"
