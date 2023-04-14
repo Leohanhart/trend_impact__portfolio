@@ -106,6 +106,67 @@ class database_querys:
 
             return True
 
+    def get_trend_archive_with_tickers_and_date(
+        tickers: list = [], year: int = 0, month: int = 0, date: int = 0
+    ):
+        """
+
+
+        Parameters
+        ----------
+        tickers : list, optional
+            DESCRIPTION. The default is [].
+        year : int, optional
+            DESCRIPTION. The default is 0.
+        month : int, optional
+            DESCRIPTION. The default is 0.
+        date : int, optional
+            DESCRIPTION. The default is 0.
+
+        Returns
+        -------
+        df : TYPE
+            DESCRIPTION.
+
+        """
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=True)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            dt_object = datetime(year, month, date)
+
+            # convert the datetime object to a date object
+            hit_date = dt_object.date()
+
+            if tickers:
+                query_string = session.query(Analyses_archive_kamal).filter(
+                    and_(
+                        Analyses_archive_kamal.ticker.in_(tickers),
+                        Analyses_archive_kamal.start_date <= hit_date,
+                        Analyses_archive_kamal.end_date >= hit_date,
+                    )
+                )
+            else:
+                query_string = session.query(Analyses_archive_kamal).filter(
+                    and_(
+                        Analyses_archive_kamal.start_date <= hit_date,
+                        Analyses_archive_kamal.end_date >= hit_date,
+                    )
+                )
+
+            sql_statement = str(
+                query_string.statement.compile(
+                    compile_kwargs={"literal_binds": True}
+                )
+            )
+            # load SQL statement into pandas dataframe
+            df = pd.read_sql(sql_statement, engine)
+
+            return df
+
     @staticmethod
     def get_expired_portfolio_archives(amount_of_days: int = 62):
         """
@@ -1987,7 +2048,9 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_all_active_tickers()
+        x = database_querys.get_trend_archive_with_tickers_and_date(
+            tickers=[], year=2022, month=12, date=7
+        )
 
         # x = database_querys.get_logs()
         print(x)
