@@ -16,7 +16,6 @@ from core_scripts.stock_data_download import power_stock_object
 import update_portfolios_trend_strat
 import datetime
 import constants
-import service_layer_support
 from core_utils.save_temp_data import save_and_load_temp_data
 import pandas
 import numpy as np
@@ -25,7 +24,6 @@ import initializer_tickers_main
 
 
 class return_trend_analyses(object):
-
     @staticmethod
     def get_trend_analyses(ticker: str):
         """
@@ -46,7 +44,7 @@ class return_trend_analyses(object):
         data = database_querys_main.database_querys.get_trend_kalman(ticker)
 
         # fixes date stamp
-        data[['last_update']] = data[['last_update']].astype(str)
+        data[["last_update"]] = data[["last_update"]].astype(str)
 
         res = trend_analyse_support.package_data(data)
 
@@ -69,8 +67,11 @@ class return_trend_analyses(object):
 
         """
 
-        data = database_querys_main.database_querys.get_trend_kalman_performance(
-            ticker)
+        data = (
+            database_querys_main.database_querys.get_trend_kalman_performance(
+                ticker
+            )
+        )
 
         res_data = trend_analyse_support.package_data(data)
 
@@ -94,9 +95,14 @@ class return_trend_analyses(object):
         """
 
         data = database_querys_main.database_querys.get_trend_kalman_data(
-            ticker)
+            ticker
+        )
 
         data = trend_analyse_support.flip_dataframe(data)
+
+        data["start_date"] = data["start_date"].astype(str)
+
+        data["end_date"] = data["end_date"].astype(str)
 
         res_data = trend_analyse_support.package_data(data)
 
@@ -123,28 +129,40 @@ class return_trend_analyses(object):
         return res_data
 
     @staticmethod
-    def get_performance_sector(ticker: str = None,
-                               sector: bool = True,
-                               industry: bool = False,
-                               name_industry: str = "",
-                               name_sector: str = ""):
+    def get_performance_sector(
+        ticker: str = None,
+        sector: bool = True,
+        industry: bool = False,
+        name_industry: str = "",
+        name_sector: str = "",
+    ):
 
         data = database_querys_main.database_querys.get_trends_and_sector()
 
-        data = data.drop(columns=['last_update', 'periode', 'id_1',
-                         'profile_std', 'max_drawdown', 'max_yield'])
+        data = data.drop(
+            columns=[
+                "last_update",
+                "periode",
+                "id_1",
+                "profile_std",
+                "max_drawdown",
+                "max_yield",
+            ]
+        )
 
         if industry:
 
-            data = data.groupby('industry')['trend', 'exp_return',
-                                            'duration'].aggregate('mean', 'count')
+            data = data.groupby("industry")[
+                "trend", "exp_return", "duration"
+            ].aggregate("mean", "count")
 
         elif sector:
 
-            data = data.groupby('sector')['trend', 'exp_return',
-                                          'duration'].aggregate('mean', 'count')
+            data = data.groupby("sector")[
+                "trend", "exp_return", "duration"
+            ].aggregate("mean", "count")
 
-        data.sort_values(by='trend', ascending=False)
+        data.sort_values(by="trend", ascending=False)
 
         return data
 
@@ -168,7 +186,8 @@ class return_trend_analyses(object):
         """
 
         data = database_querys_main.database_querys.get_user_trade(
-            uuid_portfolio)
+            uuid_portfolio
+        )
 
         if data.empty:
             return "portfolio id not found"
@@ -176,9 +195,10 @@ class return_trend_analyses(object):
         tickers = list(data.ticker.values)
 
         data = trend_analyse_support.return_trend_data_multiple(
-            list_tickers=tickers)
+            list_tickers=tickers
+        )
 
-        data[['last_update']] = data[['last_update']].astype(str)
+        data[["last_update"]] = data[["last_update"]].astype(str)
 
         res_data = trend_analyse_support().package_data(data)
 
@@ -186,10 +206,9 @@ class return_trend_analyses(object):
 
 
 class trend_analyse_support(object):
-
     def return_trend_data_multiple(list_tickers: list = []):
         """
-        returns dataframe of trend data. 
+        returns dataframe of trend data.
 
         Parameters
         ----------
@@ -208,8 +227,9 @@ class trend_analyse_support(object):
 
         for ticker in list_tickers:
 
-            data_ticker = database_querys_main.database_querys.get_trend_kalman(
-                ticker)
+            data_ticker = (
+                database_querys_main.database_querys.get_trend_kalman(ticker)
+            )
 
             if first_run:
                 data = data_ticker
@@ -282,7 +302,7 @@ class trend_analyse_support(object):
 
         try:
 
-            data = data.to_dict(orient='records')
+            data = data.to_dict(orient="records")
 
         # if packaging already done, dump and return.
         except AttributeError:
@@ -299,7 +319,6 @@ class trend_analyse_support(object):
 
 
 class return_portfolios_options(object):
-
     @staticmethod
     def return_trading_portfolios(id_: str = ""):
         """
@@ -319,10 +338,12 @@ class return_portfolios_options(object):
         return res_data
 
     @staticmethod
-    def return_portfolios(page_number: int = 1,
-                          page_amount: int = 20,
-                          min_amount_stocks: int = 5,
-                          max_amount_stocks: int = 6):
+    def return_portfolios(
+        page_number: int = 1,
+        page_amount: int = 20,
+        min_amount_stocks: int = 5,
+        max_amount_stocks: int = 6,
+    ):
         """
 
 
@@ -343,10 +364,11 @@ class return_portfolios_options(object):
         data = database_querys_main.database_querys.get_portfolio()
 
         # filter portfolios
-        data = portfolio_support().return_portfolio_selection_between_amounts(df=data,
-                                                                              min_amount_stocks=min_amount_stocks,
-                                                                              max_amount_stocks=max_amount_stocks
-                                                                              )
+        data = portfolio_support().return_portfolio_selection_between_amounts(
+            df=data,
+            min_amount_stocks=min_amount_stocks,
+            max_amount_stocks=max_amount_stocks,
+        )
 
         data = analyses_support().apply_pagination(
             data, page_amount=page_amount, page_number=page_number
@@ -359,7 +381,7 @@ class return_portfolios_options(object):
     @staticmethod
     def add_trading_portfolio(id_: str):
         """
-        Add portfolio, after the portfio is added. The portfolio will not be deleted. 
+        Add portfolio, after the portfio is added. The portfolio will not be deleted.
 
         Parameters
         ----------
@@ -376,7 +398,8 @@ class return_portfolios_options(object):
         try:
 
             data = database_querys_main.database_querys.subscribe_trading_portfolio(
-                id_=id_)
+                id_=id_
+            )
 
             data = portfolio_support().package_data(data)
 
@@ -389,7 +412,7 @@ class return_portfolios_options(object):
     @staticmethod
     def delete_trading_portfolio(id_: str):
         """
-        Add portfolio, after the portfio is added. The portfolio will not be deleted. 
+        Add portfolio, after the portfio is added. The portfolio will not be deleted.
 
         Parameters
         ----------
@@ -406,7 +429,8 @@ class return_portfolios_options(object):
         try:
 
             data = database_querys_main.database_querys.unsubscribe_trading_portfolio(
-                id_=id_)
+                id_=id_
+            )
 
             data = portfolio_support().package_data(data)
 
@@ -418,12 +442,12 @@ class return_portfolios_options(object):
 
 
 class return_stats(object):
-
     @staticmethod
     def return_trading_backtest(portfolio_id):
 
         data = database_querys_main.database_querys.get_trading_portfolio(
-            portfolio_id)
+            portfolio_id
+        )
 
         # set to values
         x = list(data.list_of_tickers.values)
@@ -431,7 +455,9 @@ class return_stats(object):
         # set to list
         list_of_tickers = json.loads(x[0])
 
-        data = update_portfolios_trend_strat.create_stats().return_backtest(list_of_tickers)
+        data = update_portfolios_trend_strat.create_stats().return_backtest(
+            list_of_tickers
+        )
 
         data.index = data.index.map(str)
 
@@ -441,7 +467,6 @@ class return_stats(object):
 
 
 class return_logs(object):
-
     @staticmethod
     def return_logs_page(page_number: int = 1):
         """
@@ -462,11 +487,11 @@ class return_logs(object):
 
         data = trend_analyse_support.flip_dataframe(data)
 
-        data[['created']] = data[['created']].astype(str)
+        data[["created"]] = data[["created"]].astype(str)
 
-        data = analyses_support.apply_pagination(data=data,
-                                                 page_amount=20,
-                                                 page_number=page_number)
+        data = analyses_support.apply_pagination(
+            data=data, page_amount=20, page_number=page_number
+        )
 
         data = trend_analyse_support.package_data(data)
 
@@ -474,12 +499,12 @@ class return_logs(object):
 
 
 class crud_user_trades(object):
-
     @staticmethod
     def add_user_trade(uu_id_trader: str, ticker_name: str):
 
         database_querys_main.database_querys.add_user_trade(
-            uu_id_trader, ticker_name)
+            uu_id_trader, ticker_name
+        )
 
         return 200
 
@@ -487,40 +512,63 @@ class crud_user_trades(object):
     def remove_user_trade(uu_id_trader: str, ticker_name: str):
 
         database_querys_main.database_querys.delete_user_trade(
-            uu_id_trader, ticker_name)
+            uu_id_trader, ticker_name
+        )
 
         return 200
 
 
 class return_trend_trade_options(object):
-
     @staticmethod
-    def return_trade_options(page: int = 1, long: bool = True, short: bool = False,
-                             amount_days_of_new_trend: int = 5,
-                             percentage_2y_profitble: float = 90):
+    def return_trade_options(
+        page: int = 1,
+        long: bool = True,
+        short: bool = False,
+        amount_days_of_new_trend: int = 5,
+        percentage_2y_profitble: float = 90,
+    ):
 
-        df = database_querys_main.database_querys.get_trend_and_performance_kamal()
+        df = (
+            database_querys_main.database_querys.get_trend_and_performance_kamal()
+        )
 
         if long and not short:
 
-            df = df.loc[(df['trend'] > 0) & (df['duration'] < amount_days_of_new_trend) & (
-                df['total_profitible_trades_y2'] > float(percentage_2y_profitble))]
+            df = df.loc[
+                (df["trend"] > 0)
+                & (df["duration"] < amount_days_of_new_trend)
+                & (
+                    df["total_profitible_trades_y2"]
+                    > float(percentage_2y_profitble)
+                )
+            ]
 
         elif short and not long:
 
-            df = df.loc[(df['trend'] < 0) & (df['duration'] < amount_days_of_new_trend) & (
-                df['total_profitible_trades_y2'] > float(percentage_2y_profitble))]
+            df = df.loc[
+                (df["trend"] < 0)
+                & (df["duration"] < amount_days_of_new_trend)
+                & (
+                    df["total_profitible_trades_y2"]
+                    > float(percentage_2y_profitble)
+                )
+            ]
 
         elif long and short:
 
-            df = df.loc[(df['duration'] < amount_days_of_new_trend) & (
-                df['total_profitible_trades_y2'] > float(percentage_2y_profitble))]
+            df = df.loc[
+                (df["duration"] < amount_days_of_new_trend)
+                & (
+                    df["total_profitible_trades_y2"]
+                    > float(percentage_2y_profitble)
+                )
+            ]
 
         # apply pagenagtion
         df = analyses_support.apply_pagination(df, 20, page)
 
         # drop columns with troubles.
-        df = df.drop(columns=['last_update', 'id_1'])
+        df = df.drop(columns=["last_update", "id_1"])
 
         # package data
         res_data = trend_analyse_support.package_data(df)
@@ -529,12 +577,11 @@ class return_trend_trade_options(object):
 
 
 class portfolio_support(object):
-
     @staticmethod
     def check_portfolio_id_is_avible(id_: str):
         """
 
-        Check if portolio is avalible. 
+        Check if portolio is avalible.
 
         Parameters
         ----------
@@ -587,7 +634,12 @@ class portfolio_support(object):
         return data
 
     @staticmethod
-    def return_portfolio_selection_between_amounts(df, min_amount_stocks: int = 5, max_amount_stocks: int = 6, filter_on_sharp: bool = True):
+    def return_portfolio_selection_between_amounts(
+        df,
+        min_amount_stocks: int = 5,
+        max_amount_stocks: int = 6,
+        filter_on_sharp: bool = True,
+    ):
         """
 
 
@@ -608,8 +660,10 @@ class portfolio_support(object):
             DESCRIPTION.
 
         """
-        df = df.loc[(df["portfolio_amount"] <= max_amount_stocks) &
-                    (df["portfolio_amount"] >= min_amount_stocks)]
+        df = df.loc[
+            (df["portfolio_amount"] <= max_amount_stocks)
+            & (df["portfolio_amount"] >= min_amount_stocks)
+        ]
 
         if filter_on_sharp:
             df = portfolio_support().sort_on_yield(df)
@@ -619,7 +673,7 @@ class portfolio_support(object):
     @staticmethod
     def sort_on_yield(df):
         """
-        Sort portfolio on 2 year sharp ration. 
+        Sort portfolio on 2 year sharp ration.
 
         Parameters
         ----------
@@ -633,12 +687,11 @@ class portfolio_support(object):
 
         """
 
-        df = df.sort_values(by='total_sharp_y2', ascending=False)
+        df = df.sort_values(by="total_sharp_y2", ascending=False)
         return df
 
 
 class analyses_support(object):
-
     @staticmethod
     def extract_all_tickers(data):
         df = data
@@ -666,63 +719,80 @@ class analyses_support(object):
         df = data
 
         # get amount of positive data.
-        long_trades = df.loc[(df['trend'] > 0) & (df['duration'] < 250)]
-        short_trades = df.loc[(df['trend'] < 0) & (df['duration'] < 250)]
+        long_trades = df.loc[(df["trend"] > 0) & (df["duration"] < 250)]
+        short_trades = df.loc[(df["trend"] < 0) & (df["duration"] < 250)]
 
-        long_trades_m1 = df.loc[(df['trend'] > 0) & (df['duration'] <= 21)]
-        short_trades_m1 = df.loc[(df['trend'] < 0) & (df['duration'] <= 21)]
+        long_trades_m1 = df.loc[(df["trend"] > 0) & (df["duration"] <= 21)]
+        short_trades_m1 = df.loc[(df["trend"] < 0) & (df["duration"] <= 21)]
 
-        trades_m1 = df.loc[df['duration'] <= 21]
+        trades_m1 = df.loc[df["duration"] <= 21]
 
-        long_trades_d5 = df.loc[(df['trend'] > 0) & (df['duration'] <= 5)]
-        short_trades_d5 = df.loc[(df['trend'] < 0) & (df['duration'] <= 5)]
+        long_trades_d5 = df.loc[(df["trend"] > 0) & (df["duration"] <= 5)]
+        short_trades_d5 = df.loc[(df["trend"] < 0) & (df["duration"] <= 5)]
 
-        trades_d5 = df.loc[df['duration'] <= 5]
+        trades_d5 = df.loc[df["duration"] <= 5]
 
-        data_res["percentage_average_yield_m1"] = trades_m1.current_yield.mean().round(
-            2)
-        data_res["percentage_average_yield_w1"] = trades_d5.current_yield.mean().round(
-            2)
+        data_res[
+            "percentage_average_yield_m1"
+        ] = trades_m1.current_yield.mean().round(2)
+        data_res[
+            "percentage_average_yield_w1"
+        ] = trades_d5.current_yield.mean().round(2)
 
         data_res["stocks_trending_long"] = pct_markettrending = round(
-            len(long_trades) / len(df)*100, 2)
+            len(long_trades) / len(df) * 100, 2
+        )
 
-        positive_trades = df.loc[df['current_yield'] > 0]
+        positive_trades = df.loc[df["current_yield"] > 0]
 
-        positive_trades_m1 = trades_m1.loc[df['current_yield'] > 0]
+        positive_trades_m1 = trades_m1.loc[df["current_yield"] > 0]
 
-        positive_trades_d5 = trades_d5.loc[df['current_yield'] > 0]
+        positive_trades_d5 = trades_d5.loc[df["current_yield"] > 0]
 
-        negative_trades = df.loc[df['current_yield'] < 0]
+        negative_trades = df.loc[df["current_yield"] < 0]
 
-        data_res["percentage_positive_trades_y1"] = pct_positive_signals = round(
-            len(positive_trades) / len(df)*100, 2)
-        pct_negative_signals = round(
-            len(negative_trades) / len(df)*100, 2)
+        data_res[
+            "percentage_positive_trades_y1"
+        ] = pct_positive_signals = round(
+            len(positive_trades) / len(df) * 100, 2
+        )
+        pct_negative_signals = round(len(negative_trades) / len(df) * 100, 2)
 
-        data_res["percentage_positive_trades_m1"] = pct_positive_signals_ = round(
-            len(positive_trades_m1) / len(trades_m1)*100, 2)
+        data_res[
+            "percentage_positive_trades_m1"
+        ] = pct_positive_signals_ = round(
+            len(positive_trades_m1) / len(trades_m1) * 100, 2
+        )
 
-        data_res["percentage_positive_trades_w1"] = pct_positive_signals_ = round(
-            len(positive_trades_d5) / len(trades_d5)*100, 2)
+        data_res[
+            "percentage_positive_trades_w1"
+        ] = pct_positive_signals_ = round(
+            len(positive_trades_d5) / len(trades_d5) * 100, 2
+        )
 
         data_res["amount_trades_m1"] = len(trades_m1)
 
         data_res["amount_trades_w1"] = len(trades_d5)
 
-        pct_negative_signals = round(
-            len(negative_trades) / len(df)*100, 2)
+        pct_negative_signals = round(len(negative_trades) / len(df) * 100, 2)
 
-        average_yield_positive = positive_trades.current_yield.mean(
-        ).round(2)
+        average_yield_positive = positive_trades.current_yield.mean().round(2)
 
         average_yield_negative = negative_trades.current_yield.mean().round(2)
 
-        data_res["average_strategy_net_yield"] = average_net_yield = round(((((pct_positive_signals/100) * average_yield_positive) +
-                                                                            ((pct_negative_signals/100) * average_yield_negative))), 2)
+        data_res["average_strategy_net_yield"] = average_net_yield = round(
+            (
+                (
+                    ((pct_positive_signals / 100) * average_yield_positive)
+                    + ((pct_negative_signals / 100) * average_yield_negative)
+                )
+            ),
+            2,
+        )
 
-        data_res["average_durration_trade"] = average_durration_long_durration = df.duration.mean(
-        ).round(2)
+        data_res[
+            "average_durration_trade"
+        ] = average_durration_long_durration = df.duration.mean().round(2)
 
         # else dump and return.
         resp = json.dumps(data_res)
@@ -783,7 +853,7 @@ class analyses_support(object):
 
         try:
 
-            data = data.to_dict(orient='records')
+            data = data.to_dict(orient="records")
 
         # if packaging already done, dump and return.
         except AttributeError:
@@ -800,7 +870,6 @@ class analyses_support(object):
 
 
 class maintenance_tickers(object):
-
     @staticmethod
     def add_or_remove_ticker(ticker: str = ""):
 
@@ -819,11 +888,9 @@ if __name__ == "__main__":
 
     try:
 
-        x = maintenance_tickers().add_or_remove_ticker(
-            "XLK"
-        )
+        x = return_trend_analyses.get_trend_analyses_trades("AAPL")
     except Exception as e:
 
         print(e)
 
-   # print(data, "this is the data")
+# print(data, "this is the data")

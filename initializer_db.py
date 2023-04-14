@@ -4,7 +4,16 @@ Created on Mon Apr 11 15:04:34 2022
 
 @author: Gebruiker
 """
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, JSON
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Float,
+    DateTime,
+    JSON,
+    Date,
+)
 from sqlalchemy import create_engine
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
@@ -110,6 +119,9 @@ def initialization():
 
         id = Column(Integer, primary_key=True)
         ticker = Column(String)
+
+        start_date = Column(Date)
+        end_date = Column(Date)
 
         year_start = Column(Integer)
         month_start = Column(Integer)
