@@ -24,7 +24,8 @@ from datetime import datetime
 import threading
 import multiprocessing
 import time
-import threading
+import atexit
+import multiprocessing
 
 from threading import Lock
 from core_utils.core_initalization import initializer_tickers
@@ -49,7 +50,7 @@ import support_class
 import database_querys_main
 
 
-#mutex = Lock()
+# mutex = Lock()
 
 
 def update_tickers_weekly():
@@ -71,7 +72,8 @@ def update_complex_operations():
 
     # updates archive.
     proces_background = threading.Thread(
-        name='daemon_complex_operations', target=update_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
+        name="daemon_complex_operations",
+        target=update_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses(),
     )
 
     proces_background.start()
@@ -82,7 +84,7 @@ def update_complex_operations():
 
 def update_operation():
     """
-    Updates every business day. 
+    Updates every business day.
 
     Returns
     -------
@@ -113,14 +115,15 @@ def update_tickers_daily():
     update_analyses(periode="D")
 
     database_querys_main.database_querys.add_log_to_logbook(
-        "Finnished daily updates")
+        "Finnished daily updates"
+    )
 
     # mutex.release()
 
 
 def update_analyses(periode: str = "W"):
     """
-    Updates the analsyses, 
+    Updates the analsyses,
 
     Parameters
     ----------
@@ -139,13 +142,15 @@ def update_analyses(periode: str = "W"):
 
             # logs update
             data = database_querys_main.database_querys.log_item(
-                1999, "Finnised weekly update")
+                1999, "Finnised weekly update"
+            )
 
         elif periode == "D":
 
             # logs update
             data = database_querys_main.database_querys.log_item(
-                1003, "Finnised daily update")
+                1003, "Finnised daily update"
+            )
 
     except:
         print("problem with update")
@@ -171,7 +176,8 @@ def heartbeat():
 def report_alive():
 
     database_querys_main.database_querys.add_log_to_logbook(
-        "Hourly update in update_cycle.")
+        "Hourly update in update_cycle."
+    )
 
 
 def update_scedual():
@@ -207,9 +213,10 @@ def update_scedual():
 def start_update_scedule():
 
     database_querys_main.database_querys.add_log_to_logbook(
-        "Started update_cycle.")
+        "Started update_cycle."
+    )
 
-    proces_background = threading.Thread(name='daemon', target=update_scedual)
+    proces_background = threading.Thread(name="daemon", target=update_scedual)
     proces_background.setDaemon(True)
     proces_background.start()
     # proces_background.join()
@@ -223,7 +230,8 @@ if __name__ == "__main__":
         time.sleep(5)
 
         name = input(
-            "Starting up s Flowimpact.\n\npress (E)fficient for fast en efficient update, (A)dvanced for extended re-inializing stocks + update!\n\n")
+            "Starting up s Flowimpact.\n\npress (E)fficient for fast en efficient update, (A)dvanced for extended re-inializing stocks + update!\n\n"
+        )
 
         if name.lower() == "e":
             update_tickers_daily()
