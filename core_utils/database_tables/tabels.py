@@ -493,3 +493,25 @@ class User_trades(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "ticker", name="_tickers_unique_value"),
     )
+
+
+class Trend_Analysis_Time_series(Base):
+    __tablename__ = "trend_analyses_timeseries"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    date = Column(Date, nullable=False)
+    name = Column(String(50), nullable=False)
+    trend = Column(Float, nullable=False)
+    duration = Column(Integer, nullable=False)
+    profile = Column(Float, nullable=False)
+    profile_std = Column(Float, nullable=False)
+    volatility = Column(Float, nullable=False)
+    current_yield = Column(Float, nullable=False)
+    max_drawdown = Column(Float, nullable=False)
+    exp_return = Column(Float, nullable=False)
+    max_yield = Column(Float, nullable=False)
+    longs = Column(Integer, nullable=False)
+    shorts = Column(Integer, nullable=False)
+    total = Column(Integer, nullable=False)
+
+    __table_args__ = (UniqueConstraint("date", "name", name="uq_date_name"),)
