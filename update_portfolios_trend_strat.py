@@ -1145,7 +1145,7 @@ class create_kko_tickers_selection:
             # df = database_querys.database_querys.try_trend_kalman_performance()
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
