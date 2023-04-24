@@ -18,11 +18,13 @@ import multiprocessing
 
 
 class update_trend_timeseries:
-    def __init__(self):
+    @staticmethod
+    def update():
 
         manager = create_timeseries_manager()
 
         # aggergate the timeseries (Ceprated functions)
+        return
 
 
 class update_trend_support:
