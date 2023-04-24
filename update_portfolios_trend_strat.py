@@ -2162,7 +2162,8 @@ class kko_portfolio_update_manager:
         for i in tickers_out:
 
             ti = tickers_out.index(i)
-            print("we are at ", ti, " of the ", len(tickers_out))
+            #### check how me at
+            # print("we are at ", ti, " of the ", len(tickers_out))
             try:
 
                 nr = tickers_out.index(i)
