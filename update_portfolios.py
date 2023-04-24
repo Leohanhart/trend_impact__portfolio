@@ -10,13 +10,15 @@ import update_portfolios_trend_strat as update_portfolio_trends
 import update_trend_analyses as update_stats_trend_analyses
 import database_querys_main as database_querys
 import portfolio_synchronization as portfolio_synch
+import update_trend_time_series as timeseries
 
 # system
 from time import sleep
 from threading import Thread, Event
 from multiprocessing import Process
 import threading
-
+import time
+import datetime
 from loguru import logger
 from multiprocessing import Process
 
@@ -28,9 +30,6 @@ class update_data:
     update_allowd: bool = False
 
     def __init__(self):
-
-
-
 
         self.start_update_scedule()
 
@@ -98,6 +97,7 @@ class update_data:
     def task_5(self):
 
         i = 0
+
         # block for a moment
         while True:
 
@@ -110,40 +110,68 @@ class update_data:
                 print("Error in thread = ", e)
                 sleep(60)
 
+    def task_6(self):
+
+        logger.info("starting task 6")
+        i = 0
+        # funtion always sleeps one day before the start.
+        sleep(86000)
+        # block for a moment
+        while True:
+
+            now = datetime.datetime.now()
+
+            # Set the target date to tomorrow at midnight
+            target_date = datetime.datetime(now.year, now.month, now.day + 1)
+
+            # Loop until the target date is reached
+            while datetime.datetime.now() < target_date:
+                # Sleep for one second
+                time.sleep(1)
+
+            try:
+
+                timeseries.update_trend_timeseries.update()
+
+            except Exception as e:
+                print("Error in thread = ", e)
+                sleep(60)
+
     def startup_data_transformation(self):
         """ """
         # function with different parameters
 
         logger.info("starting trend update")
+
         # start regular trendupdate
-        thread1 = Process(target=self.task,
-                                   args=())
-        
+        thread1 = Process(target=self.task, args=())
+
         sleep(0.5)
-        
 
         logger.info("starting portfolio creation")
         # starts update portfolii manager.
-        thread2 = thread_2 = Thread(target=self.task_2)        
+        thread2 = thread_2 = Process(target=self.task_2)
+
         sleep(0.5)
-        
+
         logger.info("starting up archive")
         # starts archive kaufman
-        thread3 = Process(target=self.task_3,
-                                   args=())
-        
+        thread3 = Process(target=self.task_3, args=())
+
         sleep(0.5)
-        
+
         logger.info("starting hourly update trading portfolio")
         # start update trading portfolio.
-        thread4 = Process(target=self.task_4,
-                                   args=())
+        thread4 = Process(target=self.task_4, args=())
         sleep(0.5)
-        
+
         logger.info("starting up trendupdate revers.")
-        # start regulare trend update reverse. 
-        thread5 = Process(target=self.task_5,
-                                   args=())
+        # start regulare trend update reverse.
+        thread5 = Process(target=self.task_5, args=())
+
+        logger.info("starting up date timeseries..")
+        # start regulare trend update reverse.
+        thread6 = Process(target=self.task_6, args=())
 
         threads = []
         # Start the threads
@@ -156,6 +184,8 @@ class update_data:
         thread4.start()
         sleep(0.5)
         thread5.start()
+        sleep(0.5)
+        thread6.start()
 
         logger.info("threads started.")
         threads.append(thread1)
@@ -163,6 +193,7 @@ class update_data:
         threads.append(thread3)
         threads.append(thread4)
         threads.append(thread5)
+        threads.append(thread6)
 
         # Join the threads before
         loop: bool = True
@@ -182,6 +213,7 @@ class update_data:
         thread3.join()
         thread4.join()
         thread5.join()
+        thread6.join()
 
         self.startup_data_transformation()
 
@@ -207,7 +239,7 @@ if __name__ == "__main__":
     try:
         x = update_data()
         x.start_update_scedule()
-        sleep(2000)
+        sleep(86000)
 
     except Exception as e:
 
