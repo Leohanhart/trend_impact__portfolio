@@ -109,13 +109,12 @@ class update_kaufman_kalman_analyses(object):
 
                     if last_update_first:
                         logger.info(
-                            "update reverse trend-analyses for ticker =",
-                            ticker,
+                            f"update trend-analyses for ticker = {ticker}",
                         )
                     else:
 
                         logger.info(
-                            "update trend-analyses for ticker =", ticker
+                            f"update trend-analyses for ticker = {ticker}",
                         )
 
                     try:
