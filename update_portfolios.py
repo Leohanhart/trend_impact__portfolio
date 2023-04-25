@@ -127,7 +127,7 @@ class update_data:
             # Loop until the target date is reached
             while datetime.datetime.now() < target_date:
                 # Sleep for one second
-                time.sleep(1)
+                time.sleep(10)
 
             try:
 
