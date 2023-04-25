@@ -37,6 +37,7 @@ from core_utils.database_tables.tabels import (
     Logbook,
     User_trades,
     TrendArchiveArchive,
+    Trend_Analysis_Time_series,
 )
 
 import pandas as pd
@@ -47,6 +48,7 @@ from datetime import datetime
 import sqlalchemy
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from sqlalchemy import and_, or_, not_
 
@@ -66,7 +68,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -132,7 +134,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -185,7 +187,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -235,7 +237,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -267,7 +269,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -294,7 +296,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -328,7 +330,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -366,7 +368,7 @@ class database_querys:
         """
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -402,7 +404,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -439,7 +441,7 @@ class database_querys:
 
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -464,7 +466,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -487,7 +489,7 @@ class database_querys:
     def get_all_trend_kalman():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -522,7 +524,7 @@ class database_querys:
         with lock:
             # creates database engine.
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -594,12 +596,12 @@ class database_querys:
     ):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -626,7 +628,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -656,7 +658,7 @@ class database_querys:
                 print(9.3)
 
                 db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-                engine = create_engine(db_path, echo=True)
+                engine = create_engine(db_path, echo=False)
                 Session = sessionmaker(bind=engine)
                 session = Session()
 
@@ -693,7 +695,7 @@ class database_querys:
     def get_trend_and_performance_kamal():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -718,7 +720,7 @@ class database_querys:
     def get_trends_and_sector():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -744,7 +746,7 @@ class database_querys:
             raise Exception("No portfolio matching ID")
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -793,7 +795,7 @@ class database_querys:
     def get_trading_portfolio(id_: str = None):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -823,7 +825,7 @@ class database_querys:
     def update_trading_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -895,7 +897,7 @@ class database_querys:
             raise Exception("No portfolio matching ID")
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -924,7 +926,7 @@ class database_querys:
     def get_logs():
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -938,10 +940,56 @@ class database_querys:
         # return frame.
         return df
 
+    def get_trend_timeseries_data(name_of_timeserie: str):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            query = f"SELECT * FROM trend_analyses_timeseries WHERE name='{name_of_timeserie}'"
+            df = pd.read_sql(query, con=engine)
+
+            return df
+
+    def add_trend_timeserie(df):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            for row in df.itertuples():
+                try:
+                    new_data = Trend_Analysis_Time_series(
+                        date=row.Index,
+                        name=row.name,
+                        trend=row.trend,
+                        duration=row.duration,
+                        profile=row.profile,
+                        profile_std=row.profile_std,
+                        volatility=row.volatility,
+                        current_yield=row.current_yield,
+                        max_drawdown=row.max_drawdown,
+                        exp_return=row.exp_return,
+                        max_yield=row.max_yield,
+                        longs=row.longs,
+                        shorts=row.shorts,
+                        total=row.total,
+                    )
+
+                    session.add(new_data)
+                    session.commit()
+                except IntegrityError:
+                    session.rollback()
+
+            session.close()
+
     def add_log_to_logbook(text: str = ""):
         """
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False  # , check_same_thread=True
                                )
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -962,7 +1010,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True
+                db_path, echo=False
             )  # , check_same_thread=True
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -975,7 +1023,7 @@ class database_querys:
     def add_user_trade(user_id: str, user_ticker):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1001,7 +1049,7 @@ class database_querys:
     def get_user_trade(user_id: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1026,7 +1074,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True
+                db_path, echo=False
             )  # , check_same_thread=True
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1067,7 +1115,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True
+                db_path, echo=False
             )  # , check_same_thread=True
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1087,7 +1135,7 @@ class database_querys:
     def delete_user_trade(user_id: str, user_ticker):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1119,7 +1167,7 @@ class database_querys:
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True  # , check_same_thread=True
+                db_path, echo=False  # , check_same_thread=True
             )
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1179,7 +1227,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -1200,7 +1248,7 @@ class database_querys:
     def update_portfolio(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1276,7 +1324,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True
+                db_path, echo=False
             )  # , check_same_thread=True
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1307,7 +1355,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True
+                db_path, echo=False
             )  # , check_same_thread=True
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1338,7 +1386,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True  # , check_same_thread=True
+                db_path, echo=False  # , check_same_thread=True
             )
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1438,7 +1486,7 @@ class database_querys:
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True  # , check_same_thread=True
+                db_path, echo=False  # , check_same_thread=True
             )
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1571,7 +1619,7 @@ class database_querys:
     def update_analyses_trend_kamal_performance(model):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1671,7 +1719,7 @@ class database_querys:
     def delete_portfolio_with_id(id_: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1702,7 +1750,7 @@ class database_querys:
     def delete_trend_kamal(ticker: str):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1765,7 +1813,7 @@ class database_querys:
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
-                db_path, echo=True  # , check_same_thread=True
+                db_path, echo=False  # , check_same_thread=True
             )
             Session = sessionmaker(bind=engine)
             session = Session()
@@ -1836,7 +1884,7 @@ class database_querys:
         now = datetime.now()  # current date and time
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -1863,7 +1911,7 @@ class database_querys:
 
         # if not as pandas return as query.
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 

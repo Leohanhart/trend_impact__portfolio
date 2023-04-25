@@ -109,13 +109,12 @@ class update_kaufman_kalman_analyses(object):
 
                     if last_update_first:
                         logger.info(
-                            "update reverse trend-analyses for ticker =",
-                            ticker,
+                            f"update trend-analyses for ticker = {ticker}",
                         )
                     else:
 
                         logger.info(
-                            "update trend-analyses for ticker =", ticker
+                            f"update trend-analyses for ticker = {ticker}",
                         )
 
                     try:
@@ -244,14 +243,13 @@ class update_kaufman_kalman_analyses(object):
                 if periode_in == "D":
 
                     try:
-
+                        logger.info(f"updateing archive {ticker}")
                         initalizer_ticker = initiaze_singel_ticker(ticker)
 
                         if not database_querys.database_querys.check_if_ticker_is_allowd(
                             ticker_name=ticker
                         ):
                             continue
-                        print("start update archive of ", ticker)
 
                         power_object = stock_object.power_stock_object(
                             stock_ticker=ticker,
@@ -843,6 +841,23 @@ class update_archive_kaufmal:
 
             # check if refresh is neaded.
             # get last model.
+
+            #### here is a focking big mindfuck, what is going on?
+            # why is there a problem with continuesly updating?
+            """
+            If data is changed, the data needs to be overwritten, 
+            so thats why this check is done, otherwise the thing gets nuts.
+            
+            
+            
+            the best solution is get the old model, see if the trend is changed, 
+            if that's the case always insert a new file with end date of the last model.
+            
+            FIRST IF THIS FUNCTION IS LOADED Check if the ticker exsists in ARchive and then shorter 
+            the time (Tail 90), this can speed up the proces very fast. 
+            
+            
+            """
             try:
 
                 old_model = self.get_last_model(ticker=ticker, periode=periode)
@@ -874,6 +889,9 @@ class update_archive_kaufmal:
 
             continue
 
+        # clean data.
+        #### clean data
+
         return
 
     def __incomming_error_check(self, data):
@@ -897,7 +915,7 @@ class update_archive_kaufmal:
             )
 
     def check_if_need_overwrite(self, model_old, model_new):
-
+        #### add rules, always add new data
         if (
             model_old.year_start == model_new.year_start
             and model_old.month_start == model_new.month_start
@@ -950,6 +968,26 @@ class update_archive_kaufmal:
         )
 
         return raport_class
+
+
+class clean_archive_data:
+    def __init__(self, ticker_name):
+
+        data = database_querys.database_querys.get_trend_kalman_data(
+            ticker=ticker_name
+        )
+
+        for i in range(0, len(data) - 1):
+
+            list_of_trend = data.loc[1 + i : 2 + i].trend.to_list()
+            if all(element == list_of_trend[0] for element in list_of_trend):
+                print("All elements in the list are the same")
+
+                # if this is hit, the trend is the same, check the same for pfopforl
+                list_of_trend = data.loc[1 + i : 2 + i].profile_std.to_list()
+
+            else:
+                print("There are different elements in the list")
 
 
 class update_trend_performance:
@@ -1951,9 +1989,13 @@ if __name__ == "__main__":
 
         # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        # x = update_kaufman_kalman_analyses.update_full_analyses()
+        x = update_kaufman_kalman_analyses.update_full_analyses()
+
         while True:
-            update_kaufman_kalman_analyses.update_full_analyses()
+
+            update_archive_kaufmal("AAL")
+
+            # report = clean_archive_data(ticker_name="AAL")
             # update_kaufman_kalman_analyses.update_all(last_update_first=True)
     # update_trend_performance("AAPL", "D")
 

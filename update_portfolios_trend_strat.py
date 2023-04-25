@@ -1145,7 +1145,7 @@ class create_kko_tickers_selection:
             # df = database_querys.database_querys.try_trend_kalman_performance()
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -2162,7 +2162,8 @@ class kko_portfolio_update_manager:
         for i in tickers_out:
 
             ti = tickers_out.index(i)
-            print("we are at ", ti, " of the ", len(tickers_out))
+            #### check how me at
+            # print("we are at ", ti, " of the ", len(tickers_out))
             try:
 
                 nr = tickers_out.index(i)

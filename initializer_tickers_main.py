@@ -34,12 +34,12 @@ db_dir = "core_data/flowimpact_api_db.db"
 SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
 
 db_path = SQLALCHEMY_DATABASE_URI
-engine = create_engine(db_path, echo=True)
+engine = create_engine(db_path, echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 
 
-class initialization():
+class initialization:
 
     # the list for the tickers.
     tickers: list = []
@@ -47,7 +47,7 @@ class initialization():
     def __init__(self, load_tickers_only: bool = False):
         """
 
-        /Dont use this function        
+        /Dont use this function
 
         Parameters
         ----------
@@ -78,7 +78,7 @@ class initialization():
         SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
 
         db_path = SQLALCHEMY_DATABASE_URI
-        engine = create_engine(db_path, echo=True)
+        engine = create_engine(db_path, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
 
@@ -89,7 +89,7 @@ class initialization():
             SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
 
             db_path = SQLALCHEMY_DATABASE_URI
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
@@ -100,11 +100,13 @@ class initialization():
 
             # getting the stock object
             stocks_object = power_stock_object.power_stock_object(
-                stock_ticker=stock_ticker_in)
+                stock_ticker=stock_ticker_in
+            )
 
             # testing if stock is: A, valide. B, still active. C, delisted
             status_stock = initialization_support.check_if_ticker_valide(
-                stocks_object)
+                stocks_object
+            )
 
             # query for DB
             data = session.query(Ticker).get(stock_ticker_in)
@@ -117,12 +119,13 @@ class initialization():
                     continue
                 # option 1, Ticker is active
 
-                ticker = Ticker(id=stock_ticker_in,
-                                sector=stocks_object.sector,
-                                industry=stocks_object.industry,
-                                exchange=stocks_object.all_stock_data['exchange'],
-                                active=True
-                                )
+                ticker = Ticker(
+                    id=stock_ticker_in,
+                    sector=stocks_object.sector,
+                    industry=stocks_object.industry,
+                    exchange=stocks_object.all_stock_data["exchange"],
+                    active=True,
+                )
 
                 session.add(ticker)
                 session.commit()
@@ -131,7 +134,7 @@ class initialization():
 
                 if stocks_object.sector == None:
 
-                    #Ticker = unit_tests_and_errors(id = location, error = error, error_code = message)
+                    # Ticker = unit_tests_and_errors(id = location, error = error, error_code = message)
 
                     data.active = False
 
@@ -141,14 +144,13 @@ class initialization():
 
 
 class initialization_support:
-
     @staticmethod
     def check_if_ticker_valide(stocks_object: object = None):
         """
         Checks if ticker is valide, meaning: workable data, sector and industy and that stock is not delisted
 
         first check are based on invalide/mallefide, if error occures it will be because dataframe is loaded
-        correctly, that's why if the exception is thrown this will result in a positive signal(return tru). 
+        correctly, that's why if the exception is thrown this will result in a positive signal(return tru).
 
         Parameters
         ----------
@@ -164,11 +166,11 @@ class initialization_support:
         return True
         try:
 
-            if(
-                    not stocks_object.sector
-                    or stocks_object.stock_data == None
-                    or type(stocks_object.stock_data) == None
-                    or stocks_object.stock_data is None
+            if (
+                not stocks_object.sector
+                or stocks_object.stock_data == None
+                or type(stocks_object.stock_data) == None
+                or stocks_object.stock_data is None
             ):
                 return False
             else:
@@ -195,7 +197,7 @@ class initialization_support:
 
         path_tickers = constants.TICKER_DATA___PATH
 
-        path_file = os.path.join(path_tickers, 'stocks.txt')
+        path_file = os.path.join(path_tickers, "stocks.txt")
 
         with open(path_file) as f:
             contents = f.readlines()
@@ -209,15 +211,17 @@ class initialization_support:
         return stocks
 
     @staticmethod
-    def speed_limiter(start_time: float = 0, end_time: float = 0, limiter: float = 2.6):
+    def speed_limiter(
+        start_time: float = 0, end_time: float = 0, limiter: float = 2.6
+    ):
         """
         Speedlimiter calculates additional time and sleeps in the meanwhile.
 
-        Used when a function needs to be speedlimit doe to api restrictions. 
+        Used when a function needs to be speedlimit doe to api restrictions.
 
-        what happens is that the function calclulatse the passet time and sleeps the additional time so 
+        what happens is that the function calclulatse the passet time and sleeps the additional time so
 
-        te speedlimiter will not be upset. 
+        te speedlimiter will not be upset.
 
         Parameters
         ----------
@@ -234,7 +238,7 @@ class initialization_support:
 
         """
 
-        #print(start_time, end_time)
+        # print(start_time, end_time)
 
         # sets seconds past
         time_past = end_time - start_time
@@ -247,7 +251,7 @@ class initialization_support:
         # if additional time is larger than
         if additional_time > 0:
 
-            #print("this is the total sleep time", additional_time )
+            # print("this is the total sleep time", additional_time )
 
             # time.sleep(additional_time)
 
@@ -266,7 +270,7 @@ class initialization_support:
 
 class initiaze_tickers:
     """
-    Logbook: 
+    Logbook:
         14-07-22 We ended all the bullshit over that wird library.
     """
 
@@ -298,11 +302,12 @@ class initiaze_tickers:
 
 class initiaze_singel_ticker:
     """
-    Usage: add the ticker with initaliation. 
+        Usage: add the ticker with initaliation.
 
-if you want more checks. Add in check if ticker is capble.    
+    if you want more checks. Add in check if ticker is capble.
 
     """
+
     # main ticker
     main_ticker: str = None
     # main error
@@ -319,7 +324,7 @@ if you want more checks. Add in check if ticker is capble.
         auto_modus : bool, optional
 
             DESCRIPTION. If you turn on auto modus. Ticker is inizalized. If new and oke, its added, if exsists conaining error
-            it will be removed. 
+            it will be removed.
 
         Returns
         -------
@@ -361,7 +366,8 @@ if you want more checks. Add in check if ticker is capble.
 
             # try:
             stocks_object = power_stock_object.power_stock_object(
-                stock_ticker=stock)
+                stock_ticker=stock
+            )
 
             # addiitional checks if exsists.
             if len(stocks_object.stock_data.index) == 0:
@@ -369,7 +375,8 @@ if you want more checks. Add in check if ticker is capble.
 
             # testing if stock is: A, valide. B, still active. C, delisted
             status_stock = initialization_support.check_if_ticker_valide(
-                stocks_object)
+                stocks_object
+            )
 
             # tries to run all functions.
             """
@@ -411,7 +418,7 @@ if you want more checks. Add in check if ticker is capble.
 
             else:
 
-                exchange_in = stocks_object.all_stock_data['exchange']
+                exchange_in = stocks_object.all_stock_data["exchange"]
 
             # tries manipulation on time serie, if fails, problem with time serie, stock is inactive.
             if sector_in != "NA":
@@ -427,12 +434,12 @@ if you want more checks. Add in check if ticker is capble.
 
     def check_if_ticker_exsist(self):
         """
-        Check if ticker exsists in system. 
+        Check if ticker exsists in system.
 
         Returns
         -------
         True if ticker exsists.
-        False if ticker is new. 
+        False if ticker is new.
 
         """
         try:
@@ -468,7 +475,7 @@ if you want more checks. Add in check if ticker is capble.
     def delete_ticker_from_db(self):
         """
 
-        Deletes ticker from db. 
+        Deletes ticker from db.
 
         Returns
         -------
@@ -479,7 +486,7 @@ if you want more checks. Add in check if ticker is capble.
     def add_ticker_to_db(self):
         """
 
-        Adds ticker to database with tickers 
+        Adds ticker to database with tickers
 
         Returns
         -------
@@ -495,14 +502,15 @@ if you want more checks. Add in check if ticker is capble.
             SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
 
             db_path = SQLALCHEMY_DATABASE_URI
-            engine = create_engine(db_path, echo=True)
+            engine = create_engine(db_path, echo=False)
 
             Session = sessionmaker(bind=engine)
             session = Session()
 
             # try:
             stocks_object = power_stock_object.power_stock_object(
-                stock_ticker=stock)
+                stock_ticker=stock
+            )
 
             # testing if stock is: A, valide. B, still active. C, delisted
             # status_stock = initialization_support.check_if_ticker_valide(
@@ -526,17 +534,18 @@ if you want more checks. Add in check if ticker is capble.
 
             NotEquiy: bool = False
 
-            if stock_.quote_type[stock]["quoteType"] != 'EQUITY':
+            if stock_.quote_type[stock]["quoteType"] != "EQUITY":
                 # check if data is new.
                 if data == None:
-                    print("stock is added")
+                    # print("stock is added")
                     # if data is new, ticker is added, in_ data is inserted. if single var fails, rest is added anyway.
-                    ticker = Ticker(id=str(stock),
-                                    sector="ETF",
-                                    industry="ETF",
-                                    exchange="ETF",
-                                    active=True
-                                    )
+                    ticker = Ticker(
+                        id=str(stock),
+                        sector="ETF",
+                        industry="ETF",
+                        exchange="ETF",
+                        active=True,
+                    )
                     # ticker class is added
                     session.add(ticker)
                     # ticker class is commited.
@@ -548,7 +557,7 @@ if you want more checks. Add in check if ticker is capble.
 
                 # if ticker already exsist there is only one var that's need to be maintained. The active var.
                 else:
-                    print("stock is re-added")
+                    # print("stock is re-added")
 
                     # sets bool
                     data.active = True
@@ -578,7 +587,7 @@ if you want more checks. Add in check if ticker is capble.
             # check if sector is legid
             if not stocks_object.sector:
 
-                sector_in = stock_.asset_profile[stock]['sector']
+                sector_in = stock_.asset_profile[stock]["sector"]
 
             else:
 
@@ -587,7 +596,7 @@ if you want more checks. Add in check if ticker is capble.
             # check if industry is legid
             if not stocks_object.industry:
 
-                industry_in = stock_.asset_profile[stock]['industry']
+                industry_in = stock_.asset_profile[stock]["industry"]
 
             else:
 
@@ -597,12 +606,12 @@ if you want more checks. Add in check if ticker is capble.
             if not stocks_object.all_stock_data == False:
 
                 try:
-                    exchange_in = stock_.quote_type[stock]['exchange']
+                    exchange_in = stock_.quote_type[stock]["exchange"]
                 except:
                     exchange_in = "NA"
             else:
 
-                exchange_in = stocks_object.all_stock_data['exchange']
+                exchange_in = stocks_object.all_stock_data["exchange"]
 
             # tries manipulation on time serie, if fails, problem with time serie, stock is inactive.
             if self.check_if_ticker_is_capable():
@@ -617,12 +626,13 @@ if you want more checks. Add in check if ticker is capble.
             if data == None:
 
                 # if data is new, ticker is added, in_ data is inserted. if single var fails, rest is added anyway.
-                ticker = Ticker(id=str(stock),
-                                sector=sector_in,
-                                industry=industry_in,
-                                exchange=exchange_in,
-                                active=active_in
-                                )
+                ticker = Ticker(
+                    id=str(stock),
+                    sector=sector_in,
+                    industry=industry_in,
+                    exchange=exchange_in,
+                    active=active_in,
+                )
                 # ticker class is added
                 session.add(ticker)
                 # ticker class is commited.
@@ -633,13 +643,13 @@ if you want more checks. Add in check if ticker is capble.
 
             # if ticker already exsist there is only one var that's need to be maintained. The active var.
             else:
-                print("stock is added")
+                # print("stock is added")
 
                 # sets bool
                 data.active = active_in
-                data.sector = stock_.asset_profile[stock]['sector']
-                data.industry = stock_.asset_profile[stock]['industry']
-                data.exchange_in = stock_.asset_profile[stock]['exchange']
+                data.sector = stock_.asset_profile[stock]["sector"]
+                data.industry = stock_.asset_profile[stock]["industry"]
+                data.exchange_in = stock_.asset_profile[stock]["exchange"]
                 # commits.
                 session.commit()
 
@@ -647,6 +657,7 @@ if you want more checks. Add in check if ticker is capble.
 
         except Exception as e:
 
+            return
             print("Error in inizaliation", e)
 
 
@@ -654,10 +665,10 @@ if __name__ == "__main__":
 
     try:
         # NOT DELETE: DELISTED TICKER : FRTA
-        #x = initiaze_tickers()
+        # x = initiaze_tickers()
         #
         infile_ = initiaze_singel_ticker("XLF")
-        #print(infile_.check_if_ticker_is_capable() , "this is false or good.")
+        # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
 
     except Exception as e:
