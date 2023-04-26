@@ -177,7 +177,6 @@ class update_kaufman_kalman_analyses(object):
 
         """
         # load periodes
-        periodes = ["D"]
 
         # load tickers, these tickers are not check if already exsitsing in archive
         tickers_all = database_querys.database_querys.get_all_active_tickers()
@@ -207,52 +206,43 @@ class update_kaufman_kalman_analyses(object):
         # nuw all
         trade_data = None
 
-        for periode_in in periodes:
-            for ticker in tickers:
+        for ticker in tickers:
 
-                #
-                if periode_in == "D":
+            try:
+                logger.info(f"updateing archive {ticker}")
+                initalizer_ticker = initiaze_singel_ticker(ticker)
 
-                    try:
-                        logger.info(f"updateing archive {ticker}")
-                        initalizer_ticker = initiaze_singel_ticker(ticker)
-
-                        if not database_querys.database_querys.check_if_ticker_is_allowd(
-                            ticker_name=ticker
-                        ):
-                            continue
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker,
-                            simplyfied_load=True,
-                            periode_weekly=False,
-                        )
-
-                        archive_data = update_archive_kaufmal(
-                            stock_data=power_object.stock_data,
-                            periode=periode_in,
-                            min_range=30,
-                            ticker=ticker,
-                        )
-
-                        performance_specs = update_trend_performance(
-                            ticker, periode_in
-                        )
-
-                        print("finish update archive of ", ticker)
-
-                    except Exception as e:
-
-                        print(e)
-
-                    finally:
-
-                        database_querys.database_querys.add_or_update_archive_of_trend_archive(
-                            ticker_id=ticker
-                        )
-
-                else:
+                if not database_querys.database_querys.check_if_ticker_is_allowd(
+                    ticker_name=ticker
+                ):
                     continue
+
+                power_object = stock_object.power_stock_object(
+                    stock_ticker=ticker,
+                    simplyfied_load=True,
+                    periode_weekly=False,
+                )
+
+                archive_data = update_archive_kaufmal(
+                    stock_data=power_object.stock_data,
+                    periode="D",
+                    min_range=30,
+                    ticker=ticker,
+                )
+
+                performance_specs = update_trend_performance(ticker, "D")
+
+                print("finish update archive of ", ticker)
+
+            except Exception as e:
+
+                print(e)
+
+            finally:
+
+                database_querys.database_querys.add_or_update_archive_of_trend_archive(
+                    ticker_id=ticker
+                )
 
 
 class update_kaufman_support(object):
@@ -975,11 +965,22 @@ class trend_fast_archive_update:
             self.check_if_trend_is_same(old_model, model) == True
             and self.check_if_duration_is_same == False
         ):
-            
-            if 
-            status = database_querys.database_querys.update_analyses_trend_kamal_archive(
-                model
-            )
+
+            if not self.check_if_std_profile_is_same(old_model, model):
+                model.date_start = old_model.end_date
+                model.weeknr_start = old_model.weeknr_end
+                model.year_start = old_model.year_end
+                model.month_start = old_model.month_end
+                model.date_start = old_model.date_end
+
+                status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                    model
+                )
+            else:
+
+                status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                    model
+                )
 
             # put the data in the basket
 
@@ -1035,7 +1036,7 @@ class trend_fast_archive_update:
             return True
         else:
             return False
-    
+
     def check_if_std_profile_is_same(self, old_model, new_model):
         if old_model.duration == new_model.duration:
             return True
@@ -1061,6 +1062,7 @@ class update_trend_performance:
             ticker=ticker, periode=periode
         )
 
+        #### here needs to be a aggegration.
         # error check.
         if len(df) < 10 and len(df) > 2:
             return
@@ -1068,11 +1070,20 @@ class update_trend_performance:
         # start with two year parrameters
         df2 = df_last_two_years = self.filter_pandas_years(df, 2)
 
+        #### implement aggagrateion
+
+        df2 = self.aggegrate_data(df2)
+
         details_two_years = self.create_performance_details(df2, "y2")
 
-        df5 = df_last_two_years = self.filter_pandas_years(df, 5)
+        df5 = df_last_five_years = self.filter_pandas_years(df, 5)
+
+        #### implement aggegration
+        df5 = self.aggegrate_data(df5)
 
         details_five_years = self.create_performance_details(df5, "y5")
+
+        df = self.aggegrate_data(df)
 
         overall_performance = self.create_performance_details(df, "all")
 
@@ -1238,6 +1249,50 @@ class update_trend_performance:
         df = df.loc[df["year_end"] > start_year]
 
         return df
+
+    def aggegrate_data(self, df):
+
+        # first remove all unneded columns
+        # remove specified columns
+        df = df.drop(
+            columns=[
+                "id",
+                "ticker",
+                "year_start",
+                "month_start",
+                "date_start",
+                "weeknr_start",
+                "year_end",
+                "month_end",
+                "date_end",
+                "weeknr_end",
+                "periode",
+            ]
+        )
+
+        # group the dataframe by trend sequence and aggregate using appropriate functions
+        df_agg = df.groupby((df["trend"].shift() != df["trend"]).cumsum()).agg(
+            {
+                "start_date": "first",
+                "end_date": "last",
+                "trend": "first",
+                "duration": "sum",
+                "profile": "mean",
+                "profile_std": "mean",
+                "volatility": "mean",
+                "current_yield": "sum",
+                "max_drawdown": "max",
+                "exp_return": "mean",
+                "max_yield": "sum",
+            }
+        )
+
+        # rounds dataframe.
+        df_agg.round(2)
+
+        df_agg.reset_index(drop=True, inplace=True)
+
+        return df_agg
 
 
 """
@@ -2044,13 +2099,11 @@ if __name__ == "__main__":
         # print(obj)
         # x = update_kaufman_kalman_analyses.update_all()
 
-        while True:
+        # update_archive_kaufmal("AAL")
 
-            # update_archive_kaufmal("AAL")
-
-            report = clean_archive_data(ticker_name="AAL")
-            # update_kaufman_kalman_analyses.update_all(last_update_first=True)
-    # update_trend_performance("AAPL", "D")
+        # report = clean_archive_data(ticker_name="AAL")
+        # update_kaufman_kalman_analyses.update_all(last_update_first=True)
+        update_trend_performance("AAPL", "D")
 
     except Exception as e:
 
