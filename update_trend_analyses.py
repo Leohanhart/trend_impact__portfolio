@@ -975,7 +975,8 @@ class trend_fast_archive_update:
             self.check_if_trend_is_same(old_model, model) == True
             and self.check_if_duration_is_same == False
         ):
-
+            
+            if 
             status = database_querys.database_querys.update_analyses_trend_kamal_archive(
                 model
             )
@@ -1030,6 +1031,12 @@ class trend_fast_archive_update:
             return False
 
     def check_if_duration_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+    
+    def check_if_std_profile_is_same(self, old_model, new_model):
         if old_model.duration == new_model.duration:
             return True
         else:
