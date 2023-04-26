@@ -74,7 +74,6 @@ class update_kaufman_kalman_analyses(object):
         """
 
         # load periodes
-        periodes = ["D"]
 
         tickers = None
 
@@ -102,90 +101,62 @@ class update_kaufman_kalman_analyses(object):
             "starting up trend annalyses, tickers loaded and ready to go"
         )
 
-        for periode_in in periodes:
-            for ticker in tickers:
+        for ticker in tickers:
 
-                if periode_in == "D":
+            if last_update_first:
+                logger.info(
+                    f"update trend-analyses for ticker = {ticker}",
+                )
+            else:
 
-                    if last_update_first:
-                        logger.info(
-                            f"update trend-analyses for ticker = {ticker}",
-                        )
-                    else:
+                logger.info(
+                    f"update trend-analyses for ticker = {ticker}",
+                )
 
-                        logger.info(
-                            f"update trend-analyses for ticker = {ticker}",
-                        )
+            try:
 
-                    try:
+                # add ticker
+                initalizer_ticker = initiaze_singel_ticker(ticker)
 
-                        # add ticker
-                        initalizer_ticker = initiaze_singel_ticker(ticker)
-
-                        if not database_querys.database_querys.check_if_ticker_is_allowd(
-                            ticker_name=ticker
-                        ):
-                            logger.warning(
-                                f"update trend-analyses for ticker = {ticker}",
-                            )
-                            continue
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker,
-                            simplyfied_load=True,
-                            periode_weekly=False,
-                        )
-
-                        model = (
-                            update_kaufman_support.return_full_analyses_dict(
-                                stock_data=power_object.stock_data,
-                                ticker_name=power_object.stock_ticker,
-                                max_levels=10,
-                                periode="D",
-                            )
-                        )
-
-                        database_querys.database_querys.update_analyses_trend_kamal(
-                            model
-                        )
-
-                        del power_object
-                        del model
-
-                    except Exception as e:
-                        continue
-
-                elif periode_in == "W":
-
-                    try:
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker,
-                            simplyfied_load=True,
-                            periode_weekly=True,
-                        )
-
-                        model = (
-                            update_kaufman_support.return_full_analyses_dict(
-                                stock_data=power_object.stock_data,
-                                ticker_name=power_object.stock_ticker,
-                                max_levels=10,
-                                periode="W",
-                            )
-                        )
-
-                        database_querys.database_querys.update_analyses_trend_kamal(
-                            model
-                        )
-
-                        del power_object
-                        del model
-
-                    except Exception as e:
-                        continue
-
-                else:
+                if not database_querys.database_querys.check_if_ticker_is_allowd(
+                    ticker_name=ticker
+                ):
+                    logger.warning(
+                        f"update trend-analyses for ticker = {ticker}",
+                    )
                     continue
+
+                power_object = stock_object.power_stock_object(
+                    stock_ticker=ticker,
+                    simplyfied_load=True,
+                    periode_weekly=False,
+                )
+
+                model = update_kaufman_support.return_full_analyses_dict(
+                    stock_data=power_object.stock_data.tail(
+                        1630
+                    ),  # 815(AMEE)-581(AAL) showed these numbers, is the first data        # this is 2x the amount that makes the data change, around
+                    ticker_name=power_object.stock_ticker,
+                    max_levels=10,
+                    periode="D",
+                )
+
+                report = trend_fast_archive_update(
+                    model, power_object.stock_data
+                )
+
+                database_querys.database_querys.update_analyses_trend_kamal(
+                    model
+                )
+
+                del power_object
+                del model
+
+            except Exception as e:
+                continue
+
+            else:
+                continue
 
     @staticmethod
     def update_full_analyses():
@@ -821,7 +792,9 @@ class update_archive_kaufmal:
 
             # returns model with the data
             model = update_kaufman_support.return_full_analyses_dict(
-                stock_data=work_data,
+                stock_data=work_data.tail(
+                    1630
+                ),  # this 1630 is 2 the amount of data that influences the outcome.
                 ticker_name=ticker,
                 max_levels=10,
                 periode=periode,
@@ -988,6 +961,79 @@ class clean_archive_data:
 
             else:
                 print("There are different elements in the list")
+
+
+class trend_fast_archive_update:
+    def __init__(self, model_trend_archive, stock_data):
+
+        model = model_trend_archive
+
+        # receive model.
+        old_model = self.get_last_model(model.ticker, model.periode)
+
+        if (
+            self.check_if_trend_is_same(old_model, model) == True
+            and self.check_if_duration_is_same == False
+        ):
+
+            status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                model
+            )
+
+            # put the data in the basket
+
+            # exit.
+
+        elif not self.check_if_trend_is_same(old_model, model):
+            # get new model.
+            # over write start with end.  check with abmc
+            model.date_start = old_model.end_date
+            model.weeknr_start = old_model.weeknr_end
+            model.year_start = old_model.year_end
+            model.month_start = old_model.month_end
+            model.date_start = old_model.date_end
+
+            status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                model
+            )
+
+        else:
+
+            return
+
+        return
+
+    def get_last_model(self, ticker: str, periode: str):
+
+        # get data.
+        report = database_querys.database_querys.get_trend_kalman_data(
+            ticker=ticker, periode=periode
+        )
+
+        # tails data.
+        report = report.tail(1)
+
+        # unpacks the data.
+        new_raport = report.to_dict(orient="records")
+
+        # create model of data.
+        raport_class = update_kaufman_support.package_dict_in_class(
+            new_raport[0]
+        )
+
+        return raport_class
+
+    def check_if_trend_is_same(self, old_model, new_model):
+        if old_model.trend == new_model.trend:
+            return True
+        else:
+            return False
+
+    def check_if_duration_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
 
 
 class update_trend_performance:
@@ -1989,13 +2035,13 @@ if __name__ == "__main__":
 
         # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = update_kaufman_kalman_analyses.update_full_analyses()
+        # x = update_kaufman_kalman_analyses.update_all()
 
         while True:
 
-            update_archive_kaufmal("AAL")
+            # update_archive_kaufmal("AAL")
 
-            # report = clean_archive_data(ticker_name="AAL")
+            report = clean_archive_data(ticker_name="AAL")
             # update_kaufman_kalman_analyses.update_all(last_update_first=True)
     # update_trend_performance("AAPL", "D")
 
