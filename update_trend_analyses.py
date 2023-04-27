@@ -74,7 +74,6 @@ class update_kaufman_kalman_analyses(object):
         """
 
         # load periodes
-        periodes = ["D"]
 
         tickers = None
 
@@ -102,90 +101,62 @@ class update_kaufman_kalman_analyses(object):
             "starting up trend annalyses, tickers loaded and ready to go"
         )
 
-        for periode_in in periodes:
-            for ticker in tickers:
+        for ticker in tickers:
 
-                if periode_in == "D":
+            if last_update_first:
+                logger.info(
+                    f"update trend-analyses for ticker = {ticker}",
+                )
+            else:
 
-                    if last_update_first:
-                        logger.info(
-                            f"update trend-analyses for ticker = {ticker}",
-                        )
-                    else:
+                logger.info(
+                    f"update trend-analyses for ticker = {ticker}",
+                )
 
-                        logger.info(
-                            f"update trend-analyses for ticker = {ticker}",
-                        )
+            try:
 
-                    try:
+                # add ticker
+                initalizer_ticker = initiaze_singel_ticker(ticker)
 
-                        # add ticker
-                        initalizer_ticker = initiaze_singel_ticker(ticker)
-
-                        if not database_querys.database_querys.check_if_ticker_is_allowd(
-                            ticker_name=ticker
-                        ):
-                            logger.warning(
-                                f"update trend-analyses for ticker = {ticker}",
-                            )
-                            continue
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker,
-                            simplyfied_load=True,
-                            periode_weekly=False,
-                        )
-
-                        model = (
-                            update_kaufman_support.return_full_analyses_dict(
-                                stock_data=power_object.stock_data,
-                                ticker_name=power_object.stock_ticker,
-                                max_levels=10,
-                                periode="D",
-                            )
-                        )
-
-                        database_querys.database_querys.update_analyses_trend_kamal(
-                            model
-                        )
-
-                        del power_object
-                        del model
-
-                    except Exception as e:
-                        continue
-
-                elif periode_in == "W":
-
-                    try:
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker,
-                            simplyfied_load=True,
-                            periode_weekly=True,
-                        )
-
-                        model = (
-                            update_kaufman_support.return_full_analyses_dict(
-                                stock_data=power_object.stock_data,
-                                ticker_name=power_object.stock_ticker,
-                                max_levels=10,
-                                periode="W",
-                            )
-                        )
-
-                        database_querys.database_querys.update_analyses_trend_kamal(
-                            model
-                        )
-
-                        del power_object
-                        del model
-
-                    except Exception as e:
-                        continue
-
-                else:
+                if not database_querys.database_querys.check_if_ticker_is_allowd(
+                    ticker_name=ticker
+                ):
+                    logger.warning(
+                        f"update trend-analyses for ticker = {ticker}",
+                    )
                     continue
+
+                power_object = stock_object.power_stock_object(
+                    stock_ticker=ticker,
+                    simplyfied_load=True,
+                    periode_weekly=False,
+                )
+
+                model = update_kaufman_support.return_full_analyses_dict(
+                    stock_data=power_object.stock_data.tail(
+                        1630
+                    ),  # 815(AMEE)-581(AAL) showed these numbers, is the first data        # this is 2x the amount that makes the data change, around
+                    ticker_name=power_object.stock_ticker,
+                    max_levels=10,
+                    periode="D",
+                )
+
+                report = trend_fast_archive_update(
+                    model, power_object.stock_data
+                )
+
+                database_querys.database_querys.update_analyses_trend_kamal(
+                    model
+                )
+
+                del power_object
+                del model
+
+            except Exception as e:
+                continue
+
+            else:
+                continue
 
     @staticmethod
     def update_full_analyses():
@@ -206,7 +177,6 @@ class update_kaufman_kalman_analyses(object):
 
         """
         # load periodes
-        periodes = ["D"]
 
         # load tickers, these tickers are not check if already exsitsing in archive
         tickers_all = database_querys.database_querys.get_all_active_tickers()
@@ -236,52 +206,43 @@ class update_kaufman_kalman_analyses(object):
         # nuw all
         trade_data = None
 
-        for periode_in in periodes:
-            for ticker in tickers:
+        for ticker in tickers:
 
-                #
-                if periode_in == "D":
+            try:
+                logger.info(f"updateing archive {ticker}")
+                initalizer_ticker = initiaze_singel_ticker(ticker)
 
-                    try:
-                        logger.info(f"updateing archive {ticker}")
-                        initalizer_ticker = initiaze_singel_ticker(ticker)
-
-                        if not database_querys.database_querys.check_if_ticker_is_allowd(
-                            ticker_name=ticker
-                        ):
-                            continue
-
-                        power_object = stock_object.power_stock_object(
-                            stock_ticker=ticker,
-                            simplyfied_load=True,
-                            periode_weekly=False,
-                        )
-
-                        archive_data = update_archive_kaufmal(
-                            stock_data=power_object.stock_data,
-                            periode=periode_in,
-                            min_range=30,
-                            ticker=ticker,
-                        )
-
-                        performance_specs = update_trend_performance(
-                            ticker, periode_in
-                        )
-
-                        print("finish update archive of ", ticker)
-
-                    except Exception as e:
-
-                        print(e)
-
-                    finally:
-
-                        database_querys.database_querys.add_or_update_archive_of_trend_archive(
-                            ticker_id=ticker
-                        )
-
-                else:
+                if not database_querys.database_querys.check_if_ticker_is_allowd(
+                    ticker_name=ticker
+                ):
                     continue
+
+                power_object = stock_object.power_stock_object(
+                    stock_ticker=ticker,
+                    simplyfied_load=True,
+                    periode_weekly=False,
+                )
+
+                archive_data = update_archive_kaufmal(
+                    stock_data=power_object.stock_data,
+                    periode="D",
+                    min_range=30,
+                    ticker=ticker,
+                )
+
+                performance_specs = update_trend_performance(ticker, "D")
+
+                print("finish update archive of ", ticker)
+
+            except Exception as e:
+
+                print(e)
+
+            finally:
+
+                database_querys.database_querys.add_or_update_archive_of_trend_archive(
+                    ticker_id=ticker
+                )
 
 
 class update_kaufman_support(object):
@@ -797,9 +758,6 @@ class update_archive_kaufmal:
         ticker: str = "",
     ):
 
-        # if problems, delete all data.
-        #
-
         stock_data = stock_data
 
         # fix lengt, used for loop true right data.
@@ -893,6 +851,248 @@ class update_archive_kaufmal:
         #### clean data
 
         return
+
+    def check_if_trend_is_same(self, old_model, new_model):
+        if old_model.trend == new_model.trend:
+            return True
+        else:
+            return False
+
+    def check_if_duration_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+
+    def check_if_std_profile_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+
+    def check_if_profiles_are_equal(self, model_old, model_new):
+
+        if model_old.profile_std == model_new.profile_std:
+            return True
+        else:
+            return False
+
+    def __incomming_error_check(self, data):
+        if len(data) < 30:
+            raise Exception("DATA_ERROR", "Data is not long enough")
+        else:
+            return
+
+    def delete_all_stocks_inserted(self):
+        """
+        Deletes all inserted stocks.
+
+        Returns
+        -------
+        None.
+
+        """
+        for i in range(0, len(self.data_slides)):
+            database_querys.database_querys.delete_analyses_trend_kamal_archive(
+                self.data_slides[i]
+            )
+
+    def check_if_need_overwrite(self, model_old, model_new):
+        #### add rules, always add new data
+        if (
+            model_old.year_start == model_new.year_start
+            and model_old.month_start == model_new.month_start
+            and model_old.date_start == model_new.date_start
+        ):
+            return True
+        else:
+            return False
+
+    def process_errors(self, model):
+
+        # set duration or add error
+        self.process_durration_error(model)
+
+        if self.check_for_failure():
+            raise Exception("ERRORS_OCCURED")
+
+    def check_for_failure(self):
+        if self.errors_total > 5:
+            return True
+
+    def process_durration_error(self, model):
+        if self.last_durration == -1:
+            self.last_durration = model.duration
+        else:
+            if self.last_durration == model.duration:
+                self.errors_total += 1
+            else:
+                self.errors_total = 0
+                self.last_durration = model.duration
+
+        return
+
+    def get_last_model(self, ticker: str, periode: str):
+
+        # get data.
+        report = database_querys.database_querys.get_trend_kalman_data(
+            ticker=ticker, periode=periode
+        )
+
+        # tails data.
+        report = report.tail(1)
+
+        # unpacks the data.
+        new_raport = report.to_dict(orient="records")
+
+        # create model of data.
+        raport_class = update_kaufman_support.package_dict_in_class(
+            new_raport[0]
+        )
+
+        return raport_class
+
+
+class update_archive_std:
+
+    """
+    TEST: if old datapoint gets refershed
+            if next itteration matches database if exsits, so no fill errror loop occures.
+    """
+
+    data_slides: list = []
+
+    # error handling
+    # turend on in the start to prevent malicues stocks to be procesed.
+    error_check: bool = True
+    errors_total: int = 0
+    error_exsits: int = 0
+
+    # last date
+    last_date_use_year: int = 0
+    last_date_use_month: int = 0
+    last_date_use_date: int = 0
+    last_durration: int = -1
+
+    def __init__(
+        self,
+        stock_data,
+        periode: str = "D",
+        min_range: int = 30,
+        ticker: str = "",
+        rows_per_time: int = 10,
+    ):
+
+        # if problems, delete all data.
+        #
+
+        stock_data = stock_data
+
+        # fix lengt, used for loop true right data.
+        i = len(stock_data)
+
+        # if lenght is not good, return.
+        if len(stock_data) < 250:
+
+            raise Exception("DATA_ERROR", "Data is not long enough ", ticker)
+
+        # set vars
+        first_it: bool = True
+
+        ## PLAN B, create a for loop that itteration for ittertion gets a dataslide, create a
+        # dataframe, aggegrate the dataframe, create a function that adds all the files to the dataframe.
+
+        # first date in archive.
+        old_model = self.get_last_model(ticker=ticker, periode=periode)
+
+        # slide the data table.
+        # just head the data with 60 times.
+
+        previus_amounts = 0
+
+        adjustment = rows_per_time + previus_amounts
+        # loops true archive manager
+        for i in range(
+            len(stock_data) - adjustment, len(stock_data) - previus_amounts
+        ):
+
+            # add data
+            work_data = stock_data.head(i)
+
+            # returns model with the data
+            model = update_kaufman_support.return_full_analyses_dict(
+                stock_data=work_data.tail(
+                    1630
+                ),  # this 1630 is 2 the amount of data that influences the outcome.
+                ticker_name=ticker,
+                max_levels=10,
+                periode=periode,
+            )
+
+            if (
+                self.check_if_trend_is_same(old_model, model) == True
+                and self.check_if_duration_is_same(old_model, model) == False
+            ):
+
+                if not self.check_if_std_profile_is_same(old_model, model):
+                    model.date_start = old_model.end_date
+                    model.weeknr_start = old_model.weeknr_end
+                    model.year_start = old_model.year_end
+                    model.month_start = old_model.month_end
+                    model.date_start = old_model.date_end
+
+                    self.data_slides.append(model.__dict__)
+                else:
+
+                    self.data_slides.append(model.__dict__)
+
+                # put the data in the basket
+
+                # exit.
+
+            elif not self.check_if_trend_is_same(old_model, model):
+                # get new model.
+                # over write start with end.  check with abmc
+                model.date_start = old_model.end_date
+                model.weeknr_start = old_model.weeknr_end
+                model.year_start = old_model.year_end
+                model.month_start = old_model.month_end
+                model.date_start = old_model.date_end
+
+                self.data_slides.append(model.__dict__)
+
+            old_model = model
+
+            print(model.__dict__)
+
+        print(self.data_slides)
+
+        # loops true archive manager
+
+    def check_if_trend_is_same(self, old_model, new_model):
+        if old_model.trend == new_model.trend:
+            return True
+        else:
+            return False
+
+    def check_if_duration_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+
+    def check_if_std_profile_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+
+    def check_if_profiles_are_equal(self, model_old, model_new):
+
+        if model_old.profile_std == model_new.profile_std:
+            return True
+        else:
+            return False
 
     def __incomming_error_check(self, data):
         if len(data) < 30:
@@ -990,6 +1190,97 @@ class clean_archive_data:
                 print("There are different elements in the list")
 
 
+class trend_fast_archive_update:
+    def __init__(self, model_trend_archive, stock_data):
+
+        model = model_trend_archive
+
+        # receive model.
+        old_model = self.get_last_model(model.ticker, model.periode)
+
+        if (
+            self.check_if_trend_is_same(old_model, model) == True
+            and self.check_if_duration_is_same == False
+        ):
+
+            if not self.check_if_std_profile_is_same(old_model, model):
+                model.date_start = old_model.end_date
+                model.weeknr_start = old_model.weeknr_end
+                model.year_start = old_model.year_end
+                model.month_start = old_model.month_end
+                model.date_start = old_model.date_end
+
+                status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                    model
+                )
+            else:
+
+                status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                    model
+                )
+
+            # put the data in the basket
+
+            # exit.
+
+        elif not self.check_if_trend_is_same(old_model, model):
+            # get new model.
+            # over write start with end.  check with abmc
+            model.date_start = old_model.end_date
+            model.weeknr_start = old_model.weeknr_end
+            model.year_start = old_model.year_end
+            model.month_start = old_model.month_end
+            model.date_start = old_model.date_end
+
+            status = database_querys.database_querys.update_analyses_trend_kamal_archive(
+                model
+            )
+
+        else:
+
+            return
+
+        return
+
+    def get_last_model(self, ticker: str, periode: str):
+
+        # get data.
+        report = database_querys.database_querys.get_trend_kalman_data(
+            ticker=ticker, periode=periode
+        )
+
+        # tails data.
+        report = report.tail(1)
+
+        # unpacks the data.
+        new_raport = report.to_dict(orient="records")
+
+        # create model of data.
+        raport_class = update_kaufman_support.package_dict_in_class(
+            new_raport[0]
+        )
+
+        return raport_class
+
+    def check_if_trend_is_same(self, old_model, new_model):
+        if old_model.trend == new_model.trend:
+            return True
+        else:
+            return False
+
+    def check_if_duration_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+
+    def check_if_std_profile_is_same(self, old_model, new_model):
+        if old_model.duration == new_model.duration:
+            return True
+        else:
+            return False
+
+
 class update_trend_performance:
     """
     - AVG return / volatility. We need that for later.
@@ -1008,6 +1299,7 @@ class update_trend_performance:
             ticker=ticker, periode=periode
         )
 
+        #### here needs to be a aggegration.
         # error check.
         if len(df) < 10 and len(df) > 2:
             return
@@ -1015,11 +1307,20 @@ class update_trend_performance:
         # start with two year parrameters
         df2 = df_last_two_years = self.filter_pandas_years(df, 2)
 
+        #### implement aggagrateion
+
+        df2 = self.aggegrate_data(df2)
+
         details_two_years = self.create_performance_details(df2, "y2")
 
-        df5 = df_last_two_years = self.filter_pandas_years(df, 5)
+        df5 = df_last_five_years = self.filter_pandas_years(df, 5)
+
+        #### implement aggegration
+        df5 = self.aggegrate_data(df5)
 
         details_five_years = self.create_performance_details(df5, "y5")
+
+        df = self.aggegrate_data(df)
 
         overall_performance = self.create_performance_details(df, "all")
 
@@ -1185,6 +1486,118 @@ class update_trend_performance:
         df = df.loc[df["year_end"] > start_year]
 
         return df
+
+    def aggegrate_data(self, df):
+
+        # first remove all unneded columns
+        # remove specified columns
+        df = df.drop(
+            columns=[
+                "id",
+                "ticker",
+                "year_start",
+                "month_start",
+                "date_start",
+                "weeknr_start",
+                "year_end",
+                "month_end",
+                "date_end",
+                "weeknr_end",
+                "periode",
+            ]
+        )
+
+        # group the dataframe by trend sequence and aggregate using appropriate functions
+        df_agg = df.groupby((df["trend"].shift() != df["trend"]).cumsum()).agg(
+            {
+                "start_date": "first",
+                "end_date": "last",
+                "trend": "first",
+                "duration": "sum",
+                "profile": "mean",
+                "profile_std": "mean",
+                "volatility": "mean",
+                "current_yield": "sum",
+                "max_drawdown": "max",
+                "exp_return": "mean",
+                "max_yield": "sum",
+            }
+        )
+
+        # rounds dataframe.
+        df_agg = df_agg.round(2)
+
+        df_agg.reset_index(drop=True, inplace=True)
+
+        return df_agg
+
+
+class aggegrate_data_class:
+    def aggegrate_archive_data(df):
+        """
+        drops unneeded columns, returns files like this:
+
+            255  2022-07-19  2022-09-01      1        33      0.0         1.00    5.020000           6.79         -9.93    0.210000      19.08
+            256  2022-09-02  2022-09-07     -1         3      0.0         0.00    5.190000           2.37         -0.93    0.790000       1.93
+            257  2022-09-08  2022-09-09      1         2      0.0         0.00    5.000000           1.77          0.00    0.890000       2.06
+            258  2022-09-12  2022-10-26     -1        33      0.0        -1.00    8.320000           6.42        -10.23    0.190000      12.05
+            259  2022-10-27  2022-10-31      1         3      0.0         0.00    9.130000           3.56         -1.54    1.190000       6.37
+            260  2022-11-01  2023-01-25     -1        58      0.0         0.00    9.540000           9.29         -1.47    0.270000      26.44
+            261  2023-01-26  2023-03-20      1        37      0.0         1.00    5.270000           9.94         -6.45    0.270000      10.23
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        df_agg : TYPE
+            DESCRIPTION.
+
+        """
+
+        # first remove all unneded columns
+        # remove specified columns
+        df = df.drop(
+            columns=[
+                "id",
+                "ticker",
+                "year_start",
+                "month_start",
+                "date_start",
+                "weeknr_start",
+                "year_end",
+                "month_end",
+                "date_end",
+                "weeknr_end",
+                "periode",
+            ]
+        )
+
+        # group the dataframe by trend sequence and aggregate using appropriate functions
+        df_agg = df.groupby((df["trend"].shift() != df["trend"]).cumsum()).agg(
+            {
+                "start_date": "first",
+                "end_date": "last",
+                "trend": "first",
+                "duration": "sum",
+                "profile": "mean",
+                "profile_std": "mean",
+                "volatility": "mean",
+                "current_yield": "sum",
+                "max_drawdown": "max",
+                "exp_return": "mean",
+                "max_yield": "sum",
+            }
+        )
+
+        # rounds dataframe.
+        df_agg.round(2)
+
+        df_agg.reset_index(drop=True, inplace=True)
+
+        return df_agg
 
 
 """
@@ -1989,15 +2402,26 @@ if __name__ == "__main__":
 
         # obj = create_time_serie_with_kamalstrategie("IDA")
         # print(obj)
-        x = update_kaufman_kalman_analyses.update_full_analyses()
+        # x = update_kaufman_kalman_analyses.update_all()
 
-        while True:
+        ticker = "AAL"
 
-            update_archive_kaufmal("AAL")
+        power_object = stock_object.power_stock_object(
+            stock_ticker=ticker,
+            simplyfied_load=True,
+            periode_weekly=False,
+        )
 
-            # report = clean_archive_data(ticker_name="AAL")
-            # update_kaufman_kalman_analyses.update_all(last_update_first=True)
-    # update_trend_performance("AAPL", "D")
+        archive_data = update_archive_std(
+            stock_data=power_object.stock_data,
+            periode="D",
+            min_range=30,
+            ticker=ticker,
+        )
+
+        # report = clean_archive_data(ticker_name="AAL")
+        # update_kaufman_kalman_analyses.update_all(last_update_first=True)
+        update_trend_performance("AAPL", "D")
 
     except Exception as e:
 
