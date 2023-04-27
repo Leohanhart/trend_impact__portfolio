@@ -107,6 +107,7 @@ class update_trend_support:
 class create_timeseries_manager:
     def __init__(self):
         # load industry's
+
         self.industrys = (
             database_querys.database_querys.get_all_active_industrys()
         )
@@ -518,13 +519,206 @@ class get_trend_ts_support:
             process.terminate()
 
 
+class extent_trend_analsyes:
+    """
+    what do we want?
+
+    1. trend analyses from only the all and the sectors.
+
+    2. frames of all, with the sectors and all total
+
+    """
+
+    def __init__(self, analyses_name: str = ""):
+        """
+
+
+        Parameters
+        ----------
+        analyses_name : str, optional
+            DESCRIPTION. The default is "".
+
+        Returns
+        -------
+        None.
+
+        """
+        # get sector data.
+        self.sectors = database_querys.database_querys.get_all_active_sectors()
+
+        # get all industry data.
+        self.industrys = (
+            database_querys.database_querys.get_all_active_industrys()
+        )
+
+        # create all dataframes
+
+        # does trend analyses.
+        self.get_do_trend_analyses()
+
+        # create timeserie for columns.
+
+    def get_do_trend_analyses(self):
+
+        # create "all" dataframe
+        ts_all = self.retreive_trend_timeserie("ALL")
+
+        # first does it for all, then loop true all sectors.
+        df = self.create_clean_trend_based_timeserie(ts_all)
+
+    def retreive_trend_timeserie(self, name: str):
+
+        try:
+            df = database_querys.database_querys.get_trend_timeseries_data(
+                name
+            )
+
+        except UnboundLocalError:
+
+            print("troubles")
+
+        return df
+
+    def create_clean_time_serie_df(self, df):
+
+        df = self.set_index_and_remove_id(df)
+
+        # renames and removes name data column.
+        df, analyses_name = self.rename_columns(df)
+
+        return df, analyses_name
+
+    def create_clean_trend_based_timeserie(self, df):
+        """
+        Returns very good dataframe for predicting trends.
+
+        FOR all, every + 3 signal is a winner, + 5,6,7 are all in.
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        df : TYPE
+            DESCRIPTION.
+
+        """
+        df = self.set_index_and_remove_id(df)
+
+        df = self.drop_columns(
+            df=df,
+            columns_to_drop=[
+                "name",
+                "duration",
+                "profile",
+                "volatility",
+                "current_yield",
+                "max_drawdown",
+                "exp_return",
+                "max_yield",
+                "longs",
+                "shorts",
+                "total",
+            ],
+        )
+
+        # calculate the difference of 'trend'
+        df["trend_diff"] = df["trend"].diff()
+
+        # renames and removes name data column.
+        # calculate the difference of 'trend'
+        df["profile_std_diff"] = df["profile_std"].diff()
+
+        df["trend_mean"] = df["trend_diff"].mean()
+
+        df["profile_std_mean"] = df["profile_std_diff"].mean()
+
+        df["trend_std_level"] = df["trend_diff"].std() * 3 / 10
+
+        df["profile_std_std_level"] = df["profile_std_diff"].std() * 3 / 10
+
+        df["trend_profile"] = df["trend_diff"] / df["trend_std_level"]
+
+        df["std_profile"] = (
+            df["profile_std_diff"] / df["profile_std_std_level"]
+        )
+
+        df = df.round(2)
+
+        self.drop_columns(
+            df=df,
+            columns_to_drop=[
+                "trend_diff",
+                "profile_std_diff",
+                "trend_mean",
+                "profile_std_mean",
+                "trend_std_level",
+                "profile_std_std_level",
+            ],
+        )
+
+        # add the trend signals toghetter.
+        # calculate the difference between the rows
+        df["diff"] = df["values"].diff()
+
+        # create the trend column based on the difference
+        df["trend"] = df["diff"].apply(lambda x: 1 if x > 0 else -1)
+
+        # drop the diff column
+        df.drop(columns=["diff"], inplace=True)
+
+        return df
+
+    def set_index_and_remove_id(self, df):
+        # convert date column to datetime format
+        df["date"] = pd.to_datetime(df["date"])
+
+        # set date column as index
+        df.set_index("date", inplace=True)
+
+        # drop id column
+        df.drop("id", axis=1, inplace=True)
+
+        df = df.round(3)
+
+        return df
+
+    def drop_columns(self, df, columns_to_drop):
+
+        df.drop(columns=columns_to_drop, inplace=True)
+
+        return df
+
+    def rename_columns(self, df):
+
+        new_columns = []
+
+        df_name = df["name"][0]
+
+        df = self.drop_columns(df=df, columns_to_drop=[df_name])
+
+        suggested_name = df_name
+
+        for column in df.columns:
+
+            new_column = f"{suggested_name}_{column}"
+
+            new_columns.append(new_column)
+
+        df.columns = new_columns
+
+        return df, df_name
+
+
 atexit.register(get_trend_ts_support.cleanup)
 
 if __name__ == "__main__":
 
     try:
 
-        x = update_trend_timeseries()
+        x = extent_trend_analsyes()
 
     except Exception as e:
 
