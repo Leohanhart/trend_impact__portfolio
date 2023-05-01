@@ -527,7 +527,23 @@ class extent_trend_analsyes:
 
     2. frames of all, with the sectors and all total
 
+    market-wide is all.
+
     """
+
+    sector_tickers = {
+        "ALL": "^GSPC",
+        "Technology": "XLK",
+        "Healthcare": "XLV",
+        "Consumer Discretionary": "XLY",
+        "Consumer Staples": "XLP",
+        "Energy": "XLE",
+        "Financials": "XLF",
+        "Industrials": "XLI",
+        "Materials": "XLB",
+        "Real Estate": "XLRE",
+        "Utilities": "XLU",
+    }
 
     def __init__(self, analyses_name: str = ""):
         """
@@ -565,6 +581,15 @@ class extent_trend_analsyes:
 
         # first does it for all, then loop true all sectors.
         df = self.create_clean_trend_based_timeserie(ts_all)
+
+        # get performance
+        df_perforamnce = self.add_perofmance_indicator(df, "ALL")
+
+    def add_perofmance_indicator(self, df, ticker):
+
+        stock_ticker_performance = self.sector_tickers[ticker]
+
+        power_stock_object.stock_object()
 
     def retreive_trend_timeserie(self, name: str):
 
@@ -661,10 +686,10 @@ class extent_trend_analsyes:
 
         # add the trend signals toghetter.
         # calculate the difference between the rows
-        df["diff"] = df["values"].diff()
+        df["diff"] = df["trend"].diff()
 
         # create the trend column based on the difference
-        df["trend"] = df["diff"].apply(lambda x: 1 if x > 0 else -1)
+        df["side"] = df["diff"].apply(lambda x: 1 if x > 0 else -1)
 
         # drop the diff column
         df.drop(columns=["diff"], inplace=True)
