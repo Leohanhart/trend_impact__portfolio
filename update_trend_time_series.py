@@ -10,17 +10,16 @@ import stock_analyses_with_ticker_main as stock_analyses_with_ticker
 from core_scripts.stock_data_download import power_stock_object as stock_object
 from core_update.update_analyses import update_support
 from datetime import datetime, timedelta, date
-
 import pandas as pd
 from datetime import timedelta
 import atexit
 import multiprocessing
+import yfinance as yf
 
 
 class update_trend_timeseries:
     @staticmethod
     def update():
-
         manager = create_timeseries_manager()
 
         # aggergate the timeseries (Ceprated functions)
@@ -72,7 +71,7 @@ class update_trend_support:
         """
 
         # get business days from 1980 till now.
-        start_date = pd.Timestamp("2022-10-01")
+        start_date = pd.Timestamp("2000-01-01")
         end_date = pd.Timestamp(date.today())
 
         # get frame
@@ -132,7 +131,6 @@ class create_timeseries_manager:
         self.update_all_industrys()
 
     def update_main_analyses(self):
-
         # recovers last date
         date = self.recover_last_date("ALL")
 
@@ -147,11 +145,9 @@ class create_timeseries_manager:
         self.save_the_tts_dataframe(data)
 
     def update_all_industrys(self):
-
         # first need to add data before fetch.
 
         for name in self.industrys:
-
             # get all tickers
             tickers = (
                 database_querys.database_querys.get_all_stocks_with_industry(
@@ -173,11 +169,9 @@ class create_timeseries_manager:
             self.save_the_tts_dataframe(data)
 
     def update_all_sectors(self):
-
         # first need to add data before fetch.
 
         for name in self.sectors:
-
             # get all tickers
             tickers = (
                 database_querys.database_querys.get_all_stocks_with_sector(
@@ -216,20 +210,17 @@ class create_timeseries_manager:
             database_querys.database_querys.add_trend_timeserie(df)
 
         except AttributeError:
-
             pass
 
         return
 
     def retreive_last_update(self, name: str):
-
         try:
             df = database_querys.database_querys.get_trend_timeseries_data(
                 name
             )
 
         except UnboundLocalError:
-
             print("troubles")
 
         return df
@@ -284,12 +275,10 @@ class get_trend_analyses_timeseries:
     def get_analyses_ts(
         tickers: list = [], dates: list = [], name_of_analyses: str = ""
     ):
-
         tickers_all = []
 
         data_frame = None
         for date in dates:
-
             # get the date items
             year, month, date = get_trend_ts_support.extract_date_info(date)
 
@@ -422,7 +411,6 @@ class get_trend_ts_support:
 
     @staticmethod
     def aggegrate_the_ts_date(df, name):
-
         # drop unnecessary columns
         df = df.drop(
             columns=[
@@ -575,7 +563,6 @@ class extent_trend_analsyes:
         # create timeserie for columns.
 
     def get_do_trend_analyses(self):
-
         # create "all" dataframe
         ts_all = self.retreive_trend_timeserie("ALL")
 
@@ -585,27 +572,120 @@ class extent_trend_analsyes:
         # get performance
         df_perforamnce = self.add_perofmance_indicator(df, "ALL")
 
-    def add_perofmance_indicator(self, df, ticker):
+        # get performance indicators.
+        df_performance_stats = self.add_performance_stats(df_perforamnce)
 
+    def add_perofmance_indicator(self, df, ticker):
         stock_ticker_performance = self.sector_tickers[ticker]
 
-        power_stock_object.stock_object()
+        # load the stock data using yfinance
+        stock_data = yf.download(
+            stock_ticker_performance,
+            start="2020-01-01",
+            end=pd.Timestamp.today(),
+        )
+
+        # prepairs data, adds performance colums, shifts one row.
+        sdata = extent_trend_support.prepair_data_ts_yf(stock_data)
+
+        # Merge the dataframes based on their index
+        merged_data = pd.merge(
+            df,
+            stock_data[["Change"]],
+            how="left",
+            left_index=True,
+            right_index=True,
+        )
+
+        # Rename the 'Change' column to 'performance'
+        merged_data = merged_data.rename(columns={"Change": "performance"})
+
+        # sets varible
+        df = merged_data
+        # clearefy's performance, positive results will turn positive, negative will be negative. (side * performance)
+
+        df["performance"] = df["performance"] * df["side"]
+
+        return df
+
+    def add_performance_stats(self, df):
+        stats = {}
+        stats["overall_accuracy"] = (
+            len(df[df["performance"] > 0]) / len(df)
+        ) * 100
+
+        # Calculate the percentage of positive numbers in the performance column where the trend_underscore column is within a certain range
+        for i in range(1, 10):
+            i_pos = i
+            i_neg = i * -1
+            print(i)
+            
+            positive_percent = (
+                len(
+                    df[
+                        (df["performance"] > 0)
+                        & (
+                            (df["trend_profile"] > i_pos)
+                            | (df["trend_profile"] < i_neg)
+                        )
+                    ]
+                )
+                / len(
+                    df[
+                        (
+                            (df["trend_profile"] > i_pos)
+                            | (df["trend_profile"] < i_neg)
+                        )
+                    ]
+                )
+            ) * 100
+
+            sstr = "prc_accurate_above_profile_" + str(i)
+            stats[sstr] = round(positive_percent, 2)
+        
+        # Calculate the percentage of positive numbers in the performance column where the trend_underscore column is within a certain range
+        for i in range(1, 10):
+            i_pos = i
+            i_neg = i * -1
+            print(i)
+            
+            positive_percent = (
+                len(
+                    df[
+                        (df["performance"] > 0)
+                        & (
+                            (df["trend_profile"] = i_pos)
+                            | (df["trend_profile"] = i_neg)
+                        )
+                    ]
+                )
+                / len(
+                    df[
+                        (
+                            (df["trend_profile"] == i_pos)
+                            | (df["trend_profile"] == i_neg)
+                        )
+                    ]
+                )
+            ) * 100
+
+            sstr = "prc_accurate_on_profile_" + str(i)
+            stats[sstr] = round(positive_percent, 2)
+            
+        
 
     def retreive_trend_timeserie(self, name: str):
-
         try:
             df = database_querys.database_querys.get_trend_timeseries_data(
                 name
             )
 
         except UnboundLocalError:
-
             print("troubles")
 
         return df
 
     def create_clean_time_serie_df(self, df):
-
         df = self.set_index_and_remove_id(df)
 
         # renames and removes name data column.
@@ -711,13 +791,11 @@ class extent_trend_analsyes:
         return df
 
     def drop_columns(self, df, columns_to_drop):
-
         df.drop(columns=columns_to_drop, inplace=True)
 
         return df
 
     def rename_columns(self, df):
-
         new_columns = []
 
         df_name = df["name"][0]
@@ -727,7 +805,6 @@ class extent_trend_analsyes:
         suggested_name = df_name
 
         for column in df.columns:
-
             new_column = f"{suggested_name}_{column}"
 
             new_columns.append(new_column)
@@ -737,14 +814,42 @@ class extent_trend_analsyes:
         return df, df_name
 
 
+class extent_trend_support:
+    @staticmethod
+    def prepair_data_ts_yf(df):
+        """
+        Creates a column named change that is used to create % of change
+        and shift them one line on the side so the performance of today is the score of towmorrow.
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        df : TYPE
+            DESCRIPTION.
+
+        """
+        stock_data = df
+        # Compute percentage change and shift values
+        stock_data["Change"] = stock_data["Close"].pct_change() * 100
+        stock_data["Change"] = stock_data["Change"].shift(-1)
+
+        stock_data = stock_data.fillna(0, inplace=True)
+
+        df = stock_data
+
+        return df
+
+
 atexit.register(get_trend_ts_support.cleanup)
 
 if __name__ == "__main__":
-
     try:
-
+        # x = update_trend_timeseries.update()
         x = extent_trend_analsyes()
 
     except Exception as e:
-
         raise Exception("Error with tickers", e)
