@@ -38,6 +38,8 @@ from core_utils.database_tables.tabels import (
     User_trades,
     TrendArchiveArchive,
     Trend_Analysis_Time_series,
+    Sector_Trade_Archive,
+    Sector_Trend,
 )
 
 import pandas as pd
@@ -952,6 +954,183 @@ class database_querys:
             df = pd.read_sql(query, con=engine)
 
             return df
+
+    def get_sector_trade_stats():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            conn = engine.connect()
+
+            query = "SELECT * FROM sector_trades_archive"
+            result = conn.execute(query)
+
+            trade_stats = []
+            for row in result:
+                (
+                    sector,
+                    amount_2_years,
+                    positive_percent_y2,
+                    mean_performance_y2,
+                    amount_5_years,
+                    positive_percent_y5,
+                    amount_all_years,
+                    positive_all_percent,
+                    mean_all_performance_,
+                ) = row
+                trade_stats.append(
+                    {
+                        "sector": sector,
+                        "amount_2_years": amount_2_years,
+                        "positive_percent_y2": positive_percent_y2,
+                        "mean_performance_y2": mean_performance_y2,
+                        "amount_5_years": amount_5_years,
+                        "positive_percent_y5": positive_percent_y5,
+                        "amount_all_years": amount_all_years,
+                        "positive_all_percent": positive_all_percent,
+                        "mean_all_performance_": mean_all_performance_,
+                    }
+                )
+
+            conn.close()
+
+            return json.dumps(trade_stats)
+
+    def get_sector_trends():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            sector_trends = session.query(Sector_Trend).all()
+
+            result = []
+            for sector_trend in sector_trends:
+                data = {
+                    "id": sector_trend.id,
+                    "trend": sector_trend.trend,
+                    "profile_std": sector_trend.profile_std,
+                    "trend_profile": sector_trend.trend_profile,
+                    "std_profile": sector_trend.std_profile,
+                    "side": sector_trend.side,
+                    "stats": sector_trend.stats,
+                    "updatedAt": sector_trend.updatedAt,
+                }
+                result.append(data)
+
+            session.close()
+
+            return json.dumps(result)
+
+    def add_sector_trends(data: dict):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            try:
+                # Check if data already exists in the table
+                existing_data = (
+                    session.query(Sector_Trend)
+                    .filter_by(id=data["sector"])
+                    .first()
+                )
+
+                if existing_data:
+                    # Update existing data if it exists
+                    existing_data.trend = data["trend"]
+                    existing_data.profile_std = data["profile_std"]
+                    existing_data.trend_profile = data["trend_profile"]
+                    existing_data.std_profile = data["std_profile"]
+                    existing_data.side = data["side"]
+                    existing_data.stats = data["stats"]
+                    existing_data.updatedAt = datetime.utcnow().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                    session.commit()
+                    return "Data updated"
+                else:
+                    # Add new data if it doesn't exist
+                    new_data = Sector_Trend(
+                        id=data["sector"],
+                        trend=data["trend"],
+                        profile_std=data["profile_std"],
+                        trend_profile=data["trend_profile"],
+                        std_profile=data["std_profile"],
+                        side=data["side"],
+                        stats=data["stats"],
+                        updatedAt=datetime.utcnow().strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),
+                    )
+                    session.add(new_data)
+                    session.commit()
+                    return "Data added"
+
+            except IntegrityError as e:
+                session.rollback()
+                return f"IntegrityError: {str(e)}"
+            except Exception as e:
+                session.rollback()
+                return f"Error: {str(e)}"
+            finally:
+                session.close
+
+    def add_sector_trade_stats(trade_stats_dict: dict):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            sector = trade_stats_dict["sector"]
+            amount_2_years = trade_stats_dict["amount_2_years"]
+            positive_percent_y2 = trade_stats_dict["positive_percent_y2"]
+            mean_performance_y2 = trade_stats_dict["mean_performance_y2"]
+            amount_5_years = trade_stats_dict["amount_5_years"]
+            positive_percent_y5 = trade_stats_dict["positive_percent_y5"]
+            amount_all_years = trade_stats_dict["amount_all_years"]
+            positive_all_percent = trade_stats_dict["positive_all_percent"]
+            mean_all_performance_ = trade_stats_dict["mean_all_performance_"]
+
+            # Check if sector already exists in the table
+            trade_stats = (
+                session.query(Sector_Trade_Archive)
+                .filter(Sector_Trade_Archive.id == sector)
+                .first()
+            )
+
+            if trade_stats is None:
+                # Add new row to table
+                trade_stats = Sector_Trade_Archive(
+                    id=sector,
+                    amount_2_years=amount_2_years,
+                    positive_percent_y2=positive_percent_y2,
+                    mean_performance_y2=mean_performance_y2,
+                    amount_5_years=amount_5_years,
+                    positive_percent_y5=positive_percent_y5,
+                    amount_all_years=amount_all_years,
+                    positive_all_percent=positive_all_percent,
+                    mean_all_performance_=mean_all_performance_,
+                )
+                session.add(trade_stats)
+            else:
+                # Update existing row in table
+                trade_stats.amount_2_years = amount_2_years
+                trade_stats.positive_percent_y2 = positive_percent_y2
+                trade_stats.mean_performance_y2 = mean_performance_y2
+                trade_stats.amount_5_years = amount_5_years
+                trade_stats.positive_percent_y5 = positive_percent_y5
+                trade_stats.amount_all_years = amount_all_years
+                trade_stats.positive_all_percent = positive_all_percent
+                trade_stats.mean_all_performance_ = mean_all_performance_
+
+            session.commit()
 
     def add_trend_timeserie(df):
         lock = Lock()
@@ -2096,9 +2275,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_trend_archive_with_tickers_and_date(
-            tickers=[], year=2022, month=12, date=7
-        )
+        x = database_querys.get_sector_trade_stats()
 
         # x = database_querys.get_logs()
         print(x)
