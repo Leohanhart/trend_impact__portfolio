@@ -509,13 +509,29 @@ class get_trend_ts_support:
 
 class extent_trend_analsyes:
     """
-    what do we want?
+    what do you get in this class?
 
-    1. trend analyses from only the all and the sectors.
+    Everything you need is in this class
 
-    2. frames of all, with the sectors and all total
+    Timeseries that can be used in machine learning are found in :
+        # creating df's off all performance
+        self.df_performance_combined
 
-    market-wide is all.
+        # creating trends.
+        self.df_trend_combined
+
+    if you need profile calculation you can do ("ALL" is where the sector name is) :
+
+        # create "all" dataframe
+        ts_all = self.retreive_trend_timeserie("ALL")
+
+        # first does it for all, then loop true all sectors.
+        df = self.create_clean_trend_based_timeserie(ts_all)
+
+        # get performance
+        df_perforamnce_all = self.add_perofmance_indicator(df, "ALL")
+
+
 
     """
 
@@ -523,14 +539,15 @@ class extent_trend_analsyes:
         "ALL": "^GSPC",
         "Technology": "XLK",
         "Healthcare": "XLV",
-        "Consumer Discretionary": "XLY",
-        "Consumer Staples": "XLP",
+        "Consumer Cyclical": "XLY",
+        "Consumer Defensive": "XLP",
         "Energy": "XLE",
-        "Financials": "XLF",
+        "Financial Services": "XLF",
         "Industrials": "XLI",
-        "Materials": "XLB",
+        "Basic Materials": "XLB",
         "Real Estate": "XLRE",
         "Utilities": "XLU",
+        "Communication Services": "XLC",
     }
 
     def __init__(self, analyses_name: str = ""):
@@ -570,18 +587,211 @@ class extent_trend_analsyes:
         df = self.create_clean_trend_based_timeserie(ts_all)
 
         # get performance
-        df_perforamnce = self.add_perofmance_indicator(df, "ALL")
+        df_perforamnce_all = self.add_perofmance_indicator(df, "ALL")
 
         # get performance indicators.
-        df_performance_stats = self.add_performance_stats(df_perforamnce)
+        df_performance_stats_all = self.add_performance_stats(
+            df_perforamnce_all
+        )
+
+        performance_all = {}
+        trend_all = {}
+
+        performance_all["ALL"] = df_perforamnce_all.performance
+        trend_all["ALL"] = df_perforamnce_all.trend
+
+        df = df_perforamnce_all
+
+        trades = self.create_trades_aggergration(df, "ALL")
+
+        database_querys.database_querys.add_sector_trade_stats(trades)
+
+        # create slide for db
+        slide = self.create_slide(df, df_performance_stats_all, "ALL")
+
+        # add to db
+        database_querys.database_querys.add_sector_trends(slide)
+
+        for sector in self.sectors:
+
+            print(sector)
+
+            # check if exsist
+            if not extent_trend_support.check_if_exsts(
+                sector, self.sector_tickers
+            ):
+                continue
+
+            # set timeserie.
+            ts_sector = self.retreive_trend_timeserie(sector)
+
+            # first does it for all, then loop true all sectors.
+            df = self.create_clean_trend_based_timeserie(ts_sector)
+
+            # get performance
+            df_perforamnce = self.add_perofmance_indicator(df, sector)
+
+            # get performance indicators.
+            df_performance_stats = self.add_performance_stats(df_perforamnce)
+
+            trades = self.create_trades_aggergration(df_perforamnce, sector)
+
+            database_querys.database_querys.add_sector_trade_stats(trades)
+
+            # create slide for db
+            slide = self.create_slide(df, df_performance_stats_all, sector)
+
+            # add to db
+            database_querys.database_querys.add_sector_trends(slide)
+
+            # only for performance differences.
+            performance_all[sector] = df_perforamnce.performance
+            trend_all[sector] = df_perforamnce.trend
+
+        # creating df's off all performance
+        self.df_performance_combined = pd.concat(
+            performance_all, axis=0, keys=performance_all.keys()
+        )
+
+        # creating trends.
+        self.df_trend_combined = pd.concat(
+            trend_all, axis=0, keys=performance_all.keys()
+        )
+
+    def create_slide(self, df, stats, sector):
+        """
+        Generates a slide.
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+        stats : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        #
+        row = df.tail(1)
+
+        # get slide
+        slide = dict(row.iloc[0].to_dict())
+        # get date of slide
+        dates = row.index[0]
+
+        slide["date"] = dates.strftime("%Y-%m-%d")
+
+        slide["sector"] = sector
+
+        slide["stats"] = str(stats)
+
+        return slide
+
+    def create_trades_aggergration(self, df, ticker):
+        """
+
+
+        Parameters
+        ----------
+        df : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        # convert index to datetime and set it as the index
+        df["index_datetime"] = pd.to_datetime(df.index)
+        df.set_index("index_datetime", inplace=True)
+
+        # create a new column for the switch in side, where 0 indicates no switch, and 1 indicates a switch
+        df["side_switch"] = df["side"].diff().ne(0).astype(int)
+
+        # create a new column for the group, which is the cumulative sum of the side_switch column
+        df["group"] = df["side_switch"].cumsum()
+
+        # group the dataframe by the group column, and aggregate the columns by taking the mean of all columns except for 'performance', which is summed
+        df_agg = df.groupby("group").agg(
+            {
+                "trend": "mean",
+                "profile_std": "mean",
+                "trend_profile": "last",
+                "std_profile": "last",
+                "side": "last",
+                "performance": "sum",
+            }
+        )
+
+        # set the index as the last date of each group
+        df_agg.index = df[df["side_switch"].ne(0)].index
+
+        df = df_agg
+
+        # Rows of the last 2 years
+        two_years_ago = datetime.now() - timedelta(days=2 * 365)
+        last_two_years = df.loc[df.index >= two_years_ago]
+
+        # amount trades last 2 years
+        amount_2_years = len(last_two_years)
+
+        # Percentage of rows with performance above 0
+        positive_percent_y2 = (
+            len(last_two_years[last_two_years["performance"] > 0])
+            / len(last_two_years)
+        ) * 100
+
+        # Mean of performance
+        mean_performance_y2 = last_two_years["performance"].mean()
+
+        # Rows of the last 5 years
+        five_years_ago = datetime.now() - timedelta(days=5 * 365)
+        last_five_years = df.loc[df.index >= five_years_ago]
+
+        # amount trades last 5 years
+        amount_5_years = len(last_five_years)
+
+        # Percentage of rows with performance above 0
+        positive_percent_y5 = (
+            len(last_five_years[last_five_years["performance"] > 0])
+            / len(last_five_years)
+        ) * 100
+
+        # amount trades last 5 years
+        amount_all_years = len(df)
+
+        # Percentage of rows with performance above 0
+        positive_all_percent = (len(df[df["performance"] > 0]) / len(df)) * 100
+
+        # Mean of performance
+        mean_all_performance_ = df["performance"].mean()
+
+        trade_stats = {
+            "sector": ticker,
+            "amount_2_years": amount_2_years,
+            "positive_percent_y2": positive_percent_y2,
+            "mean_performance_y2": mean_performance_y2,
+            "amount_5_years": amount_5_years,
+            "positive_percent_y5": positive_percent_y5,
+            "amount_all_years": amount_all_years,
+            "positive_all_percent": positive_all_percent,
+            "mean_all_performance_": mean_all_performance_,
+        }
+
+        return trade_stats
 
     def add_perofmance_indicator(self, df, ticker):
+
         stock_ticker_performance = self.sector_tickers[ticker]
 
         # load the stock data using yfinance
         stock_data = yf.download(
             stock_ticker_performance,
-            start="2020-01-01",
+            start="2000-01-01",
             end=pd.Timestamp.today(),
         )
 
@@ -602,8 +812,11 @@ class extent_trend_analsyes:
 
         # sets varible
         df = merged_data
-        # clearefy's performance, positive results will turn positive, negative will be negative. (side * performance)
 
+        # filters data.
+        df = df.fillna(0)
+
+        # clearefy's performance, positive results will turn positive, negative will be negative. (side * performance)
         df["performance"] = df["performance"] * df["side"]
 
         return df
@@ -614,12 +827,14 @@ class extent_trend_analsyes:
             len(df[df["performance"] > 0]) / len(df)
         ) * 100
 
+        stats["overall_avg_return"] = df.performance.mean()
+
+        df["trend_profile"] = df["trend_profile"].round()
         # Calculate the percentage of positive numbers in the performance column where the trend_underscore column is within a certain range
         for i in range(1, 10):
             i_pos = i
             i_neg = i * -1
-            print(i)
-            
+
             positive_percent = (
                 len(
                     df[
@@ -642,20 +857,19 @@ class extent_trend_analsyes:
 
             sstr = "prc_accurate_above_profile_" + str(i)
             stats[sstr] = round(positive_percent, 2)
-        
+
         # Calculate the percentage of positive numbers in the performance column where the trend_underscore column is within a certain range
         for i in range(1, 10):
             i_pos = i
             i_neg = i * -1
-            print(i)
-            
+
             positive_percent = (
                 len(
                     df[
                         (df["performance"] > 0)
                         & (
-                            (df["trend_profile"] = i_pos)
-                            | (df["trend_profile"] = i_neg)
+                            (df["trend_profile"] == i_pos)
+                            | (df["trend_profile"] == i_neg)
                         )
                     ]
                 )
@@ -671,8 +885,24 @@ class extent_trend_analsyes:
 
             sstr = "prc_accurate_on_profile_" + str(i)
             stats[sstr] = round(positive_percent, 2)
-            
-        
+
+        # gadders average return.
+        for i in range(1, 10):
+            i_pos = i
+            i_neg = i * -1
+            # assuming i_pos and i_neg are defined
+            mean_perf_i_pos = df.loc[
+                df["trend_profile"] == i_pos, "performance"
+            ].mean()
+            mean_perf_i_neg = df.loc[
+                df["trend_profile"] == i_neg, "performance"
+            ].mean()
+            sstr_ = "avg_return_profile_pos_" + str(i)
+            sstr = "avg_return_profile_neg_" + str(i)
+            stats[sstr_] = round(mean_perf_i_pos, 2)
+            stats[sstr] = round(mean_perf_i_neg, 2)
+
+        return stats
 
     def retreive_trend_timeserie(self, name: str):
         try:
@@ -842,6 +1072,13 @@ class extent_trend_support:
         df = stock_data
 
         return df
+
+    @staticmethod
+    def check_if_exsts(sector, sectors):
+        if sector in sectors:
+            return True
+        else:
+            return False
 
 
 atexit.register(get_trend_ts_support.cleanup)
