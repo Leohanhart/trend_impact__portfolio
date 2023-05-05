@@ -515,3 +515,30 @@ class Trend_Analysis_Time_series(Base):
     total = Column(Integer, nullable=False)
 
     __table_args__ = (UniqueConstraint("date", "name", name="uq_date_name"),)
+
+
+class Sector_Trade_Archive(Base):
+    __tablename__ = "sector_trades_archive"
+
+    id = Column(String, primary_key=True)
+    amount_2_years = Column(Integer)
+    positive_percent_y2 = Column(Float)
+    mean_performance_y2 = Column(Float)
+    amount_5_years = Column(Integer)
+    positive_percent_y5 = Column(Float)
+    amount_all_years = Column(Integer)
+    positive_all_percent = Column(Float)
+    mean_all_performance_ = Column(Float)
+
+
+class Sector_Trend(Base):
+    __tablename__ = "sector_trend"
+
+    id = Column(String, primary_key=True)
+    trend = Column(Float)
+    profile_std = Column(Float)
+    trend_profile = Column(Float)
+    std_profile = Column(Float)
+    side = Column(Float)
+    stats = Column(String)
+    updatedAt = Column(String, nullable=False)
