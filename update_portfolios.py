@@ -18,9 +18,12 @@ from threading import Thread, Event
 from multiprocessing import Process
 import threading
 import time
+import concurrent.futures
 import datetime
 from loguru import logger
 from multiprocessing import Process
+import multiprocessing
+import datetime
 
 
 class update_data:
@@ -31,7 +34,100 @@ class update_data:
 
     def __init__(self):
 
-        self.start_update_scedule()
+        self.pre_startup()
+        # self.start_update_scedule()
+
+    def pre_startup(self):
+
+        # get tickers
+        tickers = database_querys.database_querys.get_all_active_tickers()
+
+        # list for updated tickers
+        tickers_that_are_updated = []
+
+        # update function
+        update_function = (
+            update_stats_trend_analyses.update_kaufman_support.update_all_analyses_with_ticker
+        )
+
+        update_trend = (
+            update_stats_trend_analyses.update_kaufman_support.update_all_trends_with_ticker
+        )
+
+        # lists
+        total_items = []
+
+        # counter.
+        i = 0
+        # do archive update on the tickers
+        while True:
+
+            # add the tickers to a special list that updates every 24 hours.
+            now = datetime.datetime.now()
+
+            if now.hour >= 4 and now.hour < 24:
+
+                tickers_for_loop = []
+
+                # Remove 5 items from the original list and append them to the new list
+                try:
+                    for i in range(10):
+                        item = tickers.pop()
+                        tickers_for_loop.append(item)
+                        total_items.append(item)
+                except IndexError:
+                    break
+
+                # create a list to hold the threads
+                threads = []
+
+                # start each thread with the function and its argument
+                for ticker in tickers_for_loop:
+                    print(f"update {ticker}")
+                    p = Process(target=update_function, args=(ticker,))
+                    threads.append(p)
+                    p.start()
+
+                # wait for all threads to finish
+                for p in threads:
+                    p.join()
+
+                threads = []
+
+                time.sleep(5)  # wait for 60 seconds before running again
+
+                tickers_for_loop = []
+
+            else:
+
+                update_tickers = total_items
+                up_t = []
+                while True:
+                    try:
+                        for i in range(5):
+                            item = update_tickers.pop()
+                            up_t.append(item)
+
+                    except IndexError:
+                        break
+
+                    # start each thread with the function and its argument
+                    for ticker in up_t:
+                        p = Process(target=update_function, args=(ticker,))
+                        up_t.append(p)
+                        p.start()
+
+                    # wait for all threads to finish
+                    for p in threads:
+                        p.join()
+
+                    upt_ = []
+
+                    time.sleep(5)  # wait for 60 seconds before running again
+
+            # exit criteria.
+            if 0 >= len(tickers):
+                break
 
     def task(self):
 
@@ -238,9 +334,9 @@ if __name__ == "__main__":
     # archive
     try:
         x = update_data()
-        x.start_update_scedule()
-        sleep(86000)
-
+        # x.start_update_scedule()
+        # sleep(86000)
+        x.pre_startup()
     except Exception as e:
 
         raise Exception("Error with tickers", e)
