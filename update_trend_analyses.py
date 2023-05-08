@@ -285,6 +285,69 @@ class update_kaufman_kalman_analyses(object):
 
 
 class update_kaufman_support(object):
+    def update_all_trends_with_ticker(ticker: str):
+
+        # add ticker
+        initalizer_ticker = initiaze_singel_ticker(ticker)
+
+        if not database_querys.database_querys.check_if_ticker_is_allowd(
+            ticker_name=ticker
+        ):
+            logger.warning(
+                f"update trend-analyses for ticker = {ticker}",
+            )
+
+        power_object = stock_object.power_stock_object(
+            stock_ticker=ticker,
+            simplyfied_load=True,
+            periode_weekly=False,
+        )
+
+        model = update_kaufman_support.return_full_analyses_dict(
+            stock_data=power_object.stock_data,
+            ticker_name=power_object.stock_ticker,
+            max_levels=10,
+            periode="D",
+        )
+
+        database_querys.database_querys.update_analyses_trend_kamal(model)
+
+        return True
+
+    def update_all_analyses_with_ticker(ticker: str):
+        """
+        Updates full analyses with ticker.
+
+        Parameters
+        ----------
+        ticker : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        bool
+            DESCRIPTION.
+
+        """
+
+        logger.info(f"updateing archive {ticker}")
+        power_object = stock_object.power_stock_object(
+            stock_ticker=ticker,
+            simplyfied_load=True,
+            periode_weekly=False,
+        )
+
+        archive_data = update_archive_kaufmal(
+            stock_data=power_object.stock_data,
+            periode="D",
+            min_range=30,
+            ticker=ticker,
+        )
+
+        performance_specs = update_trend_performance(ticker, "D")
+
+        return True
+
     @staticmethod
     def return_full_analyses_dict(
         stock_data,
