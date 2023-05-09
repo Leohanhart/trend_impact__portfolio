@@ -42,6 +42,9 @@ class update_data:
         # get tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
 
+        #
+        tickers.reverse()
+
         # list for updated tickers
         tickers_that_are_updated = []
 
@@ -57,6 +60,8 @@ class update_data:
         # lists
         total_items = []
 
+        daily_procedure_run_q = False
+
         # counter.
         i = 0
         # do archive update on the tickers
@@ -65,7 +70,60 @@ class update_data:
             # add the tickers to a special list that updates every 24 hours.
             now = datetime.datetime.now()
 
-            if now.hour >= 4 and now.hour < 24:
+            """            
+            if datetime.time(23, 0) <= now <= datetime.time(23, 15):
+                # Do phase 1 for 15 minutes starting at 11pm
+                print("Phase 1: starting at 11pm...")
+                time.sleep(15 * 60)  # Sleep for 15 minutes
+            elif datetime.time(23, 15) < now <= datetime.time(0, 15):
+                # Do phase 2 for 60 minutes after phase 1
+                print("Phase 2: starting after phase 1...")
+                time.sleep(60 * 60)  # Sleep for 60 minutes
+            else:
+                # Do phas
+            """
+            if datetime.time(23, 0) <= now <= datetime.time(23, 15):
+                # Do phase 1 for 15 minutes starting at 11pm
+                daily_procedure_run_q = False
+                time.sleep(60)  # Sleep for 15 minutes
+
+            elif datetime.time(23, 15) < now <= datetime.time(0, 15):
+                # Do phase 2 for 60 minutes after phase 1
+                if not daily_procedure_run_q:
+
+                    update_tickers = total_items.copy()
+                    up_t = []
+                    threads = []
+                    while True:
+                        try:
+                            for i in range(5):
+                                item = update_tickers.pop()
+                                up_t.append(item)
+
+                        except IndexError:
+                            break
+
+                        # start each thread with the function and its argument
+                        for ticker in up_t:
+                            p = Process(target=update_function, args=(ticker,))
+                            threads.append(p)
+                            p.start()
+
+                        # wait for all threads to finish
+                        for p in threads:
+                            p.join()
+
+                        threads = []
+
+                        time.sleep(
+                            5
+                        )  # wait for 60 seconds before running again
+
+                        daily_procedure_run_q = True
+                else:
+                    sleep(60)
+
+            else:
 
                 tickers_for_loop = []
 
@@ -97,33 +155,6 @@ class update_data:
                 time.sleep(5)  # wait for 60 seconds before running again
 
                 tickers_for_loop = []
-
-            else:
-
-                update_tickers = total_items
-                up_t = []
-                while True:
-                    try:
-                        for i in range(5):
-                            item = update_tickers.pop()
-                            up_t.append(item)
-
-                    except IndexError:
-                        break
-
-                    # start each thread with the function and its argument
-                    for ticker in up_t:
-                        p = Process(target=update_function, args=(ticker,))
-                        up_t.append(p)
-                        p.start()
-
-                    # wait for all threads to finish
-                    for p in threads:
-                        p.join()
-
-                    upt_ = []
-
-                    time.sleep(5)  # wait for 60 seconds before running again
 
             # exit criteria.
             if 0 >= len(tickers):
