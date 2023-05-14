@@ -65,7 +65,9 @@ async def startup_event():
 @app.get("/")
 def read_root():
 
-    return {"Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is so cute <3 <3 <3 , LIKE ELMO! ELMO IS GREAT 1337"}
+    return {
+        "Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is so cute <3 <3 <3 , LIKE ELMO! ELMO IS GREAT 1337"
+    }
 
 
 @app.get("/trend_analyses")
@@ -93,19 +95,20 @@ def return_trend_archive_trades(ticker: str):
 
 
 @app.get("/trend_analyses_trade_options")
-def return_all_trend_specs(page: int = 1,
-                           long: bool = True,
-                           short: bool = False,
-                           amount_days_of_new_trend: int = 5,
-                           percentage_2y_profitble: float = 90):
+def return_all_trend_specs(
+    page: int = 1,
+    long: bool = True,
+    short: bool = False,
+    amount_days_of_new_trend: int = 5,
+    percentage_2y_profitble: float = 90,
+):
 
     data = services.return_trend_trade_options.return_trade_options(
         page=page,
         long=long,
         short=short,
         amount_days_of_new_trend=amount_days_of_new_trend,
-        percentage_2y_profitble=percentage_2y_profitble
-
+        percentage_2y_profitble=percentage_2y_profitble,
     )
 
     return Response(data)
@@ -120,7 +123,9 @@ def return_all_trend_specs():
 
 
 @app.get("/avalible_portfolios")
-def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6):
+def avalible_portfolios(
+    page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6
+):
 
     data = services.return_portfolios_options.return_portfolios()
 
@@ -131,7 +136,8 @@ def avalible_portfolios(page: int = 1, min_amount_stocks: int = 5, max_amount_st
 def avalible_portfolios(portfolio_id: str = ""):
 
     data = services.return_portfolios_options.return_trading_portfolios(
-        id_=portfolio_id)
+        id_=portfolio_id
+    )
 
     return Response(data)
 
@@ -140,7 +146,8 @@ def avalible_portfolios(portfolio_id: str = ""):
 def add_portfolios(portfolio_id: str):
 
     data = services.return_portfolios_options.add_trading_portfolio(
-        id_=portfolio_id)
+        id_=portfolio_id
+    )
 
     return data
 
@@ -149,7 +156,8 @@ def add_portfolios(portfolio_id: str):
 def remove_portfolio(portfolio_id: str):
 
     data = services.return_portfolios_options.delete_trading_portfolio(
-        id_=portfolio_id)
+        id_=portfolio_id
+    )
 
     return data
 
@@ -158,7 +166,8 @@ def remove_portfolio(portfolio_id: str):
 def return_portfolio_performance(portfolio_id: str):
 
     data = services.return_stats.return_trading_backtest(
-        portfolio_id=portfolio_id)
+        portfolio_id=portfolio_id
+    )
 
     return data
 
@@ -172,28 +181,37 @@ def return_logs(page_number: int = 1):
 
 
 @app.get("/show_user_trades")
-def return_user_trades(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110"):
+def return_user_trades(
+    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
+):
 
     data = services.return_trend_analyses.get_user_trades(
-        uuid_portfolio=trader_id)
+        uuid_portfolio=trader_id
+    )
 
     return data
 
 
 @app.post("/add_user_trades")
-def add_user_trade(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""):
+def add_user_trade(
+    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""
+):
 
     data = services.crud_user_trades.add_user_trade(
-        uu_id_trader=trader_id, ticker_name=ticker)
+        uu_id_trader=trader_id, ticker_name=ticker
+    )
 
     return data
 
 
 @app.delete("/remove_user_trades")
-def return_logs(trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""):
+def return_logs(
+    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""
+):
 
-    data = services.crud_user_trades.remove_user_trade(uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110",
-                                                       ticker_name=ticker)
+    data = services.crud_user_trades.remove_user_trade(
+        uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker_name=ticker
+    )
 
     return data
 
@@ -214,9 +232,24 @@ def add_or_maintain_ticker(ticker: str = ""):
     return data
 
 
+@app.get("/sector_strategy")
+def return_sector_strategy():
+
+    data = services.return_trend_analyses.get_sector_analyses()
+
+    return Response(data)
+
+
 handler = Mangum(app)
 
 if __name__ == "__main__":
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, debug=True,
-                workers=4, limit_concurrency=1000)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        debug=True,
+        workers=4,
+        limit_concurrency=1000,
+    )

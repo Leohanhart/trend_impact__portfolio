@@ -204,6 +204,12 @@ class return_trend_analyses(object):
 
         return res_data
 
+    def get_sector_analyses():
+
+        data = database_querys_main.database_querys.get_user_trade(
+            uuid_portfolio
+        )
+
 
 class trend_analyse_support(object):
     def return_trend_data_multiple(list_tickers: list = []):
