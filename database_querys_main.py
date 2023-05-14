@@ -2275,7 +2275,7 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_sector_trade_stats()
+        x = database_querys.get_sector_trends()
 
         # x = database_querys.get_logs()
         print(x)
