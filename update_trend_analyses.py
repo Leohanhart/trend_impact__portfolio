@@ -1255,17 +1255,66 @@ class clean_archive_data:
 
 class trend_fast_archive_update:
     def __init__(self, model_trend_archive, stock_data):
+        """
+        Process description:
 
+            first the model and old model are loaded, actually there needs to be a test if the start_dates are the same.
+            otherwise this whole thing needs to be updated.
+
+            Next there is a check if the profile is same, it that's not the case the system needs an update'
+            Next if that's not the case, the end date is about to be renew'
+
+
+        Parameters
+        ----------
+        model_trend_archive : TYPE
+            DESCRIPTION.
+        stock_data : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         model = model_trend_archive
 
+        print("Test")
         # receive model.
-        old_model = self.get_last_model(model.ticker, model.periode)
 
-        if (
-            self.check_if_trend_is_same(old_model, model) == True
-            and self.check_if_duration_is_same == False
-        ):
+        # the code below belongs to self.get_last_model but mallfunctioned so that why we changed it.
+        report = database_querys.database_querys.get_trend_kalman_data(
+            ticker=model.ticker, periode=model.periode
+        )
 
+        # tails data.
+        report = report.tail(1)
+
+        # unpacks the data.
+        new_raport = report.to_dict(orient="records")
+
+        # create model of data.
+        raport_class = update_kaufman_support.package_dict_in_class(
+            new_raport[0]
+        )
+
+        test = raport_class
+
+        old_model = raport_class
+
+        # old_model = self.get_last_model(model.ticker, model.periode)
+        if not self.check_if_startdates_are_same(old_model, model):
+            update_kaufman_support.update_all_analyses_with_ticker(
+                model.ticker
+            )
+
+        if self.check_if_duration_is_same(old_model, model):
+            return
+
+        if self.check_if_trend_is_same(old_model, model) == True:
+
+            # if not profiles are the same, the end date of the current model needs to be extended
+            # accutally the old model not old then, its end date only expired because its still urgent.
             if not self.check_if_std_profile_is_same(old_model, model):
                 model.date_start = old_model.end_date
                 model.weeknr_start = old_model.weeknr_end
@@ -1276,11 +1325,15 @@ class trend_fast_archive_update:
                 status = database_querys.database_querys.update_analyses_trend_kamal_archive(
                     model
                 )
+
+                return
             else:
 
                 status = database_querys.database_querys.update_analyses_trend_kamal_archive(
                     model
                 )
+
+                return
 
             # put the data in the basket
 
@@ -1298,6 +1351,8 @@ class trend_fast_archive_update:
             status = database_querys.database_querys.update_analyses_trend_kamal_archive(
                 model
             )
+
+            return
 
         else:
 
@@ -1324,6 +1379,12 @@ class trend_fast_archive_update:
         )
 
         return raport_class
+
+    def check_if_startdates_are_same(self, old_model, new_model):
+        if old_model.start_date == new_model.start_date:
+            return True
+        else:
+            return False
 
     def check_if_trend_is_same(self, old_model, new_model):
         if old_model.trend == new_model.trend:
@@ -2467,7 +2528,7 @@ if __name__ == "__main__":
         # print(obj)
         # x = update_kaufman_kalman_analyses.update_all()
 
-        ticker = "AAL"
+        ticker = "AAOI"
 
         power_object = stock_object.power_stock_object(
             stock_ticker=ticker,
@@ -2475,16 +2536,18 @@ if __name__ == "__main__":
             periode_weekly=False,
         )
 
-        archive_data = update_archive_std(
-            stock_data=power_object.stock_data,
+        model = update_kaufman_support.return_full_analyses_dict(
+            stock_data=power_object.stock_data.tail(
+                1630
+            ),  # 815(AMEE)-581(AAL) showed these numbers, is the first data        # this is 2x the amount that makes the data change, around
+            ticker_name=power_object.stock_ticker,
+            max_levels=10,
             periode="D",
-            min_range=30,
-            ticker=ticker,
         )
 
-        # report = clean_archive_data(ticker_name="AAL")
-        # update_kaufman_kalman_analyses.update_all(last_update_first=True)
-        update_trend_performance("AAPL", "D")
+        report = trend_fast_archive_update(model, power_object.stock_data)
+
+        database_querys.database_querys.update_analyses_trend_kamal(model)
 
     except Exception as e:
 
