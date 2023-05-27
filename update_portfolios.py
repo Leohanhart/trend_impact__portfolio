@@ -251,21 +251,7 @@ class update_data:
             17, 0, 10
         )
 
-    def task(self):
-
-        i = 0
-        # block for a moment
-        while True:
-
-            try:
-
-                update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all()
-            except Exception as e:
-                print("Error in thread = ", e)
-
-                sleep(60)
-
-    def task_2(self):
+    def task_1(self):
 
         i = 0
         # block for a moment
@@ -277,9 +263,12 @@ class update_data:
                 update = update_portfolio_trends.kko_portfolio_update_manager()
             except Exception as e:
                 print("Error in thread = ", e)
+                database_querys.database_querys.add_log_to_logbook(
+                    f"Error thrown in portfolio_update, task 1, {e}"
+                )
                 sleep(60)
 
-    def task_3(self):
+    def task_2(self):
 
         i = 0
         # block for a moment
@@ -289,70 +278,13 @@ class update_data:
 
             try:
 
-                update_stats_trend_analyses.update_kaufman_kalman_analyses.update_full_analyses()
-                sleep(5)
-            except Exception as e:
-                print("Error in thread = ", e)
-
-                sleep(60)
-
-    def task_4(self):
-
-        i = 0
-        # block for a moment
-        while True:
-
-            try:
-
-                portfolio_synch.update_trading_portfolios.startup_update()
+                self.afterhour_update_cycle()
 
             except Exception as e:
-
                 print("Error in thread = ", e)
-
-                sleep(3600)
-
-    def task_5(self):
-
-        i = 0
-
-        # block for a moment
-        while True:
-
-            try:
-
-                update_stats_trend_analyses.update_kaufman_kalman_analyses.update_all(
-                    last_update_first=True
+                database_querys.database_querys.add_log_to_logbook(
+                    f"Error thrown in portfolio_update, task 2, {e}"
                 )
-            except Exception as e:
-                print("Error in thread = ", e)
-                sleep(60)
-
-    def task_6(self):
-
-        logger.info("starting task 6")
-        i = 0
-        # funtion always sleeps one day before the start.
-        sleep(86000)
-        # block for a moment
-        while True:
-
-            now = datetime.datetime.now()
-
-            # Set the target date to tomorrow at midnight
-            target_date = datetime.datetime(now.year, now.month, now.day + 1)
-
-            # Loop until the target date is reached
-            while datetime.datetime.now() < target_date:
-                # Sleep for one second
-                time.sleep(10)
-
-            try:
-
-                timeseries.update_trend_timeseries.update()
-
-            except Exception as e:
-                print("Error in thread = ", e)
                 sleep(60)
 
     def startup_data_transformation(self):
@@ -362,7 +294,7 @@ class update_data:
         logger.info("starting trend update")
 
         # start regular trendupdate
-        thread1 = Process(target=self.task, args=())
+        thread1 = Process(target=self.task_1)
 
         sleep(0.5)
 
@@ -372,46 +304,16 @@ class update_data:
 
         sleep(0.5)
 
-        logger.info("starting up archive")
-        # starts archive kaufman
-        thread3 = Process(target=self.task_3, args=())
-
-        sleep(0.5)
-
-        logger.info("starting hourly update trading portfolio")
-        # start update trading portfolio.
-        thread4 = Process(target=self.task_4, args=())
-        sleep(0.5)
-
-        logger.info("starting up trendupdate revers.")
-        # start regulare trend update reverse.
-        thread5 = Process(target=self.task_5, args=())
-
-        logger.info("starting up date timeseries..")
-        # start regulare trend update reverse.
-        thread6 = Process(target=self.task_6, args=())
-
         threads = []
         # Start the threads
         thread1.start()
         sleep(0.5)
         thread2.start()
         sleep(0.5)
-        thread3.start()
-        sleep(0.5)
-        thread4.start()
-        sleep(0.5)
-        thread5.start()
-        sleep(0.5)
-        thread6.start()
 
         logger.info("threads started.")
         threads.append(thread1)
         threads.append(thread2)
-        threads.append(thread3)
-        threads.append(thread4)
-        threads.append(thread5)
-        threads.append(thread6)
 
         # Join the threads before
         loop: bool = True
@@ -428,10 +330,6 @@ class update_data:
         # moving further
         thread1.join()
         thread2.join()
-        thread3.join()
-        thread4.join()
-        thread5.join()
-        thread6.join()
 
         self.startup_data_transformation()
 

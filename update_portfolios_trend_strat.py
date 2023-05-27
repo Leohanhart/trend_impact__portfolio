@@ -2051,7 +2051,7 @@ class kko_portfolio_update_manager:
         while not self.kill_switch:
 
             # sleep if there are troubles
-            self.sleep_between_hours(16, 9)
+            self.sleep_between_hours(16, 4)
 
             if self.check_days_passed(initial_date, 7):
                 break
