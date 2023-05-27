@@ -544,6 +544,8 @@ class initiaze_singel_ticker:
                         sector="ETF",
                         industry="ETF",
                         exchange="ETF",
+                        blacklist=False,
+                        safe=True,
                         active=True,
                     )
                     # ticker class is added
@@ -631,6 +633,8 @@ class initiaze_singel_ticker:
                     sector=sector_in,
                     industry=industry_in,
                     exchange=exchange_in,
+                    blacklist=False,
+                    safe=True,
                     active=active_in,
                 )
                 # ticker class is added
@@ -665,9 +669,9 @@ if __name__ == "__main__":
 
     try:
         # NOT DELETE: DELISTED TICKER : FRTA
-        # x = initiaze_tickers()
+        x = initiaze_tickers()
         #
-        infile_ = initiaze_singel_ticker("XLF")
+        # infile_ = initiaze_singel_ticker("XLF")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
 
