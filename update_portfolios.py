@@ -61,6 +61,7 @@ import time
 from loguru import logger
 import multiprocessing
 import datetime
+import initalization_file
 
 
 class update_data:
@@ -76,6 +77,9 @@ class update_data:
         # self.start_update_scedule()
 
     def pre_startup(self):
+
+        # update archive
+        initalization_file.add_data_to_archive()
 
         # get tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
@@ -202,6 +206,7 @@ class update_data:
         self.start_update_scedule()
 
     def afterhour_update_cycle(self):
+
         # started
         database_querys.database_querys.add_log_to_logbook(
             "daily update cycle started"
@@ -228,11 +233,15 @@ class update_data:
         # refresh timeseries.
         timeseries.update_trend_timeseries.update()
 
+        # refresh timeserie stats.
         sector_extended_analyses = timeseries.extent_trend_analsyes()
 
         database_querys.database_querys.add_log_to_logbook(
             "daily update cycle ended"
         )
+
+        # update trading portfolio
+        portfolio_synch.update_trading_portfolios.startup_update()
 
         update_stats_trend_analyses.update_kaufman_support.sleep_until_time(
             17, 0, 10
