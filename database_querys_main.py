@@ -1166,23 +1166,20 @@ class database_querys:
             session.close()
 
     def add_log_to_logbook(text: str = ""):
-        """
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False  # , check_same_thread=True
-                               )
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(
+                db_path, echo=False  # , check_same_thread=True
+            )
+            Session = sessionmaker(bind=engine)
+            session = Session()
 
-        log = Logbook(
-            message=str(text)
-        )
+            log = Logbook(message=str(text))
 
-        session.add(log)
-        session.commit()
-        session.close()
-        """
-
-        print(text)
+            session.add(log)
+            session.commit()
+            session.close()
 
     def add_portfolio_to_archive(id_portfolio: str):
         lock = Lock()
