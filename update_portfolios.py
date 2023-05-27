@@ -73,9 +73,12 @@ class update_data:
 
     def __init__(self):
 
-        self.afterhour_update_cycle()
-        # self.pre_startup()
-        # self.start_update_scedule()
+        #
+        self.pre_startup()
+
+        # self.afterhour_update_cycle()
+
+        self.start_update_scedule()
 
     def pre_startup(self):
 
@@ -206,8 +209,6 @@ class update_data:
             # exit criteria.
             if 0 >= len(tickers):
                 break
-
-        self.start_update_scedule()
 
     def afterhour_update_cycle(self):
 
