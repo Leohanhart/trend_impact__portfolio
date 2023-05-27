@@ -95,18 +95,25 @@ class database_querys:
                 if data[0]["active"] != True:
                     return False
 
+                if exclude_blacklisted:
+                    if data[0]["blacklist"] == True:
+                        return False
+
                 if excluded_non_safe:
 
                     if data[0]["safe"] != True:
                         return False
 
-                if excluded_own_recomanded:
-                    if data[0]["recommanded"] != True:
-                        return False
-
             except KeyError:
 
                 return False
+
+            except NameError:
+
+                if data[0]["active"] != True:
+                    return False
+                else:
+                    return True
 
             return True
 
@@ -2272,8 +2279,8 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        x = database_querys.get_sector_trends()
-
+        # x = database_querys.get_sector_trends()
+        x = database_querys.check_if_ticker_is_allowd(ticker_name="AAL")
         # x = database_querys.get_logs()
         print(x)
         print("END")
