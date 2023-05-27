@@ -520,6 +520,7 @@ class initiaze_singel_ticker:
 
             stock_ = TTicker(stock)
 
+            # ticker is not a stock
             if type(stock_.asset_profile[stock]) == str:
 
                 data.active = False
@@ -534,6 +535,7 @@ class initiaze_singel_ticker:
 
             NotEquiy: bool = False
 
+            # check if ticker is ETF
             if stock_.quote_type[stock]["quoteType"] != "EQUITY":
                 # check if data is new.
                 if data == None:
@@ -591,12 +593,18 @@ class initiaze_singel_ticker:
 
                 sector_in = stock_.asset_profile[stock]["sector"]
 
-            else:
+            elif stocks_object.sector == "Unkown":
+                sector_in = stock_.asset_profile[stock]["sector"]
 
+            else:
                 sector_in = stocks_object.sector
 
             # check if industry is legid
             if not stocks_object.industry:
+
+                industry_in = stock_.asset_profile[stock]["industry"]
+
+            elif stocks_object.industry == "Unkown":
 
                 industry_in = stock_.asset_profile[stock]["industry"]
 
@@ -625,7 +633,7 @@ class initiaze_singel_ticker:
                 database_querys_main.database_querys.delete_trend_kamal(stock)
 
             # check if data is new.
-            if data == None:
+            if data is None:
 
                 # if data is new, ticker is added, in_ data is inserted. if single var fails, rest is added anyway.
                 ticker = Ticker(
@@ -637,8 +645,10 @@ class initiaze_singel_ticker:
                     safe=True,
                     active=active_in,
                 )
+
                 # ticker class is added
                 session.add(ticker)
+
                 # ticker class is commited.
                 session.commit()
 
@@ -648,12 +658,15 @@ class initiaze_singel_ticker:
             # if ticker already exsist there is only one var that's need to be maintained. The active var.
             else:
                 # print("stock is added")
-
+                Session = sessionmaker(bind=engine)
+                session = Session()
+                data = session.query(Ticker).get(stock)
                 # sets bool
                 data.active = active_in
                 data.sector = stock_.asset_profile[stock]["sector"]
                 data.industry = stock_.asset_profile[stock]["industry"]
-                data.exchange_in = stock_.asset_profile[stock]["exchange"]
+                data.exchange = stock_.quote_type[stock]["exchange"]
+
                 # commits.
                 session.commit()
 
@@ -671,7 +684,7 @@ if __name__ == "__main__":
         # NOT DELETE: DELISTED TICKER : FRTA
         x = initiaze_tickers()
         #
-        # infile_ = initiaze_singel_ticker("XLF")
+        # infile_ = initiaze_singel_ticker("AUUDW")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
 
