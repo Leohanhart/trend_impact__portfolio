@@ -41,6 +41,8 @@ class Ticker(Base):
     sector = Column(String)
     industry = Column(String)
     exchange = Column(String)
+    blacklist = Column(Boolean)
+    safe = Column(Boolean)
     active = Column(Boolean)
 
 

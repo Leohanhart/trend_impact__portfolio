@@ -47,6 +47,8 @@ def initialization():
         sector = Column(String)
         industry = Column(String)
         exchange = Column(String)
+        blacklist = Column(Boolean)
+        safe = Column(Boolean)
         active = Column(Boolean)
 
     class unit_tests_and_errors(Base):
