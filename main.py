@@ -152,6 +152,16 @@ def add_portfolios(portfolio_id: str):
     return data
 
 
+@app.post("/add_portfolios_manually")
+def add_portfolios(portfolio_tickers: list):
+
+    data = services.return_portfolios_options.add_trading_portfolio(
+        id_=portfolio_id
+    )
+
+    return data
+
+
 @app.delete("/remove_portfolio")
 def remove_portfolio(portfolio_id: str):
 
