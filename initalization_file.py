@@ -89,6 +89,8 @@ def add_data_to_archive():
     column_names = [
         "id",
         "ticker",
+        "start_date",
+        "end_date",
         "year_start",
         "month_start",
         "date_start",
