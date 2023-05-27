@@ -3,6 +3,43 @@
 Created on Fri Mar  3 16:57:39 2023
 
 @author: Gebruiker
+
+Tasks,
+- fill in the github act.
+
+Note, we have added a startup_task. This one will (verymuch depending on how much data is already in the 
+                                                   database)
+take 9 hours, untill probably 4 weeks or so. I will target it on 9 hours. 
+Not there are many tasks, for example 
+- archive 
+- update portfolios 
+- update trading portfolios
+- update trends 
+- update portfolio revers. 
+- update timeseries. 
+
+We have upgraded trends so it will always update archive aswell, this still needs to be tested. 
+So potentally this thead ( including the archive and reverse archive can be stoped. and put on a time slot)
+# 
+IDEAL we have 1 thead proces that starts at market close, updates all trends (this can also be done in reverse)
+-- we could also implement that archive updates always updates the trend but this might confuse
+-- also updating trends can be done in the loop done in the startup_thread, this goes very fast. 
+this will take up to 6-9 hours. We need to create a function that downloads all stocks for the next hit while we are waiting. 
+
+Afther that the update_timeseries needs to run, its unclear howmuch this will take when this whole 
+sytem already ren on time but It will take up some hours ( I think about 4-12 but im not sure 6.5)
+otherwise its about 1 minut. Then we need to update the trading portfolio's
+
+Afther that, the system needs to sleep untill 6 oclock in the evening and the whole cycle restarts. 
+- We need a DB -table that keeps track of the stages.
+- We need a DB -table that keeps track of the last update. 
+If this runs we 
+
+So mainly, if we would take this chance, we only need two threads and the server is stable on its own. 
+
+
+
+
 """
 
 # other objects.
@@ -20,8 +57,8 @@ import threading
 import time
 import concurrent.futures
 import datetime
+import time
 from loguru import logger
-from multiprocessing import Process
 import multiprocessing
 import datetime
 
@@ -34,7 +71,8 @@ class update_data:
 
     def __init__(self):
 
-        self.pre_startup()
+        self.afterhour_update_cycle()
+        # self.pre_startup()
         # self.start_update_scedule()
 
     def pre_startup(self):
@@ -114,6 +152,7 @@ class update_data:
                             p.join()
 
                         threads = []
+                        up_t = []
 
                         time.sleep(
                             5
@@ -159,6 +198,45 @@ class update_data:
             # exit criteria.
             if 0 >= len(tickers):
                 break
+
+        self.start_update_scedule()
+
+    def afterhour_update_cycle(self):
+        # started
+        database_querys.database_querys.add_log_to_logbook(
+            "daily update cycle started"
+        )
+
+        database_querys.database_querys.add_log_to_logbook(
+            "update-cycle: Update tickers"
+        )
+
+        # download en maintenance
+        # update_stats_trend_analyses.update_kaufman_support.update_all_tickers()
+
+        database_querys.database_querys.add_log_to_logbook(
+            "update-cycle: Update update anlyses"
+        )
+
+        # update archive
+        update_stats_trend_analyses.update_kaufman_support.update_all_analyse_multi()
+
+        database_querys.database_querys.add_log_to_logbook(
+            "update-cycle: Update analyses"
+        )
+
+        # refresh timeseries.
+        timeseries.update_trend_timeseries.update()
+
+        sector_extended_analyses = timeseries.extent_trend_analsyes()
+
+        database_querys.database_querys.add_log_to_logbook(
+            "daily update cycle ended"
+        )
+
+        update_stats_trend_analyses.update_kaufman_support.sleep_until_time(
+            17, 0, 10
+        )
 
     def task(self):
 
