@@ -76,7 +76,7 @@ def add_data_to_archive():
         ticker="AAPL"
     )
     if not data.empty:
-        return
+        return False
     # Load the CSV file into a Pandas DataFrame
     df = pd.read_csv("core_data/trend_archive.csv")
 
@@ -125,7 +125,7 @@ def add_data_to_archive():
             model=trend_data
         )
 
-    return "Done"
+    return True
 
 
 if __name__ == "__main__":
