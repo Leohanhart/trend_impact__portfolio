@@ -22,6 +22,8 @@ class TrendData:
         self,
         id,
         ticker,
+        start_date,
+        end_date,
         year_start,
         month_start,
         date_start,
