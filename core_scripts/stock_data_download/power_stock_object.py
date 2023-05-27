@@ -39,18 +39,22 @@ Taak 1. Zorgen dat de opgeslagen wordt.
 """
 
 
-
-
 import constants
 import os
 from core_scripts.synchronization import synch_class
-from core_scripts.stock_data_download import power_stock_object_support_functions as support_functions
-from core_scripts.stock_data_download import stockobject_supporting_functions as old_supporting_functions
+from core_scripts.stock_data_download import (
+    power_stock_object_support_functions as support_functions,
+)
+from core_scripts.stock_data_download import (
+    stockobject_supporting_functions as old_supporting_functions,
+)
 from core_scripts.stock_analyses import old_stock_analyses as stock_analyses
 import pandas as pd
+
+
 class power_stock_object:
     """
-    Power stock object. 
+    Power stock object.
     """
 
     # controls
@@ -72,8 +76,10 @@ class power_stock_object:
     log_book_messages = []
 
     # analyses options selected:
-    analyses_selected = ["last_calculation_profile_indicator_text",
-                         "last_calculation_profile_change_text"]
+    analyses_selected = [
+        "last_calculation_profile_indicator_text",
+        "last_calculation_profile_change_text",
+    ]
 
     # rack_analyses:
     data_object = None  # storeage for al the data retreived form yahoo.
@@ -103,37 +109,34 @@ class power_stock_object:
     future_fair_value_including_dividends = ""
     future_fair_discount = ""
 
-    def __init__(self,
+    def __init__(
+        self,
+        # stock ticer
+        stock_ticker: str = None,
+        # fastload, for fasterloading
+        fast_load: bool = False,
+        # simplyfiedload, only load nessary data.
+        simplyfied_load: bool = True,
+        # converts stock data to weekly data, used for analyses. So they can easely been done.
+        periode_weekly: bool = False,
+        # analyses modus, means that only the stockdata is loaded so it can be used for analyses.
+        analyeses_modus: bool = False,
+    ):
+        """
+        # stock ticer
+        stock_ticker       : str  = None,
 
-                 # stock ticer
-                 stock_ticker: str = None,
+        # fastload, for fasterloading
+        fast_load          : bool = False,
 
-                 # fastload, for fasterloading
-                 fast_load: bool = False,
+        # simplyfiedload, only load nessary data.
+        simplyfied_load    : bool = False,
 
-                 # simplyfiedload, only load nessary data.
-                 simplyfied_load: bool = True,
+        # converts stock data to weekly data, used for analyses. So they can easely been done.
+        periode_weekly     : bool = False,
 
-                 # converts stock data to weekly data, used for analyses. So they can easely been done.
-                 periode_weekly: bool = False,
-
-                 # analyses modus, means that only the stockdata is loaded so it can be used for analyses.
-                 analyeses_modus: bool = False):
-        """ 
-                 # stock ticer
-                 stock_ticker       : str  = None, 
-
-                 # fastload, for fasterloading
-                 fast_load          : bool = False, 
-
-                 # simplyfiedload, only load nessary data.
-                 simplyfied_load    : bool = False, 
-
-                 # converts stock data to weekly data, used for analyses. So they can easely been done.
-                 periode_weekly     : bool = False, 
-
-                 # analyses modus, means that only the stockdata is loaded so it can be used for analyses. 
-                 analyeses_modus    : bool = False):
+        # analyses modus, means that only the stockdata is loaded so it can be used for analyses.
+        analyeses_modus    : bool = False):
         """
 
         # print("Startup")
@@ -171,10 +174,12 @@ class power_stock_object:
         try:
 
             self.synch_object = synch_class.data_synch(
-                path=constants.CORE_DATA_____PATH, subfolder="stock_data",
+                path=constants.CORE_DATA_____PATH,
+                subfolder="stock_data",
                 ticker=stock_ticker,
                 data_extention="last_download_company_data_refresh",
-                raise_error_if_found=True)
+                raise_error_if_found=True,
+            )
 
         except FileNotFoundError:
 
@@ -184,16 +189,18 @@ class power_stock_object:
             # Check the directory name exist or not
             # if os.path.isdir(constants.DATA_STOCK_DATA_PATH) == False:
             # Create the directory
-           #     os.mkdir(constants.DATA_STOCK_DATA_PATH)
+            #     os.mkdir(constants.DATA_STOCK_DATA_PATH)
             # Print success message
-           #     print("The directory is created.")
+            #     print("The directory is created.")
 
             # step one, new synch object (Maar er wordt nu een error getrowd.)
             self.synch_object = synch_class.data_synch(
-                path=constants.CORE_DATA_____PATH, subfolder="stock_data",
+                path=constants.CORE_DATA_____PATH,
+                subfolder="stock_data",
                 ticker=stock_ticker,
                 data_extention="last_download_company_data_refresh",
-                raise_error_if_found=False)
+                raise_error_if_found=False,
+            )
 
             # set two,
             self.reset_stock_data_experiment()
@@ -209,7 +216,7 @@ class power_stock_object:
         self.load_stock_data()
         try:
 
-            if(self.stock_data == ''):
+            if self.stock_data == "":
 
                 self.reset_stock_data_experiment()
 
@@ -226,7 +233,11 @@ class power_stock_object:
         # Analyses modus, weekly
         #
         #
-        if analyeses_modus and periode_weekly and not self.synch_object.is_data_new:
+        if (
+            analyeses_modus
+            and periode_weekly
+            and not self.synch_object.is_data_new
+        ):
 
             #
             # load stock data
@@ -239,7 +250,11 @@ class power_stock_object:
         # FAST BOOT MODUS / fast_load
         #
         # if fastmodus is on than only load the stock_data.
-        elif fast_load != None and fast_load == True and self.synch_object.is_data_new != True:
+        elif (
+            fast_load != None
+            and fast_load == True
+            and self.synch_object.is_data_new != True
+        ):
 
             #
             # load stock.
@@ -252,7 +267,11 @@ class power_stock_object:
         # SYMPLIFIED BOOT / simplyfied_load
         #
         # there is an
-        elif simplyfied_load != None and simplyfied_load == True and self.synch_object.is_data_new != True:
+        elif (
+            simplyfied_load != None
+            and simplyfied_load == True
+            and self.synch_object.is_data_new != True
+        ):
 
             #
             # if the cursor gets here then we are quite sure that the data is boot modus is simplyfied.
@@ -265,7 +284,8 @@ class power_stock_object:
             # declare dataobject.
             # sets up the synch handler
             synch_handler = support_functions.handle_data_synch(
-                self.synch_object)
+                self.synch_object
+            )
 
             #
             # loads sector information
@@ -348,12 +368,12 @@ class power_stock_object:
 
     def __first_run(self):
         """
-        This big porpose of this class is that it saves all the retreived data for the first time. 
+        This big porpose of this class is that it saves all the retreived data for the first time.
 
         This is a function that's used if the class runs for the first time with this ticker
         - it sets the start date.
-        - it clears the log. 
-        - its good. 
+        - it clears the log.
+        - its good.
 
         Returns
         -------
@@ -365,7 +385,7 @@ class power_stock_object:
 
     def catch_error(self, data):
 
-        if(callable(data)):
+        if callable(data):
             print("Shooted the big error out of the sky.")
             self.__first_run()
             return
@@ -382,7 +402,8 @@ class power_stock_object:
 
         # dowload stockdata
         stock_dowload_object = old_supporting_functions.download_stock(
-            self.stock_ticker)
+            self.stock_ticker
+        )
 
         # Download stock.
         stock_dowload_object.dowloadStock()
@@ -392,15 +413,19 @@ class power_stock_object:
 
         # save the data.
         synch_handler.save_data_varible(
-            self.stock_data, "stock_timeserie_data")
+            self.stock_data, "stock_timeserie_data"
+        )
 
         # proveds the date. this is the last time that the object is used. After that it will be a ((cop))pie
         synch_handler.save_data_varible(
-            self.last_date_saved, "last_download_company_timeserie_data_refresh")
+            self.last_date_saved,
+            "last_download_company_timeserie_data_refresh",
+        )
 
         # proveds the date. this is the last time that the object is used. After that it will be a coppie
         synch_handler.save_data_varible(
-            self.last_date_saved, "last_download_company_data_refresh")
+            self.last_date_saved, "last_download_company_data_refresh"
+        )
 
         # this is not important but needed. otherwise progran is gonna cry.
         # company info
@@ -426,23 +451,25 @@ class power_stock_object:
         # dict with all the data.
         self.all_stock_data = "Unkown"
 
-        synch_handler.save_data_varible(
-            self.all_stock_data, "all_stock_data")
+        synch_handler.save_data_varible(self.all_stock_data, "all_stock_data")
 
         # starts saving the data
         synch_handler.save_data_varible(self.free_float, "Free_Float")
         synch_handler.save_data_varible(self.market_cap, "Market_cap")
-        synch_handler.save_data_varible(self.dividends, "Dividends",)
+        synch_handler.save_data_varible(
+            self.dividends,
+            "Dividends",
+        )
         synch_handler.save_data_varible(self.book_value, "Book_Value")
         synch_handler.save_data_varible(self.short_ratio, "Short_Ratio")
 
         #
         # the discounts
-        synch_handler.save_data_varible(
-            self.cash_per_share, "cash_per_share")
+        synch_handler.save_data_varible(self.cash_per_share, "cash_per_share")
         synch_handler.save_data_varible(self.future_fair, "future_fair")
         synch_handler.save_data_varible(
-            self.future_fair_discount, "future_fair_discount")
+            self.future_fair_discount, "future_fair_discount"
+        )
 
         #
         # fundamental details.
@@ -464,7 +491,7 @@ class power_stock_object:
 
     def load_new_stock_info_data(self):
         """
-        Loads the data. 
+        Loads the data.
 
         Returns
         -------
@@ -477,7 +504,7 @@ class power_stock_object:
 
         #
         # loads alll the data
-        #self.all_stock_data = synch_handler.load_data_varible("all_stock_data")
+        # self.all_stock_data = synch_handler.load_data_varible("all_stock_data")
 
         #
         # loads the sector that is retreived
@@ -487,7 +514,9 @@ class power_stock_object:
         self.market_cap = synch_handler.load_data_varible("Market_cap")
         #
         # loads the dividend
-        self.dividends = synch_handler.load_data_varible("Dividends",)
+        self.dividends = synch_handler.load_data_varible(
+            "Dividends",
+        )
         #
         # loads the bookvalue
         self.book_value = synch_handler.load_data_varible("Book_Value")
@@ -505,19 +534,22 @@ class power_stock_object:
         self.cash_per_share = synch_handler.load_data_varible("cash_per_share")
         #
         # loads cash per share.
-        self.future_fair_value_including_dividends = synch_handler.load_data_varible(
-            "future_fair")
+        self.future_fair_value_including_dividends = (
+            synch_handler.load_data_varible("future_fair")
+        )
         #
         # loads discount on fair.
         self.future_fair_discount = synch_handler.load_data_varible(
-            "future_fair_discount")
+            "future_fair_discount"
+        )
 
-    def load_stock_data(self,
-                        # is creaded so you can test the refresh methode
-                        ignore_last_refresh_date: bool = False,
-                        # is creaded for analyses modus, runs on the weekly
-                        load_data_for_weekly: bool = False
-                        ):
+    def load_stock_data(
+        self,
+        # is creaded so you can test the refresh methode
+        ignore_last_refresh_date: bool = False,
+        # is creaded for analyses modus, runs on the weekly
+        load_data_for_weekly: bool = False,
+    ):
 
         # short explenation
         # knows how to download stockdata.
@@ -531,11 +563,12 @@ class power_stock_object:
         # dowload the last date that the stockdata was downloaded.
         synch_handler = support_functions.handle_data_synch(self.synch_object)
 
-        #print("Synch handler 1",synch_handler.synch_object.Full__filename)
+        # print("Synch handler 1",synch_handler.synch_object.Full__filename)
         #
         # loads the last date
         last_stock_download = synch_handler.load_data_varible(
-            "last_download_company_timeserie_data_refresh")
+            "last_download_company_timeserie_data_refresh"
+        )
         #
         # retreives the last data
         date_support = support_functions.experation_manager()
@@ -543,41 +576,54 @@ class power_stock_object:
         # check the amount of dats
         amount_of_dates = date_support.days_between(last_stock_download)
 
-        #print("Synch handler 2",synch_handler.synch_object.Full__filename)
+        # print("Synch handler 2",synch_handler.synch_object.Full__filename)
         # print(self.synch_object.Full__filename)
         #
         #
 
         #
         # loads stock and converts it to weekly data.
-        if load_data_for_weekly and not date_support.return_true_if_weekly_expired(last_stock_download):
+        if (
+            load_data_for_weekly
+            and not date_support.return_true_if_weekly_expired(
+                last_stock_download
+            )
+        ):
 
             self.stock_data = synch_handler.load_data_varible(
-                "stock_timeserie_data")
+                "stock_timeserie_data"
+            )
 
             try:
 
                 if not isinstance(self.stock_data, pd.core.frame.DataFrame):
 
                     raise Exception(
-                        "Error, booted synch object is not equal pandas dataframe type", "powerstockobject, ")
+                        "Error, booted synch object is not equal pandas dataframe type",
+                        "powerstockobject, ",
+                    )
 
-                elif ['Date',
-                      'Open',
-                      'High',
-                      'Low',
-                      'Close',
-                      'Adj Close',
-                      'Volume',
-                      'Change'] != list(self.stock_data.columns):
+                elif [
+                    "Date",
+                    "Open",
+                    "High",
+                    "Low",
+                    "Close",
+                    "Adj Close",
+                    "Volume",
+                    "Change",
+                ] != list(self.stock_data.columns):
 
                     raise Exception(
-                        "Error, booted synch object is not matching column names", "powerstockobject, ")
+                        "Error, booted synch object is not matching column names",
+                        "powerstockobject, ",
+                    )
 
                 else:
 
                     convertion_object = support_functions.time_conversion(
-                        stock_data=self.stock_data)
+                        stock_data=self.stock_data
+                    )
                     self.stock_data = convertion_object.weekly_stock_data
 
                     self.catch_error(self.stock_data)
@@ -591,11 +637,12 @@ class power_stock_object:
         # if the date is not equal to 0, it means that the data is expired. Even in the weekends or in holydays.
         if amount_of_dates != 0 or ignore_last_refresh_date == True:
 
-            #print("Stock data is loaded")
+            # print("Stock data is loaded")
             #
             # sets up a stock download object
             stock_dowload_object = old_supporting_functions.download_stock(
-                self.stock_ticker)
+                self.stock_ticker
+            )
             #
             # Download stock.
             stock_dowload_object.dowloadStock()
@@ -607,19 +654,22 @@ class power_stock_object:
             #
             # orgainzes a sycnh handler
             synch_handler.save_data_varible(
-                self.stock_data, "stock_timeserie_data")
+                self.stock_data, "stock_timeserie_data"
+            )
             #
             # retrieves the current date
             current_date = date_support.return_last_date_object()
             #
             # pushes the last date of the download that has taking place.
             synch_handler.save_data_varible(
-                current_date, "last_download_company_timeserie_data_refresh")
+                current_date, "last_download_company_timeserie_data_refresh"
+            )
 
             if load_data_for_weekly:
 
                 convertion_object = support_functions.time_conversion(
-                    stock_data=self.stock_data)
+                    stock_data=self.stock_data
+                )
                 self.stock_data = convertion_object.weekly_stock_data
 
         # if there is no experation, just download the stock.
@@ -628,12 +678,13 @@ class power_stock_object:
             #
             # loads the stocks
             self.stock_data = synch_handler.load_data_varible(
-                "stock_timeserie_data")
+                "stock_timeserie_data"
+            )
             return
 
     def load_anlyses_first_time(self):
         """
-        Loads the Analyses for the first time. 
+        Loads the Analyses for the first time.
 
         Returns
         -------
@@ -665,7 +716,8 @@ class power_stock_object:
 
         # declare dataobject.
         self.data_object = support_functions.load_company_data_yahoo(
-            self.stock_ticker)
+            self.stock_ticker
+        )
 
         # declare datasynch object.
         synch_handler = support_functions.handle_data_synch(self.synch_object)
@@ -701,7 +753,9 @@ class power_stock_object:
             #
             # discount calculations
             self.cash_per_share = self.data_object.cash_per_share
-            self.future_fair = self.data_object.future_fair_value_including_dividends
+            self.future_fair = (
+                self.data_object.future_fair_value_including_dividends
+            )
             self.future_fair_discount = self.data_object.future_price_discount
 
             #
@@ -715,7 +769,8 @@ class power_stock_object:
             self.synch_object.new_data
 
             synch_handler.save_data_varible(
-                self.all_stock_data, "all_stock_data")
+                self.all_stock_data, "all_stock_data"
+            )
 
             if 0 == 0:
                 pass
@@ -723,17 +778,22 @@ class power_stock_object:
             # starts saving the data
             synch_handler.save_data_varible(self.free_float, "Free_Float")
             synch_handler.save_data_varible(self.market_cap, "Market_cap")
-            synch_handler.save_data_varible(self.dividends, "Dividends",)
+            synch_handler.save_data_varible(
+                self.dividends,
+                "Dividends",
+            )
             synch_handler.save_data_varible(self.book_value, "Book_Value")
             synch_handler.save_data_varible(self.short_ratio, "Short_Ratio")
 
             #
             # the discounts
             synch_handler.save_data_varible(
-                self.cash_per_share, "cash_per_share")
+                self.cash_per_share, "cash_per_share"
+            )
             synch_handler.save_data_varible(self.future_fair, "future_fair")
             synch_handler.save_data_varible(
-                self.future_fair_discount, "future_fair_discount")
+                self.future_fair_discount, "future_fair_discount"
+            )
 
             #
             # fundamental details.
@@ -748,7 +808,8 @@ class power_stock_object:
 
             # dowload stockdata
             stock_dowload_object = old_supporting_functions.download_stock(
-                self.company_ticker)
+                self.company_ticker
+            )
 
             # Download stock.
             stock_dowload_object.dowloadStock()
@@ -758,22 +819,30 @@ class power_stock_object:
 
             # save the data.
             synch_handler.save_data_varible(
-                self.stock_data, "stock_timeserie_data")
+                self.stock_data, "stock_timeserie_data"
+            )
 
             # proveds the date. this is the last time that the object is used. After that it will be a ((cop))pie
             synch_handler.save_data_varible(
-                self.last_date_saved, "last_download_company_timeserie_data_refresh")
+                self.last_date_saved,
+                "last_download_company_timeserie_data_refresh",
+            )
 
             # proveds the date. this is the last time that the object is used. After that it will be a coppie
             synch_handler.save_data_varible(
-                self.last_date_saved, "last_download_company_data_refresh")
+                self.last_date_saved, "last_download_company_data_refresh"
+            )
 
             if 0 == 0:
                 pass
 
             # report to logbook
-            text_for_logbook = "Ticker = " + self.stock_ticker + \
-                " started up at : " + self.last_date_saved
+            text_for_logbook = (
+                "Ticker = "
+                + self.stock_ticker
+                + " started up at : "
+                + self.last_date_saved
+            )
             self.report_to_the_logbook(text=text_for_logbook)
 
             # checks if there is an error saving the data.
@@ -823,7 +892,8 @@ class power_stock_object:
         #
         # creates data convertion object.
         data_convertion_object = support_functions.time_conversion(
-            stock_data=self.stock_data)
+            stock_data=self.stock_data
+        )
 
         #
         # creates loop that loops true the converted data.
@@ -831,18 +901,19 @@ class power_stock_object:
 
             #
             # selectes the data in the converted object.
-            data_for_analyeses = data_convertion_object.time_frames[list(
-                data_convertion_object.time_frames.keys())[i]]
+            data_for_analyeses = data_convertion_object.time_frames[
+                list(data_convertion_object.time_frames.keys())[i]
+            ]
 
             #
             # creates the main object analyeses object, this one is used to load the analyeses.
-            main_object = stock_analyses.main_analyeses(stock_ticker=self.stock_ticker,
-                                                        stock_data=data_for_analyeses,
-                                                        synchronize=False,
-                                                        tailing_data=True,
-                                                        timeframe=list(
-                                                            data_convertion_object.time_frames.keys())[i]
-                                                        )
+            main_object = stock_analyses.main_analyeses(
+                stock_ticker=self.stock_ticker,
+                stock_data=data_for_analyeses,
+                synchronize=False,
+                tailing_data=True,
+                timeframe=list(data_convertion_object.time_frames.keys())[i],
+            )
 
             #
             # loads the name of the object analyeses
@@ -869,16 +940,22 @@ class power_stock_object:
                 #
                 # selects the timeframe name
                 timeframe_of_analyses = list(
-                    data_convertion_object.time_frames.keys())[i]
+                    data_convertion_object.time_frames.keys()
+                )[i]
                 #
                 #
-                extention_of_dict = name_of_analyses + "_" + timeframe_of_analyses
+                extention_of_dict = (
+                    name_of_analyses + "_" + timeframe_of_analyses
+                )
                 ##
 
                 #
                 # loads old analyses.
                 synch_object = synch_class.data_synch(
-                    subfolder="Data_Folder", ticker=self.stock_ticker, data_extention=extention_of_dict)
+                    subfolder="Data_Folder",
+                    ticker=self.stock_ticker,
+                    data_extention=extention_of_dict,
+                )
                 #
                 # turns on if class is not intalized before so everthing needs to be prepaired and saved.
                 if synch_object.is_data_new == True:
@@ -908,26 +985,28 @@ class power_stock_object:
                         new_score = new_analyses[self.analyses_selected[y]]
 
                         # trigger is hit
-                        if new_score != old_score or full_test_function == True:
+                        if (
+                            new_score != old_score
+                            or full_test_function == True
+                        ):
 
                             # generate twitter text
-                            text_generator = stock_analyses.twitter_text_generator(name_of_analyeses=analyses[x],
-
-                                                                                   # this is the ticker name.
-                                                                                   ticker_name=self.stock_ticker,
-                                                                                   # this is the new recoomandtion
-                                                                                   new_recommendation=new_score,
-                                                                                   # this is the old recommendation
-                                                                                   old_recommendation=old_score,
-                                                                                   # this input is for example: News, opionus
-                                                                                   text_input=None,
-                                                                                   # this is the time frame : Weekly/daily/monthly
-                                                                                   time_frame=list(
-                                                                                       data_convertion_object.time_frames.keys())[i],
-                                                                                   occation="CHANGE_PROFILE",         # this is the occation
-
-
-                                                                                   )
+                            text_generator = stock_analyses.twitter_text_generator(
+                                name_of_analyeses=analyses[x],
+                                # this is the ticker name.
+                                ticker_name=self.stock_ticker,
+                                # this is the new recoomandtion
+                                new_recommendation=new_score,
+                                # this is the old recommendation
+                                old_recommendation=old_score,
+                                # this input is for example: News, opionus
+                                text_input=None,
+                                # this is the time frame : Weekly/daily/monthly
+                                time_frame=list(
+                                    data_convertion_object.time_frames.keys()
+                                )[i],
+                                occation="CHANGE_PROFILE",  # this is the occation
+                            )
 
                             print(y)
                             print("\n\n The twitter text is generated man")
@@ -935,28 +1014,31 @@ class power_stock_object:
                             text_generator.construct_analyses_texts()
                             twitter_text = text_generator.twitter_text_full
                             print(
-                                "\n\n The twitter text is already generated man and isfinished")
+                                "\n\n The twitter text is already generated man and isfinished"
+                            )
 
                             print("// NU zijn we hier")
 
                             # load picture of plot
                             twitter_plot = stock_analyses.plot_generator(
-
-                                data=None,             # data of the analyeses
-
-                                analyeses_dictionary=new_analyses,   # analyeses data
+                                data=None,  # data of the analyeses
+                                analyeses_dictionary=new_analyses,  # analyeses data
                                 # name of analyes
                                 name_of_analyeses=analyses[x],
-                                ticker_name=self.stock_ticker,            # ticker name
-                                timeframe=list(data_convertion_object.time_frames.keys())[
-                                    i],              # quite unimportantand
-                                name_of_data=None,           # tile of the data
+                                ticker_name=self.stock_ticker,  # ticker name
+                                timeframe=list(
+                                    data_convertion_object.time_frames.keys()
+                                )[
+                                    i
+                                ],  # quite unimportantand
+                                name_of_data=None,  # tile of the data
                                 type_of_data=None,
-
                             )
 
                             # retreives the path for the picture
-                            path_picture = twitter_plot.generate_change_profile_plot()
+                            path_picture = (
+                                twitter_plot.generate_change_profile_plot()
+                            )
 
                             # create twitter object.
 
@@ -964,7 +1046,8 @@ class power_stock_object:
 
                             # send tweet
                             twitter_object.post_tweet(
-                                twitter_text, path_picture)
+                                twitter_text, path_picture
+                            )
 
                             # You need to change that if the analyses is used the twitter module changes adds
                             # the name of the analyses in class, so you can used that for your title.
