@@ -10,7 +10,7 @@ import stock_analyses_with_ticker_main as stock_analyses_with_ticker
 from core_scripts.stock_data_download import power_stock_object as stock_object
 from core_update.update_analyses import update_support
 from datetime import datetime, timedelta
-
+from multiprocessing import Process
 import time
 import numpy as np
 import pandas as pd
@@ -291,6 +291,50 @@ class update_kaufman_support(object):
 
         """
 
+        logger.info(f"updateing full analyses {ticker}")
+        power_object = stock_object.power_stock_object(
+            stock_ticker=ticker,
+            simplyfied_load=True,
+            periode_weekly=False,
+        )
+
+        model = update_kaufman_support.return_full_analyses_dict(
+            stock_data=power_object.stock_data,
+            ticker_name=power_object.stock_ticker,
+            max_levels=10,
+            periode="D",
+        )
+
+        database_querys.database_querys.update_analyses_trend_kamal(model)
+
+        archive_data = update_archive_kaufmal(
+            stock_data=power_object.stock_data,
+            periode="D",
+            min_range=30,
+            ticker=ticker,
+        )
+
+        performance_specs = update_trend_performance(ticker, "D")
+
+        logger.info(f"Finished update {ticker}")
+        return True
+
+    def update_full_with_ticker(ticker: str):
+        """
+        Updates full analyses with ticker.
+
+        Parameters
+        ----------
+        ticker : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        bool
+            DESCRIPTION.
+
+        """
+
         logger.info(f"updateing archive {ticker}")
         power_object = stock_object.power_stock_object(
             stock_ticker=ticker,
@@ -309,7 +353,78 @@ class update_kaufman_support(object):
 
         return True
 
-    @staticmethod
+    def update_all_tickers():
+        """
+        Updated all tickers.
+
+        Returns
+        -------
+        None.
+
+        """
+        tickers = database_querys.database_querys.get_all_active_tickers()
+        for ticker in tickers:
+
+            try:
+                logger.info(f"updateing archive {ticker}")
+                initalizer_ticker = initiaze_singel_ticker(ticker)
+
+                if not database_querys.database_querys.check_if_ticker_is_allowd(
+                    ticker_name=ticker
+                ):
+                    continue
+
+                power_object = stock_object.power_stock_object(
+                    stock_ticker=ticker,
+                    simplyfied_load=True,
+                    periode_weekly=False,
+                )
+            except:
+                continue
+
+    def update_all_analyse_multi(amount_per_thread: int = 5):
+
+        # ignore error
+        np.seterr(divide="ignore", invalid="ignore")
+
+        # get tickers
+        tickers = database_querys.database_querys.get_all_active_tickers()
+
+        update_function = (
+            update_kaufman_support.update_all_analyses_with_ticker
+        )
+
+        update_tickers = tickers.copy()
+        up_t = []
+        threads = []
+        while True:
+            try:
+                for i in range(amount_per_thread):
+                    item = update_tickers.pop()
+                    up_t.append(item)
+
+            except IndexError:
+                break
+
+            # start each thread with the function and its argument
+            for ticker in up_t:
+                print(f"{ticker} is updating")
+                p = Process(target=update_function, args=(ticker,))
+                p.start()
+                threads.append(p)
+
+            # wait for all threads to finish
+            for p in threads:
+                p.join()
+                print("Thread has joined")
+
+            threads = []
+            up_t = []
+
+            time.sleep(1)  # wait for 60 seconds before running again
+
+        return
+
     def return_full_analyses_dict(
         stock_data,
         ticker_name: str = "",
@@ -585,6 +700,31 @@ class update_kaufman_support(object):
                 return round(float(Max_Daily_Drawdown.min() * 100), 3)
             else:
                 return Max_Daily_Drawdown
+
+    @staticmethod
+    def sleep_until_time(target_hour, target_minute, target_second):
+        current_time = datetime.datetime.now().time()
+        target_time = datetime.time(target_hour, target_minute, target_second)
+
+        current_datetime = datetime.datetime.combine(
+            datetime.date.today(), current_time
+        )
+        target_datetime = datetime.datetime.combine(
+            datetime.date.today(), target_time
+        )
+
+        if current_datetime < target_datetime:
+            sleep_duration = target_datetime - current_datetime
+            sleep_seconds = sleep_duration.total_seconds()
+
+            hours = int(sleep_seconds // 3600)
+            minutes = int((sleep_seconds % 3600) // 60)
+            seconds = int(sleep_seconds % 60)
+
+            print(
+                f"Sleeping for {hours} hours, {minutes} minutes, and {seconds} seconds."
+            )
+            time.sleep(sleep_seconds)
 
     @staticmethod
     def return_profiles_data(
@@ -884,8 +1024,8 @@ class update_archive_kaufmal:
                 old_model = self.get_last_model(ticker=ticker, periode=periode)
 
                 if self.check_if_need_overwrite(old_model, model):
-                    # delete old model.
 
+                    # delete old model.
                     database_querys.database_querys.update_analyses_trend_kamal_archive(
                         model
                     )
@@ -901,7 +1041,9 @@ class update_archive_kaufmal:
                 model
             )
 
+            # here
             if report["status"] == "EXISTS":
+
                 break
 
             # print(self.__dict__)
@@ -2518,7 +2660,7 @@ if __name__ == "__main__":
 
 
         print("END")
-        """
+
 
         # tickers = ['ABM', 'PYCR', 'MBINP', 'TWIN', 'IDA', 'ICD', 'OHI', 'ADC', 'ALX', 'ESNT', 'ABNB', 'CWH', 'UTSI', 'QLYS', 'SEIC', 'VLYPP', 'VRAR', 'SNPS', 'AGTI', 'RYAN', 'HEQ', 'DSGN', 'MCHP', 'CNM', 'CD']
         # ding_ = create_correlation_matrix(tickers)
@@ -2548,6 +2690,8 @@ if __name__ == "__main__":
         report = trend_fast_archive_update(model, power_object.stock_data)
 
         database_querys.database_querys.update_analyses_trend_kamal(model)
+        """
+        update_kaufman_support.update_all_analyse_multi()
 
     except Exception as e:
 
