@@ -972,11 +972,15 @@ class add_kko_portfolio:
 
     model = None
 
-    def __init__(self, portfolio):
+    def __init__(self, portfolio=None, portfolio_id=None):
 
         model = kko_strat_model()
+
         # create an UUID,
-        model.portfolio_id = str(uuid.uuid1())
+        if portfolio_id is None:
+            model.portfolio_id = str(uuid.uuid1())
+        else:
+            model.portfolio_id = portfolio_id
 
         model.portfolio_strategy = "TREND_STRAT_KKO_HS"
         # create amount
@@ -1035,10 +1039,6 @@ class add_kko_portfolio:
         model.createdAt = d1
 
         database_querys.database_querys.update_portfolio(model)
-
-        database_querys.database_querys.add_portfolio_to_archive(
-            model.portfolio_id
-        )
 
         return
 
@@ -1395,9 +1395,25 @@ class kko_portfolio_update_manager:
 
     kill_switch: bool = False
 
-    def __init__(self):
+    def __init__(self, startup_is_allowd: bool = True):
+        """
 
-        self.startup_new()
+        If you want you can block the startup with startup is allowd true.
+
+        Parameters
+        ----------
+        startup_is_allowd : bool, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
+        if startup_is_allowd:
+            self.startup_new()
+        else:
+            return
 
     def startup_new(self):
         """
@@ -2021,6 +2037,9 @@ class kko_portfolio_update_manager:
         # while killswitch is off: run for ever.
         while not self.kill_switch:
 
+            # sleep if there are troubles
+            self.sleep_between_hours(16, 9)
+
             # add itteration
             itterations_count.append(1)
 
@@ -2367,6 +2386,39 @@ class kko_portfolio_update_manager:
 
         return (height_amount, height_sharpr)
 
+    def sleep_between_hours(self, start_hour, stop_hour):
+        """
+        Sleep between certain hours.
+
+        Parameters
+        ----------
+        start_hour : TYPE
+            DESCRIPTION.
+        stop_hour : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        current_hour = time.localtime().tm_hour
+
+        current_hour = time.localtime().tm_hour
+
+        if start_hour <= current_hour < 24 or 0 <= current_hour < stop_hour:
+            # Sleep until the stop hour is reached
+            if start_hour <= current_hour < 24:
+                sleep_duration = (24 - current_hour + stop_hour) * 3600
+            else:
+                sleep_duration = (stop_hour - current_hour) * 3600
+
+            print(f"Sleeping for {sleep_duration} seconds")
+            time.sleep(sleep_duration)
+            print(f"Slept for {sleep_duration} seconds")
+        else:
+            print("Current hour is outside the specified range.")
+
     def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
         """
         destroys thread after certain time so that the system can reset.
@@ -2452,6 +2504,33 @@ class kko_portfolio_update_manager:
 
             database_querys.database_querys.delete_portfolio_with_id(i)
             print("deleted portfolio : ", i)
+
+    def check_portfolio_allowed(data):
+
+        # Remove NA's
+        data = data.tail(len(data) - 1)
+
+        # check if is contains error's
+        if data.isna().values.any():
+
+            # amount of signals
+            amount_of_nas = data.isna().sum().sum()
+            amount_of_values = data.count().sum()
+
+            # if error rate is higher then 1%, let it go.
+            if amount_of_nas / amount_of_values > 0.01:
+                return False
+
+        # creates portfolio
+        try:
+            portfolio = portfolio_constructor_manager(data)
+        except:
+            return False
+
+        if portfolio.error == True:
+            return False
+
+        return True
 
 
 class kk_manager(object):
