@@ -1193,6 +1193,17 @@ class create_kko_tickers_selection:
             # df = df.head(25)
             #
             tickers_for_portfolio = list(df.id.values)
+            banded_tickers = []
+            # check if all tickers are allowed.
+            for ticker in tickers_for_portfolio:
+                if not database_querys.database_querys.check_if_ticker_is_allowd(
+                    ticker_name=ticker,
+                    exclude_blacklisted=True,
+                    excluded_non_safe=True,
+                    excluded_own_recomanded=True,
+                ):
+                    tickers_for_portfolio.remove(ticker)
+                    banded_tickers.append(ticker)
 
             self.selected_tickers = tickers_for_portfolio
             return
@@ -1976,7 +1987,7 @@ class kko_portfolio_update_manager:
         thread_name="thread 1 ",
         amount_per_portfolio: int = 5,
         amount_if_itterations_before_next_step=10000,
-        max_amount_per_portfolio=50,
+        max_amount_per_portfolio=25,
         minimum_sharp_last=0,
     ):
         """
@@ -2015,6 +2026,8 @@ class kko_portfolio_update_manager:
 
 
         """
+        # get start date
+        initial_date = start_incomming_amount = datetime.datetime.now().date()
 
         amount_per_portfolio = amount_per_portfolio
 
@@ -2040,6 +2053,9 @@ class kko_portfolio_update_manager:
             # sleep if there are troubles
             self.sleep_between_hours(16, 9)
 
+            if self.check_days_passed(initial_date, 7):
+                break
+
             # add itteration
             itterations_count.append(1)
 
@@ -2049,6 +2065,12 @@ class kko_portfolio_update_manager:
                 itterations_count = []
                 sharp_ratios = []
                 amount_per_portfolio += 1
+
+                if amount_per_portfolio > 10:
+                    amount_per_portfolio += 4
+
+                if amount_per_portfolio > max_amount_per_portfolio:
+                    amount_per_portfolio = start_amount
 
                 if amount_per_portfolio > max_amount_per_portfolio:
                     break
@@ -2377,6 +2399,12 @@ class kko_portfolio_update_manager:
         if portfolios.empty:
             return (5, 0)
 
+        height_sharpr = portfolios.total_sharp_y2.tail(1).to_list()[0]
+        height_amount = portfolios.portfolio_amount.tail(1).to_list()[0]
+
+        return (height_amount, height_sharpr)
+        """
+        # this below is old code.
         high_amount = portfolios.sort_values(
             ["portfolio_amount", "total_sharp_y2"], ascending=False
         )
@@ -2385,10 +2413,39 @@ class kko_portfolio_update_manager:
         height_amount = high_amount.portfolio_amount.to_list()[0]
 
         return (height_amount, height_sharpr)
+        """
+
+    def check_days_passed(self, initial_date, num_days):
+        """
+        Checks howmany days are passed, this is the example code.
+        # Example usage
+        initial_date = datetime.datetime.now().date()  # Get the initial date
+        num_days = int(input("Enter the number of days: "))
+        result = check_days_passed(initial_date, num_days)
+        print(result)
+
+        Parameters
+        ----------
+        initial_date : TYPE
+            DESCRIPTION.
+        num_days : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        bool
+            DESCRIPTION.
+
+        """
+        current_date = datetime.datetime.now().date()
+        if (current_date - initial_date).days >= num_days:
+            return True
+        else:
+            return False
 
     def sleep_between_hours(self, start_hour, stop_hour):
         """
-        Sleep between certain hours.
+        Sleeps between hours. and not on weekend days.
 
         Parameters
         ----------
@@ -2403,21 +2460,31 @@ class kko_portfolio_update_manager:
 
         """
         current_hour = time.localtime().tm_hour
+        current_weekday = time.localtime().tm_wday
 
-        current_hour = time.localtime().tm_hour
+        if current_weekday >= 5:  # 5 represents Saturday, 6 represents Sunday
+            return
 
-        if start_hour <= current_hour < 24 or 0 <= current_hour < stop_hour:
-            # Sleep until the stop hour is reached
-            if start_hour <= current_hour < 24:
-                sleep_duration = (24 - current_hour + stop_hour) * 3600
-            else:
+        if start_hour <= stop_hour:
+            if start_hour <= current_hour < stop_hour:
                 sleep_duration = (stop_hour - current_hour) * 3600
-
-            print(f"Sleeping for {sleep_duration} seconds")
-            time.sleep(sleep_duration)
-            print(f"Slept for {sleep_duration} seconds")
+                print(f"Sleeping for {sleep_duration} seconds")
+                time.sleep(sleep_duration)
+                print(f"Slept for {sleep_duration} seconds")
+            else:
+                print("Current hour is outside the specified range.")
         else:
-            print("Current hour is outside the specified range.")
+            if start_hour <= current_hour or current_hour < stop_hour:
+                if start_hour <= current_hour:
+                    sleep_duration = (24 - current_hour + stop_hour) * 3600
+                else:
+                    sleep_duration = (stop_hour - current_hour) * 3600
+
+                print(f"Sleeping for {sleep_duration} seconds")
+                time.sleep(sleep_duration)
+                print(f"Slept for {sleep_duration} seconds")
+            else:
+                print("Current hour is outside the specified range.")
 
     def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
         """
