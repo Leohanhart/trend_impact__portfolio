@@ -62,6 +62,7 @@ from loguru import logger
 import multiprocessing
 import datetime
 import initalization_file
+import initializer_tickers_main
 
 
 class update_data:
@@ -79,7 +80,10 @@ class update_data:
     def pre_startup(self):
 
         # update archive
-        initalization_file.add_data_to_archive()
+        first_run = initalization_file.add_data_to_archive()
+
+        if first_run:
+            init = initializer_tickers_main.initiaze_tickers()
 
         # get tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
