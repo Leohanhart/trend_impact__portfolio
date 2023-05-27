@@ -12,6 +12,7 @@ IMPORTANT NOTES:
 
 import database_querys_main
 import json
+import uuid
 from core_scripts.stock_data_download import power_stock_object
 import update_portfolios_trend_strat
 import datetime
@@ -21,6 +22,7 @@ import pandas
 import numpy as np
 import pandas as pd
 import initializer_tickers_main
+from multiprocessing import Process
 
 
 class return_trend_analyses(object):
@@ -206,9 +208,7 @@ class return_trend_analyses(object):
 
     def get_sector_analyses():
 
-        data = database_querys_main.database_querys.get_user_trade(
-            uuid_portfolio
-        )
+        data = database_querys_main.database_querys.get_sector_trends()
 
 
 class trend_analyse_support(object):
@@ -383,6 +383,50 @@ class return_portfolios_options(object):
         data = analyses_support().package_data(data)
 
         return data
+
+    @staticmethod
+    def add_trading_portfolio_manual(tickers_: list):
+        """
+        Adds a portfolio
+
+        Parameters
+        ----------
+        tickers_ : list
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        id_out = str(uuid.uuid1())
+
+        # check if tickers are allowd.
+        for ticker in tickers_:
+            try:
+                # use tool to check if there is something wrong.
+                if (
+                    database_querys_main.database_querys.check_if_ticker_is_allowd(
+                        ticker_name=ticker
+                    )
+                    == False
+                ):
+                    print("now alllowd {ticker}")
+                    return (
+                        f"Ticker {ticker} not allowd, exsitsing or blacklisted"
+                    )
+            except:
+                return 500
+
+        p = Process(
+            target=portfolio_support.add_portfolio_with_tickers,
+            args=(tickers_, id_out),
+        )
+        p.daemon = True
+        p.start()
+
+        return id_out
 
     @staticmethod
     def add_trading_portfolio(id_: str):
@@ -583,6 +627,57 @@ class return_trend_trade_options(object):
 
 
 class portfolio_support(object):
+    @staticmethod
+    def add_portfolio_with_tickers(tickers_: list, portfolio_id: str):
+        """
+        This is the
+
+        Parameters
+        ----------
+        tickers_ : list
+            DESCRIPTION.
+        portfolio_id : str
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        print("this is in thread")
+        # create portfolio manager
+        portfolio_manager = (
+            update_portfolios_trend_strat.kko_portfolio_update_manager(
+                startup_is_allowd=False
+            )
+        )
+
+        # create needed data, we need that to create a portfolio.
+        data_for_portfolio = portfolio_manager.create_data_of_tickers(tickers_)
+
+        data = data_for_portfolio
+
+        #
+        data_for_final_portfolio = (
+            portfolio_manager.create_data_frame_of_tickers(tickers_, data)
+        )
+
+        # create portfolio
+        portfolio = (
+            update_portfolios_trend_strat.portfolio_constructor_manager(
+                data=data_for_final_portfolio
+            )
+        )
+        # add portfolio
+        update_portfolios_trend_strat.add_kko_portfolio(
+            portfolio, portfolio_id
+        )
+        database_querys_main.database_querys.subscribe_trading_portfolio(
+            portfolio_id
+        )
+        print("thread finished")
+        return
+
     @staticmethod
     def check_portfolio_id_is_avible(id_: str):
         """
@@ -894,7 +989,10 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_trend_analyses.get_trend_analyses_trades("AAPL")
+        x = return_portfolios_options.add_trading_portfolio_manual(
+            ["XLK", "AAPL", "AAL"]
+        )
+        print(x)
     except Exception as e:
 
         print(e)
