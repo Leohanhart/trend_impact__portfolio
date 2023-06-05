@@ -117,6 +117,36 @@ class database_querys:
 
             return True
 
+    def update_ticker(
+        ticker_name: str = "",
+        apply_to_blacklist: bool = False,
+        remove_from_blacklist: bool = False,
+        apply_to_safe: bool = False,
+        remove_from_safe: bool = False,
+    ):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            data = session.query(Ticker).get(ticker_name)
+
+            if apply_to_blacklist:
+                data.blacklist = True
+            elif remove_from_blacklist:
+                data.blacklist = False
+            elif apply_to_safe:
+                data.safe = True
+            elif remove_from_safe:
+                data.safe = False
+
+            session.commit()
+
+            session.close()
+        return
+
     def get_trend_archive_with_tickers_and_date(
         tickers: list = [], year: int = 0, month: int = 0, date: int = 0
     ):
