@@ -16,6 +16,11 @@ import atexit
 import multiprocessing
 import yfinance as yf
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+
 
 class update_trend_timeseries:
     @staticmethod
@@ -1081,12 +1086,171 @@ class extent_trend_support:
             return False
 
 
+class overall_trend_analyses:
+    def __init__(self):
+
+        # load all sectors
+        self.sectors = database_querys.database_querys.get_all_active_sectors()
+
+        data = df = self.create_trend_dataframe()
+
+        x = self.create_model("ALL", "ALLPTG", data)
+
+    def create_trend_dataframe(self):
+
+        frame = None
+        ts_all = self.retreive_trend_timeserie("ALL")
+
+        ts_all.set_index("date", inplace=True)
+
+        ts_all.rename(columns={"trend": "ALL"}, inplace=True)
+
+        ts_data = ts_all[["ALL"]]
+
+        main_frame = ts_data
+
+        for i in self.sectors:
+
+            ts_all = self.retreive_trend_timeserie(i)
+
+            ts_all.set_index("date", inplace=True)
+
+            ts_all.rename(columns={"trend": i}, inplace=True)
+
+            ts_data = ts_all[[i]]
+
+            main_frame = pd.merge(
+                main_frame, ts_data, left_index=True, right_index=True
+            )
+
+        return main_frame
+
+    def create_model(
+        self, name: str = "ALL", name_mode_for_save: str = "test", df=None
+    ):
+        # Separate the features and target variable
+        features = df.drop(columns=["ALL"])
+        target = df["ALL"]
+        """
+        # Convert the features and target to numpy arrays
+        X = features.values
+        y = target.values
+
+        X_tensor_5 = torch.Tensor(y)
+
+        # Convert the numpy arrays to PyTorch tensors
+        X_tensor = torch.Tensor(X)
+        y_tensor = torch.Tensor(y)
+
+        # Define the train-test split ratio (e.g., 80% train, 20% test)
+        train_ratio = 0.8
+
+        # Calculate the number of samples for the training set
+        train_samples = int(train_ratio * len(X))
+
+        # Split the data into training and testing sets
+        X_train, y_train = X_tensor[:train_samples], y_tensor[:train_samples]
+        X_test, y_test = X_tensor[train_samples:], y_tensor[train_samples:]
+
+        class ComplexTimeSeriesModel(nn.Module):
+            def __init__(self, input_size, hidden_size, output_size):
+                super(ComplexTimeSeriesModel, self).__init__()
+
+                self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+                self.fc = nn.Linear(
+                    hidden_size, output_size
+                )  # Adjust the output size
+
+            def forward(self, x):
+                _, (hidden, _) = self.lstm(x)
+                output = self.fc(hidden[-1])
+                return output
+
+        # Example usage
+        input_size = 16  # Number of input features
+        hidden_size = 64  # Number of hidden units in the LSTM layer
+        output_size = 1  # Number of output units
+
+        model = ComplexTimeSeriesModel(input_size, hidden_size, output_size)
+
+        # Print the model architecture
+        print(model)
+
+        # Define the loss function
+        criterion = nn.MSELoss()
+
+        # Define the optimizer
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+        # Train the model
+        num_epochs = 50
+        batch_size = 32
+        num_batches = len(X_train) // batch_size
+
+        for epoch in range(num_epochs):
+            epoch_loss = 0.0
+
+            # Mini-batch training
+            for i in range(num_batches):
+                start = i * batch_size
+                end = (i + 1) * batch_size
+
+                # Forward pass
+                outputs = model(X_train[start:end])
+                loss = criterion(outputs, y_train[start:end].unsqueeze(1))
+
+                # Backward pass and optimization
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                epoch_loss += loss.item()
+
+            # Print average loss for the epoch
+            print(
+                f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss / num_batches:.4f}"
+            )
+
+        # Evaluate the model on the testing set
+        with torch.no_grad():
+            y_pred = model(X_tensor)
+            mse = criterion(y_pred, y_test.unsqueeze(1))
+            rmse = torch.sqrt(mse)
+            forecast = model(X_tensor_5)
+
+        # Convert the forecast tensor to a NumPy array
+        forecast = forecast.numpy().flatten()
+        # Extract the next 5 points from the forecast
+        next_5_points = forecast[:5]
+        print("Next 5 points:", next_5_points, len(forecast))
+
+        last_5_values = forecast[-5:]
+        print("Last 5 values:", last_5_values)
+        # Print the forecast
+        print(forecast)
+
+        print("Mean Squared Error:", mse.item())
+        print("Root Mean Squared Error:", rmse.item())
+        """
+
+    def retreive_trend_timeserie(self, name: str):
+        try:
+            df = database_querys.database_querys.get_trend_timeseries_data(
+                name
+            )
+
+        except UnboundLocalError:
+            print("troubles")
+
+        return df
+
+
 atexit.register(get_trend_ts_support.cleanup)
 
 if __name__ == "__main__":
     try:
         # x = update_trend_timeseries.update()
-        x = extent_trend_analsyes()
+        x = overall_trend_analyses()
 
     except Exception as e:
         raise Exception("Error with tickers", e)
