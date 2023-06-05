@@ -39,11 +39,14 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from concurrent.futures import wait
 from concurrent.futures import FIRST_EXCEPTION
-from update_portfolios_trend_strat import create_kko_portfolios, portfolio_constructor_manager, create_time_serie_with_kamalstrategie
+from update_portfolios_trend_strat import (
+    create_kko_portfolios,
+    portfolio_constructor_manager,
+    create_time_serie_with_kamalstrategie,
+)
 
 
 class update_trading_portfolios:
-
     @staticmethod
     def startup_update():
 
@@ -63,7 +66,10 @@ class update_trading_portfolios:
     @staticmethod
     def update_portfolios(portfolios):
         # extract the portfolio ID's and tickers
+        Error: bool
         for i in range(0, len(portfolios)):
+
+            Error = False
 
             slide = portfolios.iloc[i]
 
@@ -72,23 +78,40 @@ class update_trading_portfolios:
             ticker_options = {}
 
             #
-            for i in tickers:
+            for x in tickers:
 
-                ts_data = create_time_serie_with_kamalstrategie(i)
+                try:
 
-                if ts_data == 404:
+                    ts_data = create_time_serie_with_kamalstrategie(x)
 
-                    print("portfolio should be deleted")
+                    if ts_data == 404:
 
-                ticker_options[i] = ts_data.data
+                        database_querys.database_querys.unsubscribe_trading_portfolio(
+                            slide.portfolio_id
+                        )
+
+                    ticker_options[x] = ts_data.data
+
+                except TypeError:
+
+                    # if type error occurs the portfolio needs to be deleted.
+                    database_querys.database_querys.unsubscribe_trading_portfolio(
+                        slide.portfolio_id
+                    )
+                    Error = True
+                    break
+            if Error:
+                continue
 
             data = update_trading_portfolios.create_data_frame_of_tickers(
-                tickers=tickers, data=ticker_options)
+                tickers=tickers, data=ticker_options
+            )
 
             portfolio = portfolio_constructor_manager(data)
 
             add_model = add_update_trading_portfolio(
-                portfolio, slide.portfolio_id)
+                portfolio, slide.portfolio_id
+            )
 
         print(portfolios)
 
@@ -157,7 +180,8 @@ class add_update_trading_portfolio:
 
         model.portfolio_id = portfolio_id
         model.portfolio_amount = int(
-            len(portfolio.high_sharp_frame.ticker.to_list()))
+            len(portfolio.high_sharp_frame.ticker.to_list())
+        )
 
         tickers = portfolio.high_sharp_frame.ticker.to_list()
         serialized_list_of_tickers = json.dumps(tickers)
@@ -188,7 +212,8 @@ class add_update_trading_portfolio:
 
         # create an
         total_expected_return = round(
-            portfolio.max_sharp_y2_expected_return, 2)
+            portfolio.max_sharp_y2_expected_return, 2
+        )
         model.total_expected_return = portfolio.Imax_sharp_expected_return
 
         total_sharp = round(portfolio.max_sharp_y2_return, 2)
@@ -201,7 +226,7 @@ class add_update_trading_portfolio:
         return
 
 
-class trading_portfolio_update_model():
+class trading_portfolio_update_model:
 
     portfolio_id: str
     list_of_tickers: str
