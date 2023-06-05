@@ -2027,7 +2027,7 @@ class kko_portfolio_update_manager:
 
         """
         # get start date
-        initial_date = start_incomming_amount = datetime.datetime.now().date()
+        initial_date = start_incomming_amount = datetime.now().date()
 
         amount_per_portfolio = amount_per_portfolio
 
@@ -2035,7 +2035,7 @@ class kko_portfolio_update_manager:
         pseudo_portfo = []
 
         start_amount = 5
-
+        start_amount_sharp = 3.1
         # stats.
         itterations_count = []
 
@@ -2051,7 +2051,7 @@ class kko_portfolio_update_manager:
         while not self.kill_switch:
 
             # sleep if there are troubles
-            self.sleep_between_hours(16, 4)
+            # self.sleep_between_hours(16, 4)
 
             if self.check_days_passed(initial_date, 7):
                 break
@@ -2065,6 +2065,7 @@ class kko_portfolio_update_manager:
                 itterations_count = []
                 sharp_ratios = []
                 amount_per_portfolio += 1
+                start_amount_sharp = 3.1
 
                 if amount_per_portfolio > 10:
                     amount_per_portfolio += 4
@@ -2139,38 +2140,11 @@ class kko_portfolio_update_manager:
             except:
                 continue
 
-            # print("Setup portfolio ", pseudo_portfo)
-
-            if portfolio.error == True:
-                continue
-
-            # checks for sharp ratio managment, if list is empty or not full, fill, if sharp is not above average, remove.
-            if (
-                not sharp_ratios
-                or len(sharp_ratios) < 100
-                and minimum_sharp_last == 0
-            ):
-
-                sharp_ratios.append(portfolio.Imax_sharp_sharp_ratio)
-
-                if len(sharp_ratios) <= 100:
-
-                    start_amount = statistics.mean(sharp_ratios)
-
-                itterations_count = []
-
-            else:
-                start_amount = minimum_sharp_last
-
-            if portfolio.Imax_sharp_sharp_ratio < start_amount:
-
-                continue
-
-            # add sharp ratio
-            sharp_ratios.append(portfolio.Imax_sharp_sharp_ratio)
-
             # checks needed if portfolio is alowed to trade.
             allowd_to_add = kko_portfolio_gardian(portfolio)
+
+            if portfolio.Imax_sharp_sharp_ratio < start_amount_sharp:
+                continue
 
             # if alowed
             if allowd_to_add.allowd:
@@ -2178,7 +2152,7 @@ class kko_portfolio_update_manager:
                 # add portfolio to the database.
                 execute = add_kko_portfolio(portfolio)
 
-                start_amount += 0.05
+                start_amount_sharp += 0.05
 
                 itterations_count = []
 
@@ -2419,7 +2393,7 @@ class kko_portfolio_update_manager:
         """
         Checks howmany days are passed, this is the example code.
         # Example usage
-        initial_date = datetime.datetime.now().date()  # Get the initial date
+        initial_date = datetime.now().date()  # Get the initial date
         num_days = int(input("Enter the number of days: "))
         result = check_days_passed(initial_date, num_days)
         print(result)
@@ -2437,7 +2411,7 @@ class kko_portfolio_update_manager:
             DESCRIPTION.
 
         """
-        current_date = datetime.datetime.now().date()
+        current_date = datetime.now().date()
         if (current_date - initial_date).days >= num_days:
             return True
         else:
@@ -2472,7 +2446,7 @@ class kko_portfolio_update_manager:
                 time.sleep(sleep_duration)
                 print(f"Slept for {sleep_duration} seconds")
             else:
-                print("Current hour is outside the specified range.")
+                return
         else:
             if start_hour <= current_hour or current_hour < stop_hour:
                 if start_hour <= current_hour:
@@ -2484,7 +2458,7 @@ class kko_portfolio_update_manager:
                 time.sleep(sleep_duration)
                 print(f"Slept for {sleep_duration} seconds")
             else:
-                print("Current hour is outside the specified range.")
+                return
 
     def the_kill_switch(self, days_untill_reset=1, test_modus: bool = False):
         """
