@@ -52,7 +52,7 @@ acceptatie criteria
 def onstart_function():
 
     startup_support.create_path_for_stock_data()
-    startup_script.start_update_scedule()
+    # startup_script.start_update_scedule()
     data_update = update_portfolios.update_data()
 
 
@@ -155,8 +155,8 @@ def add_portfolios(portfolio_id: str):
 @app.post("/add_portfolios_manually")
 def add_portfolios(portfolio_tickers: list):
 
-    data = services.return_portfolios_options.add_trading_portfolio(
-        id_=portfolio_id
+    data = services.return_portfolios_options.add_trading_portfolio_manual(
+        id_=portfolio_tickers
     )
 
     return data
