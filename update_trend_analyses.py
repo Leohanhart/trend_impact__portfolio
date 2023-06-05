@@ -701,8 +701,7 @@ class update_kaufman_support(object):
             else:
                 return Max_Daily_Drawdown
 
-    @staticmethod
-    def sleep_until_time(target_hour, target_minute, target_second):
+    def sleep_until(target_hour, target_minute, target_second):
         current_time = datetime.datetime.now().time()
         target_time = datetime.time(target_hour, target_minute, target_second)
 
@@ -713,18 +712,20 @@ class update_kaufman_support(object):
             datetime.date.today(), target_time
         )
 
-        if current_datetime < target_datetime:
-            sleep_duration = target_datetime - current_datetime
-            sleep_seconds = sleep_duration.total_seconds()
+        # Check if the current time is already one minute later than the target time
+        if current_datetime > target_datetime:
+            target_datetime += datetime.timedelta(
+                days=1
+            )  # Add one day to the target time
 
-            hours = int(sleep_seconds // 3600)
-            minutes = int((sleep_seconds % 3600) // 60)
-            seconds = int(sleep_seconds % 60)
+        sleep_duration = (
+            target_datetime - datetime.datetime.now()
+        ).total_seconds()
+        print(f"Sleeping for {sleep_duration} seconds (trend)")
 
-            print(
-                f"Sleeping for {hours} hours, {minutes} minutes, and {seconds} seconds."
-            )
-            time.sleep(sleep_seconds)
+        time.sleep(sleep_duration)
+
+        print("Wake up!")
 
     @staticmethod
     def return_profiles_data(
