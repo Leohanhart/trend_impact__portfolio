@@ -210,6 +210,8 @@ class return_trend_analyses(object):
 
         data = database_querys_main.database_querys.get_sector_trends()
 
+        return data
+
 
 class trend_analyse_support(object):
     def return_trend_data_multiple(list_tickers: list = []):
