@@ -123,11 +123,18 @@ def add_data_to_archive():
         # Create a dictionary from the row data
         data_dict = row.to_dict()
         # Create a new instance of the TrendData class using the dictionary
-        trend_data = TrendData(**data_dict)
-        # Do something with the TrendData object
-        database_querys_main.database_querys.update_analyses_trend_kamal_archive(
-            model=trend_data
-        )
+        try:
+
+            trend_data = TrendData(**data_dict)
+
+            # Do something with the TrendData object
+            database_querys_main.database_querys.update_analyses_trend_kamal_archive(
+                model=trend_data
+            )
+
+        except TypeError:
+
+            continue
 
     return True
 
