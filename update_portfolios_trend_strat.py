@@ -22,6 +22,8 @@ import math
 from collections import Counter
 from math import sqrt
 from itertools import combinations
+from multiprocessing import Process
+
 
 # from finquant.portfolio import build_portfolio
 # from finquant.efficient_frontier import EfficientFrontier
@@ -44,7 +46,7 @@ import statistics
 import startup_support as support
 
 # custom target function
-
+import json
 import sqlalchemy
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -975,7 +977,9 @@ class add_kko_portfolio:
 
     model = None
 
-    def __init__(self, portfolio=None, portfolio_id=None):
+    def __init__(
+        self, portfolio=None, portfolio_id=None, portfolio_strategy=None
+    ):
 
         model = kko_strat_model()
 
@@ -1425,7 +1429,7 @@ class kko_portfolio_update_manager:
 
         """
         if startup_is_allowd:
-            self.startup_new()
+            self.startup_brand_new()
         else:
             return
 
@@ -1580,6 +1584,103 @@ class kko_portfolio_update_manager:
         thread3.join()
   
         """
+
+    def startup_brand_new(self):
+        """
+
+
+        System functions
+        1. Deletes all old options when a cycle is finished, removes all options if restarted. So there is always a clean database.
+
+        """
+
+        delete_old_portfolios: bool = False
+
+        min_amount_tickers: int = 5
+        max_rotations: int = 10000
+        max_stocks: int = 25
+        min_sharp_ratio: int = 0
+
+        # find last amount and sharp.
+        details = self.get_last_details()
+
+        # remove methode test befor deployment
+        min_amount_tickers = 5
+        min_sharp_ratio = 3.10
+
+        old_portfolios = []
+
+        # delete old portfolios.
+
+        portfolio_ids = (
+            database_querys.database_querys.get_expired_portfolio_archives(31)
+        )
+
+        self.delete_list_portrfolios(portfolio_ids)
+
+        # get tickers.
+        threads = []
+
+        list_tickers = (
+            database_querys.database_querys.return_list_portfolio_strategys()
+        )
+
+        data_list = json.loads(list_tickers)
+
+        for tickers_list_name in data_list:
+
+            data_list_ = database_querys.return_list_portfolio_strategys(
+                name_list=tickers_list_name
+            )
+
+            # Parse the string into a list of dictionaries
+            data_list = json.loads(data_list_)
+
+            # Extract ticker values into a separate list
+            ticker_list = [item["ticker"] for item in data_list]
+
+            if len(ticker_list) < 20:
+                database_querys.database_querys.add_log_to_logbook(
+                    f"portfolio {tickers_list_name} is skipped, not enough items, need 20"
+                )
+
+            items = self.create_data_of_tickers(ticker_list)
+            tickers_in = list(items.keys())
+
+            thread = Process(
+                target=self.continues_portfolio_creation,
+                args=(
+                    items,
+                    tickers_in,
+                    tickers_list_name,
+                    min_amount_tickers,
+                    max_rotations,
+                    max_stocks,
+                    min_sharp_ratio,
+                ),
+            )
+
+            threads.append(thread)
+            thread.start()
+            database_querys.database_querys.add_log_to_logbook(
+                f"portfolio {tickers_list_name} is started"
+            )
+            sleep((tickers_in * 2.3))
+
+        if not threads:
+            database_querys.database_querys.add_log_to_logbook(
+                "List was empty for the list_portfolio's"
+            )
+            return
+
+        for thread in threads:
+            thread.join()
+
+        database_querys.database_querys.add_log_to_logbook(
+            "All portfolio update threads have stoped"
+        )
+
+        return
 
     def starting_up(self):
         """
@@ -2076,9 +2177,6 @@ class kko_portfolio_update_manager:
                 if amount_per_portfolio > max_amount_per_portfolio:
                     amount_per_portfolio = start_amount
 
-                if amount_per_portfolio > max_amount_per_portfolio:
-                    break
-
             data = None
             pseudo_portfo = []
 
@@ -2152,8 +2250,15 @@ class kko_portfolio_update_manager:
             # if alowed
             if allowd_to_add.allowd:
 
-                # add portfolio to the database.
-                execute = add_kko_portfolio(portfolio)
+                if "TRHEAD" not in my_string.upper():
+                    # add portfolio to the database.
+                    execute = add_kko_portfolio(
+                        portfolio=portfolio,
+                        portfolio_id=None,
+                        portfolio_strategy=thread_name,
+                    )
+                else:
+                    execute = add_kko_portfolio(portfolio=portfolio)
 
                 start_amount_sharp += 0.05
 
