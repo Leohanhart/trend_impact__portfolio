@@ -22,8 +22,11 @@ import math
 from collections import Counter
 from math import sqrt
 from itertools import combinations
-from finquant.portfolio import build_portfolio
-from finquant.efficient_frontier import EfficientFrontier
+
+# from finquant.portfolio import build_portfolio
+# from finquant.efficient_frontier import EfficientFrontier
+from libs.finquant.portfolio import build_portfolio
+from libs.finquant.efficient_frontier import EfficientFrontier
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
 from collections import ChainMap
 import uuid
