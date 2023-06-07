@@ -148,6 +148,229 @@ class database_querys:
             session.close()
         return
 
+    def add_tickers_to_list(name_list: str = "", name_ticker: str = ""):
+        """
+
+
+        Parameters
+        ----------
+        name_list : str, optional
+            DESCRIPTION. The default is "".
+        name_ticker : str, optional
+            DESCRIPTION. The default is "".
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        lock = Lock()
+        with lock:
+
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Check if the strategy already exists in the database
+            existing_strategy = (
+                session.query(Portfolio_Strategy)
+                .filter_by(strategy=name_list)
+                .first()
+            )
+            if not existing_strategy:
+                return "Strategy not found{name_list}"
+
+            if not database_querys.check_if_ticker_is_allowd(name_ticker):
+                return f"Ticker = {name_ticker} is not allowd, add ticker before add"
+
+            # Create a new Portfolio_Strategy object with the provided strategy and ticker
+            new_strategy = Portfolio_Strategy(
+                strategy=name_list, ticker=name_ticker
+            )
+
+            # Add the new strategy to the session and commit the changes
+            session.add(new_strategy)
+            try:
+                session.commit()
+            except IntegrityError:
+                return "Already exists 409"
+
+            # Close the session
+            session.close()
+
+            return 200
+
+    def add_list_portfolio_strategys(name_list: str = ""):
+        """
+        Adds list to portfolio
+
+        Parameters
+        ----------
+        name_list : str, optional
+            DESCRIPTION. The default is "".
+
+        Returns
+        -------
+        None.
+
+        """
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Load data from table into DataFrame
+            query = session.query(Portfolio_Strategy)
+            df = pd.read_sql(query.statement, query.session.bind)
+
+            # Check if variable exists in strategy column
+            incoming_variable = "Strategy C"
+            if incoming_variable in df["strategy"].values:
+                return "Error: Strategy already exists."
+            else:
+                # Add the variable to the table
+                new_strategy = Portfolio_Strategy(strategy=name_list)
+                session.add(new_strategy)
+                session.commit()
+                return 200
+
+    def return_list_portfolio_strategys(
+        name_list: str = "", ticker_name: str = "", return_all: bool = False
+    ):
+        """
+
+        Returns list of strategy's if exstist
+
+        Parameters
+        ----------
+        name_list : str, optional
+            DESCRIPTION. The default is "".
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+        int
+            DESCRIPTION.
+
+        """
+
+        lock = Lock()
+        with lock:
+            # Create the SQLAlchemy engine and session
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Check if name_list is provided
+            if name_list:
+                # Check if strategy exists in the data
+                rows = (
+                    session.query(Portfolio_Strategy)
+                    .filter_by(strategy=name_list)
+                    .all()
+                )
+
+                data = []
+                for row in rows:
+                    data.append(
+                        {"strategy": row.strategy, "ticker": row.ticker}
+                    )
+
+                return json.dumps(data)
+
+                if not row:
+                    return json.dumps({"error": "Strategy not found"}), 404
+
+            elif return_all:
+                rows = session.query(Portfolio_Strategy).all()
+
+            elif ticker_name:
+                rows = (
+                    session.query(Portfolio_Strategy)
+                    .filter_by(ticker=ticker_name)
+                    .all()
+                )
+
+                if not rows:
+                    return (
+                        json.dumps(
+                            {
+                                "error": "No rows found with the specified ticker"
+                            }
+                        ),
+                        404,
+                    )
+
+                data = []
+                for row in rows:
+                    data.append(
+                        {"strategy": row.strategy, "ticker": row.ticker}
+                    )
+
+                return json.dumps(data)
+
+            else:
+                # Load available strategy values from the data
+                available_strategies = (
+                    session.query(Portfolio_Strategy.strategy).distinct().all()
+                )
+                unpacked_values = [value for (value,) in available_strategies]
+                return json.dumps(unpacked_values)
+
+            # Load data from table into a list of dictionaries
+            data = []
+            for row in session.query(Portfolio_Strategy).all():
+                data.append(
+                    {
+                        "id": row.id,
+                        "strategy": row.strategy,
+                        "ticker": row.ticker,
+                    }
+                )
+
+            # Close the session
+            session.close()
+
+            # Return the data as JSON
+            return json.dumps(data)
+
+    def remove_list_portfolio_strategys(
+        name_list: str = "", ticker_name: str = ""
+    ):
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Filter rows based on name_list and ticker_name
+            query = session.query(Portfolio_Strategy)
+            if name_list and ticker_name:
+                query = query.filter_by(strategy=name_list, ticker=ticker_name)
+            elif name_list:
+                query = query.filter_by(strategy=name_list)
+            elif ticker_name:
+                query = query.filter_by(ticker=ticker_name)
+            else:
+                return 404
+            # Delete the filtered rows
+            rows_to_delete = query.all()
+            for row in rows_to_delete:
+                session.delete(row)
+            session.commit()
+
+            # Close the session
+            session.close()
+
+            return 204
+
     def get_trend_archive_with_tickers_and_date(
         tickers: list = [], year: int = 0, month: int = 0, date: int = 0
     ):
@@ -2311,8 +2534,8 @@ if __name__ == "__main__":
         """
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
-        x = database_querys.check_if_ticker_is_allowd(ticker_name="AAL")
-        # x = database_querys.get_logs()
+        #### test
+        x = database_querys.add_list_portfolio_strategys("DREAMPORT")
         print(x)
         print("END")
 

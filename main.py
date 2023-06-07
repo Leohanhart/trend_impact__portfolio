@@ -17,7 +17,7 @@ from typing import Optional
 from fastapi import BackgroundTasks, FastAPI, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from core_service_layer.data_service import get_system_info
-import database_querys_main
+from database_querys_main import database_querys
 import startup_script
 import startup_support
 import update_portfolios
@@ -125,7 +125,7 @@ def return_all_trend_specs():
 @app.get("/avalible_portfolios")
 def avalible_portfolios(
     page: int = 1,
-    portfolio_strategy : str = ""
+    portfolio_strategy: str = "",
     amount_rows: int = 20,
     min_amount_stocks: int = 5,
     max_amount_stocks: int = 6,
@@ -133,7 +133,7 @@ def avalible_portfolios(
 
     data = services.return_portfolios_options.return_portfolios(
         page_number=page,
-        portfolio_strategy = portfolio_strategy,
+        portfolio_strategy=portfolio_strategy,
         page_amount=amount_rows,
         min_amount_stocks=min_amount_stocks,
         max_amount_stocks=max_amount_stocks,
@@ -256,6 +256,51 @@ def add_or_maintain_ticker(ticker: str = ""):
 def return_sector_strategy():
 
     data = services.return_trend_analyses.get_sector_analyses()
+
+    return Response(data)
+
+
+@app.post("/create_portfolio_strategys_list")
+def add_portofolio_strategys(name_strategy: str = ""):
+
+    data = database_querys.add_list_portfolio_strategys(
+        name_list=name_strategy
+    )
+
+    return data
+
+
+@app.post("/add_ticker_to_portfolio_strategys")
+def add_ticker_to_portofolio_strategys(
+    name_strategy: str = "", name_ticker: str = ""
+):
+
+    data = database_querys.add_tickers_to_list(
+        name_list=name_strategy, name_ticker=name_ticker
+    )
+
+    return data
+
+
+@app.delete("/remove_portfolio_strategys")
+def remove_list_portfolio_strategys(
+    name_list: str = "", ticker_name: str = ""
+):
+    data = database_querys.remove_list_portfolio_strategys(
+        name_list, ticker_name
+    )
+
+    return data
+
+
+@app.get("/return_portfolio_strategys")
+def return_portofolio_strategys(
+    name_list: str = "", ticker_name: str = "", return_all: bool = False
+):
+
+    data = database_querys.return_list_portfolio_strategys(
+        name_list=name_list, ticker_name=ticker_name, return_all=return_all
+    )
 
     return Response(data)
 
