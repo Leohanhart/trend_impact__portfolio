@@ -544,3 +544,15 @@ class Sector_Trend(Base):
     side = Column(Float)
     stats = Column(String)
     updatedAt = Column(String, nullable=False)
+
+
+class Portfolio_Strategy(Base):
+    __tablename__ = "portfolio_strategys"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    strategy = Column(String, nullable=False)
+    ticker = Column(String, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("strategy", "ticker", name="uq_strategy_ticker"),
+    )
