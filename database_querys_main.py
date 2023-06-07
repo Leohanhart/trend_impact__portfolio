@@ -2535,7 +2535,11 @@ if __name__ == "__main__":
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
         #### test
-        x = database_querys.add_list_portfolio_strategys("DREAMPORT")
+        x = database_querys.return_list_portfolio_strategys()
+        print(x)
+        x = database_querys.return_list_portfolio_strategys(
+            name_list="ADMIRALMARKETS"
+        )
         print(x)
         print("END")
 
