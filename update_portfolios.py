@@ -63,9 +63,14 @@ import multiprocessing
 import datetime
 import initalization_file
 import initializer_tickers_main
+import subprocess
+import os
+import atexit
 
 
 class update_data:
+
+    test_module: bool = False
 
     kill_switch: bool = False
 
@@ -73,22 +78,41 @@ class update_data:
 
     def __init__(self):
 
+        self.lock_file_path = "process.lock"
+        atexit.register(
+            self._remove_lock_file
+        )  # Register a function to remove the lock file on script termination
+
+        database_querys.database_querys.add_log_to_logbook(
+            "Started applcation"
+        )
         #
-        self.pre_startup()
-
+        # self.pre_startup()
         # self.afterhour_update_cycle()
-
-        self.start_update_scedule()
+        self.start_update_schedule()
 
     def pre_startup(self):
 
+        database_querys.database_querys.add_log_to_logbook(
+            "Started initalizing old archive dta data"
+        )
         # update archive
         first_run = initalization_file.add_data_to_archive()
 
+        database_querys.database_querys.add_log_to_logbook(
+            "Started updating trend data ..."
+        )
         if first_run:
             init = initializer_tickers_main.initiaze_tickers()
 
-        # get tickers
+            #### just implement the afterhour update here and you finished.
+            # get tickers
+
+            database_querys.database_querys.add_log_to_logbook("Started cycle")
+            self.afterhour_update_cycle()
+
+        return
+
         tickers = database_querys.database_querys.get_all_active_tickers()
 
         #
@@ -212,6 +236,12 @@ class update_data:
 
     def afterhour_update_cycle(self):
 
+        logger.info("starting daily update cycle")
+
+        update_stats_trend_analyses.update_kaufman_support.sleep_until(
+            17, 0, 10
+        )
+
         # started
         database_querys.database_querys.add_log_to_logbook(
             "daily update cycle started"
@@ -248,12 +278,11 @@ class update_data:
         # update trading portfolio
         portfolio_synch.update_trading_portfolios.startup_update()
 
-        update_stats_trend_analyses.update_kaufman_support.sleep_until_time(
-            17, 0, 10
-        )
-
     def task_1(self):
 
+        database_querys.database_querys.add_log_to_logbook("Started task_1")
+
+        logger.info("starting portfolio update system")
         i = 0
         # block for a moment
         while True:
@@ -270,6 +299,8 @@ class update_data:
                 sleep(60)
 
     def task_2(self):
+
+        database_querys.database_querys.add_log_to_logbook("Started task_2")
 
         i = 0
         # block for a moment
@@ -299,7 +330,6 @@ class update_data:
 
         sleep(0.5)
 
-        logger.info("starting portfolio creation")
         # starts update portfolii manager.
         thread2 = thread_2 = Process(target=self.task_2)
 
@@ -334,7 +364,12 @@ class update_data:
 
         self.startup_data_transformation()
 
+    """
     def start_update_scedule(self):
+
+        database_querys.database_querys.add_log_to_logbook(
+            "Starting normal cycle."
+        )
 
         print(0.1)
 
@@ -342,12 +377,61 @@ class update_data:
             "Started update data_transformation."
         )
 
-        proces_background = threading.Thread(
-            name="daemon_dtf", target=self.startup_data_transformation
+        # proces_background = subprocess.Popen(self.startup_data_transformation)
+        detached_process = subprocess.Popen(
+            [
+                "python",
+                "-c",
+                "from update_portfolios import update_data; update_data().startup_data_transformation()",
+            ]
         )
-        proces_background.setDaemon(True)
-        proces_background.start()
+        # proces_background.setDaemon(True)
+        # proces_background.daemon = True
+        # proces_background.detach()
+        # proces_background.start()
         # proces_background.join()
+    """
+
+    def start_update_schedule(self):
+
+        database_querys.database_querys.add_log_to_logbook(
+            "System passed: Startup scedual"
+        )
+        if self._check_lock_file():
+            database_querys.database_querys.add_log_to_logbook(
+                "LockFile blocked system going nuts."
+            )
+            print("Another process is already running. Exiting.")
+            return
+
+        try:
+            self._create_lock_file()
+            subprocess.Popen(
+                [
+                    "python",
+                    "-c",
+                    "from update_portfolios import update_data; update_data().startup_data_transformation()",
+                ]
+            )
+        except Exception as e:
+            print(f"Failed to start subprocess: {e}")
+            self._remove_lock_file()
+
+    def _check_lock_file(self):
+        return os.path.exists(self.lock_file_path)
+
+    def _create_lock_file(self):
+        database_querys.database_querys.add_log_to_logbook("Lock Established")
+        with open(self.lock_file_path, "w") as lock_file:
+            lock_file.write("Lock file")
+
+    def _remove_lock_file(self):
+        database_querys.database_querys.add_log_to_logbook("Removed Lock")
+        if self._check_lock_file():
+            os.remove(self.lock_file_path)
+
+    def __del__(self):
+        self._remove_lock_file()
 
 
 if __name__ == "__main__":
@@ -355,9 +439,10 @@ if __name__ == "__main__":
     # archive
     try:
         x = update_data()
-        # x.start_update_scedule()
-        # sleep(86000)
-        x.pre_startup()
+        x.start_update_scedule()
+        print("LEETS GOOO")
+        sleep(432000)
+        # x.pre_startup()
     except Exception as e:
 
         raise Exception("Error with tickers", e)
