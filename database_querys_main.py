@@ -40,6 +40,7 @@ from core_utils.database_tables.tabels import (
     Trend_Analysis_Time_series,
     Sector_Trade_Archive,
     Sector_Trend,
+    Portfolio_Strategy,
 )
 
 import pandas as pd
