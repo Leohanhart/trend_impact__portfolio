@@ -16,9 +16,9 @@ import atexit
 import multiprocessing
 import yfinance as yf
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
+# import torch
+# import torch.nn as nn
+# import torch.optim as optim
 import numpy as np
 
 
@@ -1092,9 +1092,9 @@ class overall_trend_analyses:
         # load all sectors
         self.sectors = database_querys.database_querys.get_all_active_sectors()
 
-        data = df = self.create_trend_dataframe()
+        self.data = df = self.create_trend_dataframe()
 
-        x = self.create_model("ALL", "ALLPTG", data)
+        # x = self.create_model("ALL", "ALLPTG", data)
 
     def create_trend_dataframe(self):
 

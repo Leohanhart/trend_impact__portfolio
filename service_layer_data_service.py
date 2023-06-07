@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import initializer_tickers_main
 from multiprocessing import Process
+import update_trend_time_series
 
 
 class return_trend_analyses(object):
@@ -51,6 +52,11 @@ class return_trend_analyses(object):
         res = trend_analyse_support.package_data(data)
 
         return res
+
+    @staticmethod
+    def get_trade_performance(ticker: str):
+
+        data = database_querys_main.database_querys.get_trend_kalman(ticker)
 
     @staticmethod
     def get_trend_archive_analyses(ticker: str):
@@ -211,6 +217,30 @@ class return_trend_analyses(object):
         data = database_querys_main.database_querys.get_sector_trends()
 
         return data
+
+    def get_full_trend_analyses():
+        """
+        This generates JSON of the AI data.
+
+        the df = pd.read_json(json_data, orient="index") reads the data back in.
+
+        Returns
+        -------
+        json_data : TYPE
+            DESCRIPTION.
+
+        """
+
+        #
+        data_store = update_trend_time_series.overall_trend_analyses()
+
+        #
+        data = data_store.data
+
+        # Convert DataFrame to JSON with date index
+        json_data = data.to_json(orient="index", date_format="iso")
+
+        return json_data
 
 
 class trend_analyse_support(object):
@@ -1004,9 +1034,10 @@ if __name__ == "__main__":
 
     try:
 
-        x = return_portfolios_options.add_trading_portfolio_manual(
-            ["XLK", "AAPL", "AAL"]
-        )
+        # x = return_portfolios_options.add_trading_portfolio_manual(
+        #    ["XLK", "AAPL", "AAL"]
+        # )
+        x = return_trend_analyses.get_full_trend_analyses()
         print(x)
     except Exception as e:
 
