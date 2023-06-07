@@ -21,6 +21,7 @@ from database_querys_main import database_querys
 import startup_script
 import startup_support
 import update_portfolios
+import update_trend_time_series
 import service_layer_data_service as services
 import json
 import constants
@@ -78,7 +79,7 @@ def return_trend_analyses(ticker: str):
     return Response(data)
 
 
-@app.get("/trend_analyses_archive")
+@app.get("/trend_analyses_archive_performance")
 def return_trend_archive_analyses(ticker: str):
 
     data = services.return_trend_analyses.get_trend_archive_analyses(ticker)
@@ -86,7 +87,7 @@ def return_trend_archive_analyses(ticker: str):
     return Response(data)
 
 
-@app.get("/trend_analyses_trades")
+@app.get("/trend_analyses_archive_history_trades")
 def return_trend_archive_trades(ticker: str):
 
     data = services.return_trend_analyses.get_trend_analyses_trades(ticker)
@@ -303,6 +304,14 @@ def return_portofolio_strategys(
     )
 
     return Response(data)
+
+
+@app.get("/return_all_sector_trend_analyses_data")
+def return_all_sector_analyses_data_ai():
+
+    data = services.return_trend_analyses.get_full_trend_analyses()
+
+    return data
 
 
 handler = Mangum(app)
