@@ -348,6 +348,7 @@ class return_portfolios_options(object):
     @staticmethod
     def return_portfolios(
         page_number: int = 1,
+        portfolio_strategy: str = "",
         page_amount: int = 20,
         min_amount_stocks: int = 5,
         max_amount_stocks: int = 6,
@@ -371,18 +372,30 @@ class return_portfolios_options(object):
         # get portfolio's
         data = database_querys_main.database_querys.get_portfolio()
 
+        if portfolio_strategy:
+            if portfolio_strategy in set(list(data.portfolio_strategy)):
+                filtered_df = data = data[
+                    data["portfolio_strategy"] == portfolio_strategy
+                ]
+            else:
+                availble_strats = ", ".join(
+                    f"{{{value}}}"
+                    for value in set(list(data.portfolio_strategy))
+                )
+                return f"No strategy named {portfolio_strategy}, please choose {availble_strats} "
+
         # filter portfolios
-        data = portfolio_support().return_portfolio_selection_between_amounts(
+        data = portfolio_support.return_portfolio_selection_between_amounts(
             df=data,
             min_amount_stocks=min_amount_stocks,
             max_amount_stocks=max_amount_stocks,
         )
 
-        data = analyses_support().apply_pagination(
+        data = analyses_support.apply_pagination(
             data, page_amount=page_amount, page_number=page_number
         )
 
-        data = analyses_support().package_data(data)
+        data = analyses_support.package_data(data)
 
         return data
 
@@ -769,7 +782,7 @@ class portfolio_support(object):
         ]
 
         if filter_on_sharp:
-            df = portfolio_support().sort_on_yield(df)
+            df = portfolio_support.sort_on_yield(df)
 
         return df
 

@@ -124,16 +124,26 @@ def return_all_trend_specs():
 
 @app.get("/avalible_portfolios")
 def avalible_portfolios(
-    page: int = 1, min_amount_stocks: int = 5, max_amount_stocks=6
+    page: int = 1,
+    portfolio_strategy : str = ""
+    amount_rows: int = 20,
+    min_amount_stocks: int = 5,
+    max_amount_stocks: int = 6,
 ):
 
-    data = services.return_portfolios_options.return_portfolios()
+    data = services.return_portfolios_options.return_portfolios(
+        page_number=page,
+        portfolio_strategy = portfolio_strategy,
+        page_amount=amount_rows,
+        min_amount_stocks=min_amount_stocks,
+        max_amount_stocks=max_amount_stocks,
+    )
 
     return Response(data)
 
 
 @app.get("/trading_portfolios")
-def avalible_portfolios(portfolio_id: str = ""):
+def avalible_trading_portfolios(portfolio_id: str = ""):
 
     data = services.return_portfolios_options.return_trading_portfolios(
         id_=portfolio_id
