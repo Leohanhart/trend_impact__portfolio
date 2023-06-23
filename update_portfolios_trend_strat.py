@@ -23,7 +23,7 @@ from collections import Counter
 from math import sqrt
 from itertools import combinations
 from multiprocessing import Process
-
+from multiprocessing import Process, Queue
 
 # from finquant.portfolio import build_portfolio
 # from finquant.efficient_frontier import EfficientFrontier
@@ -44,6 +44,7 @@ import random
 from datetime import datetime
 import statistics
 import startup_support as support
+import multiprocessing
 
 # custom target function
 import json
@@ -63,8 +64,11 @@ from core_utils.database_tables.tabels import (
     Logbook,
     User_trades,
 )
-
+from multiprocessing import Lock
 import warnings
+import atexit
+
+lock = Lock()
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
@@ -989,7 +993,10 @@ class add_kko_portfolio:
         else:
             model.portfolio_id = portfolio_id
 
-        model.portfolio_strategy = "TREND_STRAT_KKO_HS"
+        if portfolio_strategy:
+            model.portfolio_strategy = portfolio_strategy
+        else:
+            model.portfolio_strategy = "TREND_STRAT_KKO_HS"
         # create amount
         model.portfolio_amount = int(
             len(portfolio.high_sharp_frame.ticker.to_list())
@@ -1428,10 +1435,20 @@ class kko_portfolio_update_manager:
         None.
 
         """
+        # create list for threads
+        self.procs = []
+
+        # report function so threads are always shut down
+        atexit.register(self.shut_down)
+
+        # starts up normal, this is option is set so functions can be used without startup.
         if startup_is_allowd:
-            self.startup_brand_new()
+            self.startup_multi()
         else:
             return
+
+    def __del__(self):
+        self.shut_down()
 
     def startup_new(self):
         """
@@ -1585,7 +1602,7 @@ class kko_portfolio_update_manager:
   
         """
 
-    def startup_brand_new(self):
+    def startup_multi(self):
         """
 
 
@@ -1618,69 +1635,141 @@ class kko_portfolio_update_manager:
 
         self.delete_list_portrfolios(portfolio_ids)
 
-        # get tickers.
-        threads = []
+        database_querys.database_querys.add_log_to_logbook(
+            "Generating own lists"
+        )
+        # create a standard list
+        self.create_basic_list()
 
+        # get tickers.
+        self.threads = []
+
+        # load list tickers
         list_tickers = (
             database_querys.database_querys.return_list_portfolio_strategys()
         )
 
         data_list = json.loads(list_tickers)
+        database_querys.database_querys.add_log_to_logbook(
+            "Startingup portfolio creation threads"
+        )
+
+        max_processes = 4  # Define the maximum number of processes
+
+        # Create a Pool with the specified maximum processes
+        pool = multiprocessing.Pool(processes=max_processes)
+
+        # Define the data to be processed
+
+        # Iterate over the data_list and add processes for each tickers_list_name
+        for tickers_list_name in data_list:
+            pool.apply_async(
+                self.start_multi_thread, args=(tickers_list_name,)
+            )
+
+        # Close the Pool to prevent any new tasks from being submitted
+        pool.close()
+
+        # Wait for all processes to complete
+        pool.join()
+        """
+        self.procs = []
 
         for tickers_list_name in data_list:
-
-            data_list_ = database_querys.return_list_portfolio_strategys(
-                name_list=tickers_list_name
+            # print(name)
+            proc = Process(
+                target=self.start_multi_thread, args=(tickers_list_name,)
             )
-
-            # Parse the string into a list of dictionaries
-            data_list = json.loads(data_list_)
-
-            # Extract ticker values into a separate list
-            ticker_list = [item["ticker"] for item in data_list]
-
-            if len(ticker_list) < 20:
-                database_querys.database_querys.add_log_to_logbook(
-                    f"portfolio {tickers_list_name} is skipped, not enough items, need 20"
-                )
-
-            items = self.create_data_of_tickers(ticker_list)
-            tickers_in = list(items.keys())
-
-            thread = Process(
-                target=self.continues_portfolio_creation,
-                args=(
-                    items,
-                    tickers_in,
-                    tickers_list_name,
-                    min_amount_tickers,
-                    max_rotations,
-                    max_stocks,
-                    min_sharp_ratio,
-                ),
-            )
-
-            threads.append(thread)
-            thread.start()
+            sleep(20)
             database_querys.database_querys.add_log_to_logbook(
                 f"portfolio {tickers_list_name} is started"
             )
-            sleep((tickers_in * 2.3))
+            self.procs.append(proc)
+            proc.start()
 
-        if not threads:
+            # complete the processes
+        for proc in self.procs:
+            proc.join()
+        
+        for tickers_list_name in data_list:
+            tickers_list_name = tickers_list_name.replace("_", "")
+            print(tickers_list_name)
+
+            in_arg = [tickers_list_name]
+            thread = Process(target=self.start_multi_thread, args=(in_arg,))
+
+            self.threads.append(thread)
+
+            try:
+                thread.start()
+            except Exception as e:
+                print(e)
+
+            del thread
+            database_querys.database_querys.add_log_to_logbook(
+                f"portfolio {tickers_list_name} is started"
+            )
+
+        if not self.threads:
             database_querys.database_querys.add_log_to_logbook(
                 "List was empty for the list_portfolio's"
             )
             return
 
-        for thread in threads:
+        for thread in self.threads:
             thread.join()
-
+        """
         database_querys.database_querys.add_log_to_logbook(
             "All portfolio update threads have stoped"
         )
 
         return
+
+    def shut_down(self):
+        pass
+
+    def start_multi_thread(self, name_list_ticker):
+
+        tickers_list_name = name_list_ticker
+
+        data_list_ = (
+            database_querys.database_querys.return_list_portfolio_strategys(
+                name_list=tickers_list_name
+            )
+        )
+
+        # Parse the string into a list of dictionaries
+        data_list = json.loads(data_list_)
+
+        # Extract ticker values into a separate list
+        ticker_list = [item["ticker"] for item in data_list]
+
+        # removes the non
+        ticker_list = list(filter(lambda x: x is not None, ticker_list))
+
+        if len(ticker_list) < 5:
+            database_querys.database_querys.add_log_to_logbook(
+                f"portfolio {tickers_list_name} is skipped, not enough items, need 5"
+            )
+
+        items = self.create_data_of_tickers(ticker_list)
+        tickers_in = list(items.keys())
+
+        # find last amount and sharp.
+        details = self.get_last_details(name_strategie=data_list)
+
+        # remove methode test befor deployment
+        min_amount_tickers, min_sharp_ratio = details
+
+        self.multi_portfolio_creation(
+            items,
+            tickers_in,
+            tickers_list_name,
+            min_amount_tickers,
+            10000,
+            25,
+            min_sharp_ratio,
+        )
 
     def starting_up(self):
         """
@@ -2250,7 +2339,7 @@ class kko_portfolio_update_manager:
             # if alowed
             if allowd_to_add.allowd:
 
-                if "TRHEAD" not in my_string.upper():
+                if "TRHEAD" not in thread_name.upper():
                     # add portfolio to the database.
                     execute = add_kko_portfolio(
                         portfolio=portfolio,
@@ -2268,6 +2357,195 @@ class kko_portfolio_update_manager:
                 break
 
         return
+
+    def multi_portfolio_creation(
+        self,
+        data_service,
+        tickers_in: list,
+        thread_name="thread 1 ",
+        amount_per_portfolio: int = 5,
+        amount_if_itterations_before_next_step=10000,
+        max_amount_per_portfolio=25,
+        minimum_sharp_last=0,
+    ):
+        """
+
+
+        Parameters
+        ----------
+        data_service : TYPE
+            DESCRIPTION.
+        tickers_in : list
+            DESCRIPTION.
+        thread_name : TYPE, optional
+            DESCRIPTION. The default is "thread 1 ".
+        amount_per_portfolio : int, optional
+            DESCRIPTION. The default is 10.
+        amount_if_itterations_before_next_step : TYPE, optional
+            DESCRIPTION. The default is 10000.
+        max_amount_per_portfolio : TYPE, optional
+            DESCRIPTION. The default is 50.
+
+        minumim_shrp is set to create default minimum/
+        Returns
+        -------
+        None.
+
+        """
+        """
+
+        explaination:
+            this script loops 10000 times over an amount of stock, everytime the sharp ratio will
+            be added to a list, and when the sharp ratio is 2 stds above the average the count will be
+            resetted, so that only the best portfolio's will be added'
+
+            - what if the average go's down? this can result in a infinit loop,, only if score is higher than average will be added.'
+            - what if dubble portfolio's come in? that is no problem' on
+
+
+        """
+        database_querys.database_querys.add_log_to_logbook(
+            f"portfolio {thread_name}, confirmed startup"
+        )
+        # get start date
+        initial_date = start_incomming_amount = datetime.now().date()
+
+        amount_per_portfolio = amount_per_portfolio
+
+        # creates list where pseudo portfolio' will be added in.
+        pseudo_portfo = []
+
+        start_amount = 5
+        start_amount_sharp = 3.1
+        # stats.
+        itterations_count = []
+
+        # sharp ratio's
+        sharp_ratios = [5, 5]
+
+        # var for suggested portfolio.
+        suggested_portfolio = None
+        max_nr = len(tickers_in) - 1
+        rng = numpy.random.RandomState(2)
+
+        # while killswitch is off: run for ever.
+        while True:
+
+            # sleep if there are troubles
+            # self.sleep_between_hours(16, 4)
+
+            if self.check_days_passed(initial_date, 7):
+                break
+
+            # add itteration
+            itterations_count.append(1)
+
+            # if 10000 itterations have been and no sharp is updated
+            if len(itterations_count) > amount_if_itterations_before_next_step:
+
+                itterations_count = []
+                sharp_ratios = []
+                amount_per_portfolio += 1
+                start_amount_sharp = 3.1
+
+                if amount_per_portfolio > 10:
+                    amount_per_portfolio += 4
+
+                if amount_per_portfolio > max_amount_per_portfolio:
+                    amount_per_portfolio = start_amount
+
+            data = None
+            pseudo_portfo = []
+
+            # loop runs untill the portfolio is full.
+            while True:
+
+                # creates random number
+                number = rng.randint(0, max_nr)
+
+                # selects ticker based on the random number
+                ticker = tickers_in[number]
+
+                # if ticker is not in the portfolio' add.
+                if ticker not in pseudo_portfo:
+
+                    # add stock to list of portfolio
+                    pseudo_portfo.append(ticker)
+
+                    # if the length is equal to max amount, break
+                    if len(pseudo_portfo) >= amount_per_portfolio:
+
+                        # set to selected portfolio and break.
+                        suggested_portfolio = pseudo_portfo
+                        break
+
+            # /|\ CREATES PSUEDO PORTFOLIO || \|/ CREATES OPTIONAL PORTFOLIO
+            ############################################################################
+
+            # creates data with the portfolio
+            data = self.create_data_frame_of_tickers(
+                suggested_portfolio, data_service
+            )
+
+            # Remove NA's
+            data = data.tail(len(data) - 1)
+
+            # check if is contains error's
+            if data.isna().values.any():
+
+                # amount of signals
+                amount_of_nas = data.isna().sum().sum()
+                amount_of_values = data.count().sum()
+
+                # if error rate is higher then 1%, let it go.
+                if amount_of_nas / amount_of_values > 0.01:
+                    continue
+
+            if self.multi_add_portfolio_creation(
+                data, start_amount_sharp, thread_name
+            ):
+                start_amount_sharp += 0.05
+
+                itterations_count = []
+            else:
+                continue
+
+        return
+
+    def multi_add_portfolio_creation(
+        self, portfolio_data, current_sharp_ratio, thread_name
+    ):
+
+        with lock:
+            print(f"{thread_name} is using fuction")
+            # creates portfolio
+            try:
+                portfolio = portfolio_constructor_manager(portfolio_data)
+
+            except:
+                return False
+            # checks needed if portfolio is alowed to trade.
+            allowd_to_add = kko_portfolio_gardian(portfolio)
+
+            if portfolio.Imax_sharp_sharp_ratio < current_sharp_ratio:
+                return False
+
+            print(portfolio.Imax_sharp_sharp_ratio, " this is the sharp")
+            # if alowed
+            if allowd_to_add.allowd:
+
+                if "TRHEAD" not in thread_name.upper():
+                    # add portfolio to the database.
+                    execute = add_kko_portfolio(
+                        portfolio=portfolio,
+                        portfolio_id=None,
+                        portfolio_strategy=thread_name,
+                    )
+                    return True
+                else:
+                    execute = add_kko_portfolio(portfolio=portfolio)
+
+                    return True
 
     def create_data_of_tickers(self, list_of_stocks: list):
         tickers_out = list_of_stocks
@@ -2462,7 +2740,7 @@ class kko_portfolio_update_manager:
 
                 break
 
-    def get_last_details(self):
+    def get_last_details(self, name_strategie: str = ""):
         """
         returns amount of minimaal number, and sharp.
 
@@ -2474,17 +2752,30 @@ class kko_portfolio_update_manager:
             DESCRIPTION.
 
         """
+        try:
+            portfolios = database_querys.database_querys.get_portfolio()
 
-        portfolios = database_querys.database_querys.get_portfolio()
+            # here filter on name_strategy.
+            if name_strategie:
 
-        # if there are no portfolios, return 5 and 0
-        if portfolios.empty:
-            return (5, 0)
+                portfolios = portfolios[
+                    portfolios["portfolio_strategy"] == name_strategie
+                ]
 
-        height_sharpr = portfolios.total_sharp_y2.tail(1).to_list()[0]
-        height_amount = portfolios.portfolio_amount.tail(1).to_list()[0]
+            # if there are no portfolios, return 5 and 0
+            if portfolios.empty:
+                return (5, 3.1)
 
-        return (height_amount, height_sharpr)
+                height_sharpr = portfolios.total_sharp_y2.tail(1).to_list()[0]
+                height_amount = portfolios.portfolio_amount.tail(1).to_list()[
+                    0
+                ]
+
+                return (height_amount, height_sharpr)
+
+        except:
+
+            return (5, 3.1)
         """
         # this below is old code.
         high_amount = portfolios.sort_values(
@@ -2680,6 +2971,62 @@ class kko_portfolio_update_manager:
             return False
 
         return True
+
+    def create_basic_list(self):
+
+        selection = create_kko_tickers_selection(methode_one=True)
+
+        tickers_selected = selection.selected_tickers
+
+        status = database_querys.database_querys.add_list_portfolio_strategys(
+            "BASIC_85PCT_BEST"
+        )
+        # if list is just created,
+        if status == 200:
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "BASIC_85PCT_BEST", ticker
+                )
+        elif status == 409:
+            database_querys.database_querys.remove_list_portfolio_strategys(
+                name_list="BASIC_85PCT_BEST"
+            )
+            status = (
+                database_querys.database_querys.add_list_portfolio_strategys(
+                    "BASIC_85PCT_BEST"
+                )
+            )
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "BASIC_85PCT_BEST", ticker
+                )
+
+        selection = create_kko_tickers_selection(methode_two=True)
+
+        tickers_selected = selection.selected_tickers
+
+        status = database_querys.database_querys.add_list_portfolio_strategys(
+            "WINRATE_OVER_85PCT"
+        )
+        # if list is just created,
+        if status == 200:
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "WINRATE_OVER_95PCT", ticker
+                )
+        elif status == 409:
+            database_querys.database_querys.remove_list_portfolio_strategys(
+                name_list="WINRATE_OVER_95PCT"
+            )
+            status = (
+                database_querys.database_querys.add_list_portfolio_strategys(
+                    "WINRATE_OVER_95PCT"
+                )
+            )
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "WINRATE_OVER_95PCT", ticker
+                )
 
 
 class kk_manager(object):
