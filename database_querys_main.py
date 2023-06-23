@@ -55,8 +55,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from sqlalchemy import and_, or_, not_
 
-from threading import Thread
-from threading import Lock
+from multiprocessing import Lock
 from datetime import datetime, timedelta
 
 
@@ -195,7 +194,7 @@ class database_querys:
             try:
                 session.commit()
             except IntegrityError:
-                return "Already exists 409"
+                return 409
 
             # Close the session
             session.close()
@@ -230,7 +229,7 @@ class database_querys:
             # Check if variable exists in strategy column
             incoming_variable = "Strategy C"
             if incoming_variable in df["strategy"].values:
-                return "Error: Strategy already exists."
+                return 409
             else:
                 # Add the variable to the table
                 new_strategy = Portfolio_Strategy(strategy=name_list)
