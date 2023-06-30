@@ -9,7 +9,7 @@ USE initizalize_ticker (NOT THE ONE ABOVE.)
 
 import constants
 
-
+import pandas as pd
 import sqlalchemy
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -518,7 +518,34 @@ class initiaze_singel_ticker:
 
             data = session.query(Ticker).get(stock)
 
+            # write price
             stock_ = TTicker(stock)
+
+            # if there is a marketcap field (than make it run)
+            if "marketCap" in stock_.price[self.main_ticker].keys():
+
+                # Execute the DELETE statement to remove expired data so we dont get a data over flow.
+                with engine.begin() as connection:
+                    result = connection.execute(
+                        """
+                        DELETE FROM your_table_name
+                        WHERE preMarketTime < NOW() - INTERVAL 7 DAY
+                    """
+                    )
+
+                    print(f"Deleted {result.rowcount} rows.")
+
+                df = pd.DataFrame.from_dict(stock_.price, orient="index")
+                # Convert 'preMarketTime' column to datetime
+                df["preMarketTime"] = pd.to_datetime(df["preMarketTime"])
+
+                df.to_sql(
+                    name="stock_market_data",
+                    con=engine,
+                    if_exists="append",
+                    index=True,
+                    index_label="index_column",
+                )
 
             # ticker is not a stock
             if type(stock_.asset_profile[stock]) == str:
@@ -682,9 +709,9 @@ if __name__ == "__main__":
 
     try:
         # NOT DELETE: DELISTED TICKER : FRTA
-        x = initiaze_tickers()
+        # x = initiaze_tickers()
         #
-        # infile_ = initiaze_singel_ticker("AUUDW")
+        infile_ = initiaze_singel_ticker("AAPL")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
 
