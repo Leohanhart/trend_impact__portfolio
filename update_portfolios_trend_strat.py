@@ -1654,7 +1654,7 @@ class kko_portfolio_update_manager:
             "Startingup portfolio creation threads"
         )
 
-        max_processes = 4  # Define the maximum number of processes
+        max_processes = 10  # Define the maximum number of processes
 
         # Create a Pool with the specified maximum processes
         pool = multiprocessing.Pool(processes=max_processes)
@@ -2976,7 +2976,7 @@ class kko_portfolio_update_manager:
 
         selection = create_kko_tickers_selection(methode_one=True)
 
-        tickers_selected = selection.selected_tickers
+        tickers_selected = tickers_above_85 = selection.selected_tickers
 
         status = database_querys.database_querys.add_list_portfolio_strategys(
             "BASIC_85PCT_BEST"
@@ -3027,6 +3027,69 @@ class kko_portfolio_update_manager:
                 database_querys.database_querys.add_tickers_to_list(
                     "WINRATE_OVER_95PCT", ticker
                 )
+
+        tickers_selected = (
+            database_querys.database_querys.get_mid_and_large_cap_tickers()
+        )
+
+        tickers_selected = filtered_tickers = [
+            ticker for ticker in tickers_selected if ticker in tickers_above_85
+        ]
+
+        # select mid and small caps.
+        status = database_querys.database_querys.add_list_portfolio_strategys(
+            "MIDCAP_AND_LARGECAP"
+        )
+        # if list is just created,
+        if status == 200:
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "MIDCAP_AND_LARGECAP", ticker
+                )
+        elif status == 409:
+            database_querys.database_querys.remove_list_portfolio_strategys(
+                name_list="MIDCAP_AND_LARGECAP"
+            )
+            status = (
+                database_querys.database_querys.add_list_portfolio_strategys(
+                    "MIDCAP_AND_LARGECAP"
+                )
+            )
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "MIDCAP_AND_LARGECAP", ticker
+                )
+
+        tickers_selected = database_querys.database_querys.get_liquid_tickers()
+
+        tickers_selected = filtered_tickers = [
+            ticker for ticker in tickers_selected if ticker in tickers_above_85
+        ]
+
+        # select mid and small caps.
+        status = database_querys.database_querys.add_list_portfolio_strategys(
+            "HIGH_LIQUID"
+        )
+        # if list is just created,
+        if status == 200:
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "HIGH_LIQUID", ticker
+                )
+        elif status == 409:
+            database_querys.database_querys.remove_list_portfolio_strategys(
+                name_list="HIGH_LIQUID"
+            )
+            status = (
+                database_querys.database_querys.add_list_portfolio_strategys(
+                    "HIGH_LIQUID"
+                )
+            )
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "HIGH_LIQUID", ticker
+                )
+        # select mid and small caps.
 
 
 class kk_manager(object):
