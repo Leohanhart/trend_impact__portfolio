@@ -1092,6 +1092,9 @@ class overall_trend_analyses:
         # load all sectors
         self.sectors = database_querys.database_querys.get_all_active_sectors()
 
+        # filter list
+        self.filter_sectors()
+
         self.data = df = self.create_trend_dataframe()
 
         # x = self.create_model("ALL", "ALLPTG", data)
@@ -1243,6 +1246,14 @@ class overall_trend_analyses:
             print("troubles")
 
         return df
+
+    def filter_sectors(self):
+        strings_to_remove = ["", "ETF", "Unkown"]
+        self.sectors = [
+            string
+            for string in self.sectors
+            if string not in strings_to_remove
+        ]
 
 
 atexit.register(get_trend_ts_support.cleanup)
