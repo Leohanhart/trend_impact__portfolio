@@ -278,6 +278,8 @@ class update_data:
         # update trading portfolio
         portfolio_synch.update_trading_portfolios.startup_update()
 
+        database_querys.database_querys.update_last_update()
+
     def task_1(self):
 
         database_querys.database_querys.add_log_to_logbook("Started task_1")
