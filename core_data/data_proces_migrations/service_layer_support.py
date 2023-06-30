@@ -117,6 +117,39 @@ def add_data_to_archive():
     return "Done"
 
 
+def add_trend_timeserie_data():
+    # Load the CSV file into a Pandas DataFrame
+    print("starting up the program")
+    df = pd.read_csv("timeserietrenddata.csv", encoding="latin-1")
+
+    # Remove the first column by column index
+    column_index = 0
+
+    df = df.drop(df.columns[column_index], axis=1)
+
+    column_names = [
+        "date",
+        "name",
+        "trend",
+        "duration",
+        "profile",
+        "profile_std",
+        "volatility",
+        "current_yield",
+        "max_drawdown",
+        "exp_return",
+        "max_yield",
+        "longs",
+        "shorts",
+        "total",
+    ]
+
+    df.columns = column_names
+
+    print("Data loaded, database insertion started.")
+    database_querys_main.database_querys.add_trend_timeserie(df)
+
+
 if __name__ == "__main__":
 
     try:
@@ -125,7 +158,7 @@ if __name__ == "__main__":
 
         x = "Epmty"
 
-        add_data_to_archive()
+        add_trend_timeserie_data()
 
     except Exception as e:
 
