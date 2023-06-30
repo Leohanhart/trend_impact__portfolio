@@ -60,6 +60,117 @@ from datetime import datetime, timedelta
 
 
 class database_querys:
+    def get_last_update():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            # Retrieve data from the "last_update" table
+            df = pd.read_sql_table("last_update", con=engine)
+
+            # Convert DataFrame to JSON
+            json_data = df.to_json(orient="records")
+
+            return json_data
+
+    def update_last_update():
+
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Get the current date and time
+            current_datetime = datetime.now()
+
+            # Create a DataFrame
+            df = pd.DataFrame({"DateTime": [current_datetime]})
+            # Write DataFrame to the "last_update" table
+            df.to_sql(
+                name="last_update",
+                con=engine,
+                if_exists="replace",
+                index=False,
+            )
+
+            return df
+
+    def get_liquid_tickers():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Query to select all rows from the table
+            query = "SELECT * FROM stock_market_data"
+
+            # Load the table into a DataFrame
+            df = pd.read_sql(query, engine)
+
+            # Create the filter
+            filter_condition = (
+                df["regularMarketVolume"] * df["postMarketPrice"]
+            ) > 200000000
+
+            # Apply the filter to the DataFrame
+            filtered_df = df[filter_condition]
+
+            tickers = filtered_df.index_column.to_list()
+
+            return tickers
+
+    def get_mid_and_large_cap_tickers():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Query to select all rows from the table
+            query = "SELECT * FROM stock_market_data"
+
+            # Load the table into a DataFrame
+            df = pd.read_sql(query, engine)
+
+            mid_cap_threshold = 2000000000  # $2 billion
+
+            # Select rows with marketCap higher than the mid-cap threshold
+            mid_cap_stocks = df[df["marketCap"] > mid_cap_threshold]
+
+            tickers = mid_cap_stocks.index_column.to_list()
+
+            return tickers
+
+    def get_mid_and_large_cap():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            # Query to select all rows from the table
+            query = "SELECT * FROM stock_market_data"
+
+            # Load the table into a DataFrame
+            df = pd.read_sql(query, engine)
+
+            mid_cap_threshold = 2000000000  # $2 billion
+
+            # Select rows with marketCap higher than the mid-cap threshold
+            mid_cap_stocks = df[df["marketCap"] > mid_cap_threshold]
+
+            tickers = mid_cap_stocks.index_column.to_list()
+
+            return tickers
+
     def check_if_ticker_is_allowd(
         ticker_name: str,
         exclude_blacklisted: bool = True,
@@ -227,7 +338,7 @@ class database_querys:
             df = pd.read_sql(query.statement, query.session.bind)
 
             # Check if variable exists in strategy column
-            incoming_variable = "Strategy C"
+            incoming_variable = name_list
             if incoming_variable in df["strategy"].values:
                 return 409
             else:
@@ -1396,7 +1507,7 @@ class database_querys:
         lock = Lock()
         with lock:
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
+            engine = create_engine(db_path, echo=True)
             Session = sessionmaker(bind=engine)
             session = Session()
             for row in df.itertuples():
