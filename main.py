@@ -27,6 +27,13 @@ import json
 import constants
 import uvicorn
 from mangum import Mangum
+from authentication import (
+    login_user,
+    verify_token,
+    protected_add_user,
+    protected_change_password,
+    protected_delete_user,
+)
 
 app = FastAPI()
 
@@ -71,8 +78,61 @@ def read_root():
     }
 
 
+@app.post("/login")
+def login(user: str, pasword: str):
+
+    token = login_user(user, pasword)
+
+    return Response(token)
+
+
+@app.post("/verify_token")
+def verify_token(token: str):
+
+    data = verify_token(token)
+
+    return data
+
+
+@app.post("/create_user")
+def create_new_user(
+    token: str, username: str, password: str, role: str = "USER"
+):
+
+    data = protected_add_user(token, username, password)
+
+    return data
+
+
+@app.post("/create_change_password")
+def verify_token(token: str, username: str):
+
+    data = protected_delete_user(token, username)
+
+    return data
+
+
+@app.post("/create_delete_user")
+def verify_token(token: str, username: str, password: str):
+
+    data = protected_change_password(token, username, password)
+
+    return data
+
+
+@app.get("/last_update")
+def return_last_update(token: str):
+
+    verify_token(token)
+
+    data = database_querys.get_last_update()
+    return Response(data)
+
+
 @app.get("/trend_analyses")
-def return_trend_analyses(ticker: str):
+def return_trend_analyses(token: str, ticker: str):
+
+    verify_token(token)
 
     data = services.return_trend_analyses.get_trend_analyses(ticker)
 
@@ -80,7 +140,9 @@ def return_trend_analyses(ticker: str):
 
 
 @app.get("/trend_analyses_archive_performance")
-def return_trend_archive_analyses(ticker: str):
+def return_trend_archive_analyses(token: str, ticker: str):
+
+    verify_token(token)
 
     data = services.return_trend_analyses.get_trend_archive_analyses(ticker)
 
@@ -88,7 +150,9 @@ def return_trend_archive_analyses(ticker: str):
 
 
 @app.get("/trend_analyses_archive_history_trades")
-def return_trend_archive_trades(ticker: str):
+def return_trend_archive_trades(token: str, ticker: str):
+
+    verify_token(token)
 
     data = services.return_trend_analyses.get_trend_analyses_trades(ticker)
 
@@ -97,12 +161,15 @@ def return_trend_archive_trades(ticker: str):
 
 @app.get("/trend_analyses_trade_options")
 def return_all_trend_specs(
+    token: str,
     page: int = 1,
     long: bool = True,
     short: bool = False,
     amount_days_of_new_trend: int = 5,
     percentage_2y_profitble: float = 90,
 ):
+
+    verify_token(token)
 
     data = services.return_trend_trade_options.return_trade_options(
         page=page,
@@ -125,12 +192,15 @@ def return_all_trend_specs():
 
 @app.get("/avalible_portfolios")
 def avalible_portfolios(
+    token: str,
     page: int = 1,
     portfolio_strategy: str = "",
     amount_rows: int = 20,
     min_amount_stocks: int = 5,
     max_amount_stocks: int = 6,
 ):
+
+    verify_token(token)
 
     data = services.return_portfolios_options.return_portfolios(
         page_number=page,
@@ -144,7 +214,9 @@ def avalible_portfolios(
 
 
 @app.get("/trading_portfolios")
-def avalible_trading_portfolios(portfolio_id: str = ""):
+def avalible_trading_portfolios(token: str, portfolio_id: str = ""):
+
+    verify_token(token)
 
     data = services.return_portfolios_options.return_trading_portfolios(
         id_=portfolio_id
@@ -154,7 +226,9 @@ def avalible_trading_portfolios(portfolio_id: str = ""):
 
 
 @app.post("/add_portfolios")
-def add_portfolios(portfolio_id: str):
+def add_portfolios(token: str, portfolio_id: str):
+
+    verify_token(token)
 
     data = services.return_portfolios_options.add_trading_portfolio(
         id_=portfolio_id
@@ -164,7 +238,9 @@ def add_portfolios(portfolio_id: str):
 
 
 @app.post("/add_portfolios_manually")
-def add_portfolios(portfolio_tickers: list):
+def add_portfolios(token: str, portfolio_tickers: list):
+
+    verify_token(token)
 
     data = services.return_portfolios_options.add_trading_portfolio_manual(
         id_=portfolio_tickers
@@ -174,7 +250,9 @@ def add_portfolios(portfolio_tickers: list):
 
 
 @app.delete("/remove_portfolio")
-def remove_portfolio(portfolio_id: str):
+def remove_portfolio(token: str, portfolio_id: str):
+
+    verify_token(token)
 
     data = services.return_portfolios_options.delete_trading_portfolio(
         id_=portfolio_id
@@ -184,7 +262,9 @@ def remove_portfolio(portfolio_id: str):
 
 
 @app.get("/show_portfolio_performance")
-def return_portfolio_performance(portfolio_id: str):
+def return_portfolio_performance(token: str, portfolio_id: str):
+
+    verify_token(token)
 
     data = services.return_stats.return_trading_backtest(
         portfolio_id=portfolio_id
@@ -194,7 +274,9 @@ def return_portfolio_performance(portfolio_id: str):
 
 
 @app.get("/show_logs")
-def return_logs(page_number: int = 1):
+def return_logs(token: str, page_number: int = 1):
+
+    verify_token(token)
 
     data = services.return_logs.return_logs_page(page_number=page_number)
 
@@ -203,6 +285,7 @@ def return_logs(page_number: int = 1):
 
 @app.get("/show_user_trades")
 def return_user_trades(
+    token: str,
     trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
 ):
 
@@ -215,8 +298,11 @@ def return_user_trades(
 
 @app.post("/add_user_trades")
 def add_user_trade(
-    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""
+    token: str,
+    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
+    ticker: str = "",
 ):
+    verify_token(token)
 
     data = services.crud_user_trades.add_user_trade(
         uu_id_trader=trader_id, ticker_name=ticker
@@ -227,8 +313,12 @@ def add_user_trade(
 
 @app.delete("/remove_user_trades")
 def return_logs(
-    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker: str = ""
+    token: str,
+    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
+    ticker: str = "",
 ):
+
+    verify_token(token)
 
     data = services.crud_user_trades.remove_user_trade(
         uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker_name=ticker
@@ -238,7 +328,11 @@ def return_logs(
 
 
 @app.get("/avalible_tickers")
-def return_all_tickers():
+def return_all_tickers(
+    token: str,
+):
+
+    verify_token(token)
 
     data = services.return_trend_analyses.get_all_tickers()
 
@@ -246,7 +340,9 @@ def return_all_tickers():
 
 
 @app.post("/add_or_maintain_ticker")
-def add_or_maintain_ticker(ticker: str = ""):
+def add_or_maintain_ticker(token: str, ticker: str = ""):
+
+    verify_token(token)
 
     data = services.maintenance_tickers.add_or_remove_ticker(ticker)
 
@@ -254,7 +350,11 @@ def add_or_maintain_ticker(ticker: str = ""):
 
 
 @app.get("/sector_strategy")
-def return_sector_strategy():
+def return_sector_strategy(
+    token: str,
+):
+
+    verify_token(token)
 
     data = services.return_trend_analyses.get_sector_analyses()
 
@@ -262,7 +362,9 @@ def return_sector_strategy():
 
 
 @app.post("/create_portfolio_strategys_list")
-def add_portofolio_strategys(name_strategy: str = ""):
+def add_portofolio_strategys(token: str, name_strategy: str = ""):
+
+    verify_token(token)
 
     data = database_querys.add_list_portfolio_strategys(
         name_list=name_strategy
@@ -273,8 +375,9 @@ def add_portofolio_strategys(name_strategy: str = ""):
 
 @app.post("/add_ticker_to_portfolio_strategys")
 def add_ticker_to_portofolio_strategys(
-    name_strategy: str = "", name_ticker: str = ""
+    token: str, name_strategy: str = "", name_ticker: str = ""
 ):
+    verify_token(token)
 
     data = database_querys.add_tickers_to_list(
         name_list=name_strategy, name_ticker=name_ticker
@@ -285,8 +388,10 @@ def add_ticker_to_portofolio_strategys(
 
 @app.delete("/remove_portfolio_strategys")
 def remove_list_portfolio_strategys(
-    name_list: str = "", ticker_name: str = ""
+    token: str, name_list: str = "", ticker_name: str = ""
 ):
+    verify_token(token)
+
     data = database_querys.remove_list_portfolio_strategys(
         name_list, ticker_name
     )
@@ -296,8 +401,13 @@ def remove_list_portfolio_strategys(
 
 @app.get("/return_portfolio_strategys")
 def return_portofolio_strategys(
-    name_list: str = "", ticker_name: str = "", return_all: bool = False
+    token: str,
+    name_list: str = "",
+    ticker_name: str = "",
+    return_all: bool = False,
 ):
+
+    verify_token(token)
 
     data = database_querys.return_list_portfolio_strategys(
         name_list=name_list, ticker_name=ticker_name, return_all=return_all
@@ -307,7 +417,11 @@ def return_portofolio_strategys(
 
 
 @app.get("/return_all_sector_trend_analyses_data")
-def return_all_sector_analyses_data_ai():
+def return_all_sector_analyses_data_ai(
+    token: str,
+):
+
+    verify_token(token, ["SIENTIST", "USER", "ADMIN"])
 
     data = services.return_trend_analyses.get_full_trend_analyses()
 
