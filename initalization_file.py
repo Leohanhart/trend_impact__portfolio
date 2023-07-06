@@ -10,6 +10,7 @@ import database_querys_main
 import json
 from core_scripts.stock_data_download import power_stock_object
 import stock_analyses_with_ticker_main as stock_analyses_with_ticker
+from initializer_tickers_main import initiaze_tickers
 import datetime
 import constants
 from collections import ChainMap
@@ -81,6 +82,7 @@ def add_data_to_archive():
         return False
 
     add_trend_timeserie_data()
+    tickers = initiaze_tickers()
     # Load the CSV file into a Pandas DataFrame
     df = pd.read_csv("core_data/trend_archive.csv")
 
