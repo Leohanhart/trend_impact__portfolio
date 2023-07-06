@@ -13,13 +13,25 @@ from fastapi import FastAPI, HTTPException
 from datetime import datetime, timedelta
 import jwt
 from database_querys_main import database_querys
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    DateTime,
+    func,
+    delete,
+)
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.inspection import inspect
-
+from sqlalchemy.sql import func
+from sqlalchemy import or_
+from sqlalchemy import desc
+from contextlib import contextmanager
 import constants
+import json
 
 app = FastAPI()
 
@@ -44,6 +56,16 @@ class User(Base):
     role = Column(String)
 
 
+class UserActivity(Base):
+    __tablename__ = "user_activity"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user = Column(String)
+    endpoint = Column(String)
+    values = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=func.now())
+
+
 # Check if the table already exists
 # Create an inspector to inspect the database
 inspector = inspect(engine)
@@ -55,6 +77,100 @@ table_exists = inspector.has_table("users")
 # Create the table if it does not exist
 if not table_exists:
     Base.metadata.create_all(engine)
+
+# Check if the table already exists
+table_exists = inspector.has_table("user_activity")
+
+if not table_exists:
+    Base.metadata.create_all(engine)
+
+
+def get_user_activity_data(
+    search_endpoint: str = None,
+    search_user: str = None,
+    page: int = 1,
+    page_size: int = 100,
+):
+    with get_db() as db:
+        # Query the user_activity table based on the search criteria
+        query = db.query(UserActivity)
+        if search_endpoint:
+            query = query.filter(UserActivity.endpoint == search_endpoint)
+        if search_user:
+            query = query.filter(UserActivity.user == search_user)
+
+        # Determine the total number of rows matching the search criteria
+        total_rows = query.count()
+
+        # Apply pagination to the query
+        query = (
+            query.order_by(desc(UserActivity.timestamp))
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+
+        # Retrieve the data
+        results = query.all()
+
+        # Convert the data to a list of dictionaries
+        data = []
+        for result in results:
+            data.append(
+                {
+                    "id": result.id,
+                    "user": result.user,
+                    "endpoint": result.endpoint,
+                    "values": result.values,
+                    "timestamp": result.timestamp,
+                }
+            )
+
+        # Create a dictionary with the pagination information
+        pagination = {
+            "page": page,
+            "page_size": page_size,
+            "total_rows": total_rows,
+        }
+
+        # Create a dictionary to hold the final result
+        response = {"data": data, "pagination": pagination}
+
+        # Convert the response to JSON format
+        json_response = json.dumps(response)
+
+        # Return the JSON response
+        return json_response
+
+
+def log_user_activity(username: str, endpoint: str, values: str):
+
+    if endpoint == "" or endpoint is None:
+        return
+    # Get the database session using the context manager
+    with get_db() as db:
+        activity = UserActivity(
+            user=username,
+            endpoint=endpoint,
+            values=values,
+            timestamp=datetime.now(),
+        )
+        db.add(activity)
+        db.commit()
+
+        # Calculate the cutoff timestamp
+        cutoff_timestamp = datetime.now() - timedelta(days=1.5 * 365)
+
+        # Construct the DELETE statement
+        delete_statement = delete(UserActivity).where(
+            UserActivity.timestamp < cutoff_timestamp
+        )
+
+        # Execute the DELETE statement
+        with engine.begin() as connection:
+            connection.execute(delete_statement)
+
+        # Commit the changes
+        session.commit()
 
 
 def get_db():
@@ -108,15 +224,21 @@ def generate_token(username: str, roles: list) -> str:
 
 # Verify JWT token and extract user roles
 def verify_token(
-    token: str, expected_roles: list = ["USER", "ADMIN"]
+    token: str,
+    expected_roles: list = ["USER", "ADMIN"],
+    endpoint: str = "",
+    values: str = "",
 ) -> tuple:
     try:
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("username")
         roles = payload.get("roles")
         if username:
-
             if roles in expected_roles:
+
+                log_user_activity(username, endpoint, values)
+
                 return username, roles
             else:
                 raise HTTPException(status_code=401, detail="Unauthorized")
@@ -144,7 +266,7 @@ def login_user(username, password):
 
 
 def protected_add_user(token, username_new, password_new, user_role_new):
-    username, role = verify_token(token)
+    username, role = verify_token(token, ["ADMIN"])
     if role is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
     if role == "ADMIN":
@@ -152,7 +274,7 @@ def protected_add_user(token, username_new, password_new, user_role_new):
 
 
 def protected_change_password(token, username_new, password_new):
-    username, role = verify_token(token)
+    username, role = verify_token(token, "ADMIN")
     if role is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
     if role == "ADMIN":
@@ -160,7 +282,7 @@ def protected_change_password(token, username_new, password_new):
 
 
 def protected_delete_user(token, username_new):
-    username, role = verify_token(token)
+    username, role = verify_token(token, "ADMIN")
     if role is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
     if role == "ADMIN":
@@ -184,14 +306,9 @@ def verify_token_endpoint(token: str):
 if __name__ == "__main__":
 
     try:
-        protected_add_user(
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6IkxFT0RFQURNSU4iLCJyb2xlcyI6IkFETUlOIiwiZXhwIjoxNjg4MDcwNzY2fQ.Xx54uYHp9qTX6QffPgXew2WhwulAj70mv8kS5BAL1TA",
-            "KWEE",
-            "UTRECHT123OPENICT",
-            "SIENTIST",
-        )
+        x = get_user_activity_data(search_user="LEODEADMIN")
         # add_user("LEODEADMIN", "QWERTY12345...LEOISADMIN", "ADMIN")
-        print("est")
+        print("est", x)
 
     except Exception as e:
 
