@@ -2517,7 +2517,7 @@ class kko_portfolio_update_manager:
     ):
 
         with lock:
-            print(f"{thread_name} is using fuction")
+            # print(f"{thread_name} is using fuction")
             # creates portfolio
             try:
                 portfolio = portfolio_constructor_manager(portfolio_data)
@@ -2530,7 +2530,7 @@ class kko_portfolio_update_manager:
             if portfolio.Imax_sharp_sharp_ratio < current_sharp_ratio:
                 return False
 
-            print(portfolio.Imax_sharp_sharp_ratio, " this is the sharp")
+            # print(portfolio.Imax_sharp_sharp_ratio, " this is the sharp")
             # if alowed
             if allowd_to_add.allowd:
 
@@ -3032,6 +3032,8 @@ class kko_portfolio_update_manager:
             database_querys.database_querys.get_mid_and_large_cap_tickers()
         )
 
+        tickers_selected = list(set(tickers_selected))
+
         tickers_selected = filtered_tickers = [
             ticker for ticker in tickers_selected if ticker in tickers_above_85
         ]
@@ -3061,6 +3063,8 @@ class kko_portfolio_update_manager:
                 )
 
         tickers_selected = database_querys.database_querys.get_liquid_tickers()
+
+        tickers_selected = list(set(tickers_selected))
 
         tickers_selected = filtered_tickers = [
             ticker for ticker in tickers_selected if ticker in tickers_above_85
@@ -3278,7 +3282,7 @@ if __name__ == "__main__":
         # print(obj)
         # x = create_stats.return_backtest(
         #    tickers=["ADMA", "ALT", "AFYA", "AEPPZ", "ACET"])
-        startup_ = kko_portfolio_update_manager()
+        # startup_ = kko_portfolio_update_manager()
         # update_kaufman_kalman_analyses.update_full_analyses()
     # update_kaufman_kalman_analyses.update_all()
     # update_trend_performance("AAPL", "D")
