@@ -525,11 +525,12 @@ class initiaze_singel_ticker:
             if "marketCap" in stock_.price[self.main_ticker].keys():
 
                 # Execute the DELETE statement to remove expired data so we dont get a data over flow.
+                # Execute the DELETE statement
                 with engine.begin() as connection:
                     result = connection.execute(
                         """
-                        DELETE FROM your_table_name
-                        WHERE preMarketTime < NOW() - INTERVAL 7 DAY
+                        DELETE FROM stock_market_data
+                        WHERE preMarketTime < DATE('now', '-7 days')
                     """
                     )
 
