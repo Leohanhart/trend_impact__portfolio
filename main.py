@@ -14,7 +14,7 @@ Idea's correlation / cointegration table. Use for prediction.
 """
 
 from typing import Optional
-from fastapi import BackgroundTasks, FastAPI, Response, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Response, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from core_service_layer.data_service import get_system_info
 from database_querys_main import database_querys
@@ -33,6 +33,7 @@ from authentication import (
     protected_add_user,
     protected_change_password,
     protected_delete_user,
+    get_user_activity_data,
 )
 
 app = FastAPI()
@@ -64,14 +65,21 @@ def onstart_function():
     data_update = update_portfolios.update_data()
 
 
+@app.get("/ip")
+async def get_client_ip(request: Request):
+    client_ip = request.client.host
+    return {"ip": client_ip}
+
+
 @app.on_event("startup")
 async def startup_event():
 
-    onstart_function()
+    # onstart_function()
+    pass
 
 
 @app.get("/")
-def read_root():
+def read_root(request: Request):
 
     return {
         "Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is so cute <3 <3 <3 , LIKE ELMO! ELMO IS GREAT 1337"
@@ -87,7 +95,7 @@ def login(user: str, pasword: str):
 
 
 @app.post("/verify_token")
-def verify_token(token: str):
+def verify_token_user(token: str):
 
     data = verify_token(token)
 
@@ -99,13 +107,13 @@ def create_new_user(
     token: str, username: str, password: str, role: str = "USER"
 ):
 
-    data = protected_add_user(token, username, password)
+    data = protected_add_user(token, username, password, role)
 
     return data
 
 
 @app.post("/create_change_password")
-def verify_token(token: str, username: str):
+def delete_user(token: str, username: str):
 
     data = protected_delete_user(token, username)
 
@@ -113,7 +121,7 @@ def verify_token(token: str, username: str):
 
 
 @app.post("/create_delete_user")
-def verify_token(token: str, username: str, password: str):
+def create_user(token: str, username: str, password: str):
 
     data = protected_change_password(token, username, password)
 
@@ -130,9 +138,14 @@ def return_last_update(token: str):
 
 
 @app.get("/trend_analyses")
-def return_trend_analyses(token: str, ticker: str):
+def return_trend_analyses(token: str, ticker: str, request: Request):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trend_analyses",
+        values=f"ticker = {ticker}, host = {request.client.host}",
+    )
 
     data = services.return_trend_analyses.get_trend_analyses(ticker)
 
@@ -142,7 +155,12 @@ def return_trend_analyses(token: str, ticker: str):
 @app.get("/trend_analyses_archive_performance")
 def return_trend_archive_analyses(token: str, ticker: str):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trend_analyses_archive_performance",
+        values=f"ticker = {ticker}",
+    )
 
     data = services.return_trend_analyses.get_trend_archive_analyses(ticker)
 
@@ -152,7 +170,12 @@ def return_trend_archive_analyses(token: str, ticker: str):
 @app.get("/trend_analyses_archive_history_trades")
 def return_trend_archive_trades(token: str, ticker: str):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trend_analyses_archive_history_trades",
+        values=f"ticker = {ticker}",
+    )
 
     data = services.return_trend_analyses.get_trend_analyses_trades(ticker)
 
@@ -169,7 +192,12 @@ def return_all_trend_specs(
     percentage_2y_profitble: float = 90,
 ):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trend_analyses_trade_options",
+        values=f"page = {page},long = {long}, short = {short}",
+    )
 
     data = services.return_trend_trade_options.return_trade_options(
         page=page,
@@ -200,7 +228,12 @@ def avalible_portfolios(
     max_amount_stocks: int = 6,
 ):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="avalible_portfolios",
+        values=f"page = {page},portfolio_strategy = {portfolio_strategy}, amount_rows = {amount_rows}, max_amount_stocks = {max_amount_stocks}",
+    )
 
     data = services.return_portfolios_options.return_portfolios(
         page_number=page,
@@ -214,9 +247,16 @@ def avalible_portfolios(
 
 
 @app.get("/trading_portfolios")
-def avalible_trading_portfolios(token: str, portfolio_id: str = ""):
+def avalible_trading_portfolios(
+    token: str, portfolio_id: str, request: Request
+):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trading_portfolios",
+        values=f"portfolio_id = {portfolio_id} host = {request.client.host}",
+    )
 
     data = services.return_portfolios_options.return_trading_portfolios(
         id_=portfolio_id
@@ -228,7 +268,12 @@ def avalible_trading_portfolios(token: str, portfolio_id: str = ""):
 @app.post("/add_portfolios")
 def add_portfolios(token: str, portfolio_id: str):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="add_portfolios",
+        values=f"portfolio_id = {portfolio_id}",
+    )
 
     data = services.return_portfolios_options.add_trading_portfolio(
         id_=portfolio_id
@@ -240,7 +285,12 @@ def add_portfolios(token: str, portfolio_id: str):
 @app.post("/add_portfolios_manually")
 def add_portfolios(token: str, portfolio_tickers: list):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="add_portfolios_manually",
+        values=f"portfolio_tickers = {portfolio_tickers}",
+    )
 
     data = services.return_portfolios_options.add_trading_portfolio_manual(
         id_=portfolio_tickers
@@ -252,7 +302,12 @@ def add_portfolios(token: str, portfolio_tickers: list):
 @app.delete("/remove_portfolio")
 def remove_portfolio(token: str, portfolio_id: str):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="remove_portfolio",
+        values=f"portfolio_id = {portfolio_id}",
+    )
 
     data = services.return_portfolios_options.delete_trading_portfolio(
         id_=portfolio_id
@@ -264,7 +319,12 @@ def remove_portfolio(token: str, portfolio_id: str):
 @app.get("/show_portfolio_performance")
 def return_portfolio_performance(token: str, portfolio_id: str):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="show_portfolio_performance",
+        values=f"portfolio_id = {portfolio_id}",
+    )
 
     data = services.return_stats.return_trading_backtest(
         portfolio_id=portfolio_id
@@ -276,9 +336,36 @@ def return_portfolio_performance(token: str, portfolio_id: str):
 @app.get("/show_logs")
 def return_logs(token: str, page_number: int = 1):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="show_logs",
+        values=f"page_number = {page_number}",
+    )
 
     data = services.return_logs.return_logs_page(page_number=page_number)
+
+    return data
+
+
+@app.get("/show_special_logs")
+def return_logs(
+    token: str,
+    page_number: int = 1,
+    search_endpoint: str = None,
+    search_user: str = None,
+    page: int = 1,
+    page_size: int = 100,
+):
+
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN"],
+        endpoint="show_logs",
+        values=f"page_number = {page_number}",
+    )
+
+    data = get_user_activity_data(page_number, search_user, page, page_size)
 
     return data
 
@@ -288,6 +375,12 @@ def return_user_trades(
     token: str,
     trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
 ):
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="show_user_trades",
+        values=f"trader_id = {trader_id}",
+    )
 
     data = services.return_trend_analyses.get_user_trades(
         uuid_portfolio=trader_id
@@ -302,7 +395,12 @@ def add_user_trade(
     trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
     ticker: str = "",
 ):
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="add_user_trades",
+        values=f"trader_id = {trader_id}, ticker = {ticker}",
+    )
 
     data = services.crud_user_trades.add_user_trade(
         uu_id_trader=trader_id, ticker_name=ticker
@@ -318,7 +416,12 @@ def return_logs(
     ticker: str = "",
 ):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="remove_user_trades",
+        values=f"trader_id = {trader_id}, ticker = {ticker}",
+    )
 
     data = services.crud_user_trades.remove_user_trade(
         uu_id_trader="49a55c9c-8dbd-11ed-8abb-001a7dda7110", ticker_name=ticker
@@ -332,7 +435,12 @@ def return_all_tickers(
     token: str,
 ):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="avalible_tickers",
+        values=f"trader id",
+    )
 
     data = services.return_trend_analyses.get_all_tickers()
 
@@ -342,7 +450,12 @@ def return_all_tickers(
 @app.post("/add_or_maintain_ticker")
 def add_or_maintain_ticker(token: str, ticker: str = ""):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="add_or_maintain_ticker",
+        values=f"ticker = {ticker}",
+    )
 
     data = services.maintenance_tickers.add_or_remove_ticker(ticker)
 
@@ -354,7 +467,12 @@ def return_sector_strategy(
     token: str,
 ):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN", "USER"],
+        endpoint="sector_strategy",
+        values=f" no values",
+    )
 
     data = services.return_trend_analyses.get_sector_analyses()
 
@@ -364,7 +482,12 @@ def return_sector_strategy(
 @app.post("/create_portfolio_strategys_list")
 def add_portofolio_strategys(token: str, name_strategy: str = ""):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN"],
+        endpoint="create_portfolio_strategys_list",
+        values=f" name_strategy = {name_strategy} ",
+    )
 
     data = database_querys.add_list_portfolio_strategys(
         name_list=name_strategy
@@ -377,7 +500,12 @@ def add_portofolio_strategys(token: str, name_strategy: str = ""):
 def add_ticker_to_portofolio_strategys(
     token: str, name_strategy: str = "", name_ticker: str = ""
 ):
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN"],
+        endpoint="add_ticker_to_portfolio_strategys",
+        values=f" name_strategy = {name_strategy}, name_ticker = {name_ticker} ",
+    )
 
     data = database_querys.add_tickers_to_list(
         name_list=name_strategy, name_ticker=name_ticker
@@ -390,7 +518,13 @@ def add_ticker_to_portofolio_strategys(
 def remove_list_portfolio_strategys(
     token: str, name_list: str = "", ticker_name: str = ""
 ):
-    verify_token(token)
+
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN"],
+        endpoint="add_ticker_to_portfolio_strategys",
+        values=f" name_list = {name_list}, ticker_name = {ticker_name} ",
+    )
 
     data = database_querys.remove_list_portfolio_strategys(
         name_list, ticker_name
@@ -407,7 +541,12 @@ def return_portofolio_strategys(
     return_all: bool = False,
 ):
 
-    verify_token(token)
+    verify_token(
+        token=token,
+        expected_roles=["ADMIN"],
+        endpoint="add_ticker_to_portfolio_strategys",
+        values=f" name_list = {name_list}, ticker_name = {ticker_name} return_all = {return_all}",
+    )
 
     data = database_querys.return_list_portfolio_strategys(
         name_list=name_list, ticker_name=ticker_name, return_all=return_all
@@ -421,7 +560,12 @@ def return_all_sector_analyses_data_ai(
     token: str,
 ):
 
-    verify_token(token, ["SIENTIST", "USER", "ADMIN"])
+    verify_token(
+        token,
+        ["SIENTIST", "USER", "ADMIN"],
+        endpoint="return_all_sector_trend_analyses_data",
+        values="KWEE",
+    )
 
     data = services.return_trend_analyses.get_full_trend_analyses()
 
