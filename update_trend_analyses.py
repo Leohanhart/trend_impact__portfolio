@@ -292,6 +292,9 @@ class update_kaufman_support(object):
         """
 
         logger.info(f"updateing full analyses {ticker}")
+
+        ticker_status = initiaze_singel_ticker(stock_ticker=ticker)
+
         power_object = stock_object.power_stock_object(
             stock_ticker=ticker,
             simplyfied_load=True,
@@ -2692,7 +2695,7 @@ if __name__ == "__main__":
 
         database_querys.database_querys.update_analyses_trend_kamal(model)
         """
-        update_kaufman_support.update_all_analyse_multi()
+        update_kaufman_support.update_all_analyses_with_ticker(ticker="AAL")
 
     except Exception as e:
 
