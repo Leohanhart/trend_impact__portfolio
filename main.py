@@ -65,12 +65,6 @@ def onstart_function():
     data_update = update_portfolios.update_data()
 
 
-@app.get("/ip")
-async def get_client_ip(request: Request):
-    client_ip = request.client.host
-    return {"ip": client_ip}
-
-
 @app.on_event("startup")
 async def startup_event():
 
