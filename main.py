@@ -68,8 +68,7 @@ def onstart_function():
 @app.on_event("startup")
 async def startup_event():
 
-    # onstart_function()
-    pass
+    onstart_function()
 
 
 @app.get("/")
