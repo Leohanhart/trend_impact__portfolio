@@ -14,6 +14,11 @@ from initializer_tickers_main import initiaze_tickers
 import datetime
 import constants
 from collections import ChainMap
+import warnings
+
+warnings.filterwarnings(
+    "ignore", message="Columns (1,2) have mixed types", category=UserWarning
+)
 
 import pandas as pd
 
@@ -120,6 +125,8 @@ def add_data_to_archive():
     # Assign the column names to the DataFrame
     df.columns = column_names
 
+    df.dropna(inplace=True)
+
     if 0 == 0:
         pass
     # Loop through each row of the DataFrame
@@ -145,7 +152,7 @@ def add_data_to_archive():
 
 def add_trend_timeserie_data():
     # Load the CSV file into a Pandas DataFrame
-    print("starting up the program")
+    print("starting up the program, loading in the CSV of trend data")
     df = pd.read_csv("core_data/timeserietrenddata.csv", encoding="latin-1")
 
     # Remove the first column by column index
@@ -180,6 +187,9 @@ def add_trend_timeserie_data():
 
     # Set 'Date' as the index
     df.set_index("date", inplace=True)
+
+    # remove NA's
+    df.dropna(inplace=True)
 
     print("Data loaded, database insertion started.")
     database_querys_main.database_querys.add_trend_timeserie(df)
@@ -220,6 +230,8 @@ def add_trend_timeserie_data():
 
     # Set 'Date' as the index
     df.set_index("date", inplace=True)
+
+    df.dropna(inplace=True)
 
     print("Data loaded, database insertion started.")
     database_querys_main.database_querys.add_trend_timeserie(df)
