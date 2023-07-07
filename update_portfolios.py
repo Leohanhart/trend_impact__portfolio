@@ -87,7 +87,7 @@ class update_data:
             "Started applcation"
         )
         #
-        # self.pre_startup()
+        self.pre_startup()
         # self.afterhour_update_cycle()
         self.start_update_schedule()
 
