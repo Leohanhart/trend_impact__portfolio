@@ -99,6 +99,34 @@ class database_querys:
 
             return df
 
+    def get_darwin():
+        lock = Lock()
+        with lock:
+            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+            engine = create_engine(db_path, echo=False)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            query_string = session.query(
+                Analyses_trend_kamal_performance
+            ).statement.compile()
+
+            try:
+                df = pd.read_sql_query(query_string, session.bind)
+            except Exception as e:
+                print("rerror")
+                print(e)
+
+            # close session
+            session.close()
+
+            filtered_df = df[
+                (df["total_profitible_trades_all"] >= 98)
+                & (df["amount_of_trades_y2"] != 1)
+                & (df["total_return_y2"] > 0.8)
+                & (df["total_average_return_y2"] > 6)
+            ]
+
     def get_liquid_tickers():
         lock = Lock()
         with lock:

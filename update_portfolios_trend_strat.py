@@ -3093,6 +3093,38 @@ class kko_portfolio_update_manager:
                 database_querys.database_querys.add_tickers_to_list(
                     "HIGH_LIQUID", ticker
                 )
+
+        tickers_selected = database_querys.database_querys.get_darwin()
+
+        tickers_selected = list(set(tickers_selected))
+
+        tickers_selected = filtered_tickers = [
+            ticker for ticker in tickers_selected if ticker in tickers_above_85
+        ]
+
+        # select mid and small caps.
+        status = database_querys.database_querys.add_list_portfolio_strategys(
+            "DARWIN"
+        )
+        # if list is just created,
+        if status == 200:
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "DARWIN", ticker
+                )
+        elif status == 409:
+            database_querys.database_querys.remove_list_portfolio_strategys(
+                name_list="DARWIN"
+            )
+            status = (
+                database_querys.database_querys.add_list_portfolio_strategys(
+                    "DARWIN"
+                )
+            )
+            for ticker in tickers_selected:
+                database_querys.database_querys.add_tickers_to_list(
+                    "DARWIN", ticker
+                )
         # select mid and small caps.
 
 

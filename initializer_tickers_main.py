@@ -534,7 +534,7 @@ class initiaze_singel_ticker:
                     """
                     )
 
-                    print(f"Deleted {result.rowcount} rows.")
+                    # print(f"Deleted {result.rowcount} rows.")
 
                 df = pd.DataFrame.from_dict(stock_.price, orient="index")
                 # Convert 'preMarketTime' column to datetime
