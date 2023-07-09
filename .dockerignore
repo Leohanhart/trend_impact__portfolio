@@ -1,0 +1,10 @@
+# Exclude specific files
+secret.txt
+debug.log
+
+# Exclude a directory and its contents
+logs/
+
+# Exclude files with a specific extension
+*.log
+*.tmp

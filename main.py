@@ -176,7 +176,7 @@ def return_trend_archive_trades(token: str, ticker: str):
 
 
 @app.get("/trend_analyses_trade_options")
-def return_all_trend_specs(
+def return_all_trend_options(
     token: str,
     page: int = 1,
     long: bool = True,
@@ -240,9 +240,7 @@ def avalible_portfolios(
 
 
 @app.get("/trading_portfolios")
-def avalible_trading_portfolios(
-    token: str, portfolio_id: str, request: Request
-):
+def avalible_trading_portfolios(token: str, portfolio_id, request: Request):
 
     verify_token(
         token=token,
@@ -276,7 +274,7 @@ def add_portfolios(token: str, portfolio_id: str):
 
 
 @app.post("/add_portfolios_manually")
-def add_portfolios(token: str, portfolio_tickers: list):
+def add_manual_portfolios(token: str, portfolio_tickers: list):
 
     verify_token(
         token=token,
@@ -342,7 +340,7 @@ def return_logs(token: str, page_number: int = 1):
 
 
 @app.get("/show_special_logs")
-def return_logs(
+def return_special_logs(
     token: str,
     page_number: int = 1,
     search_endpoint: str = None,
