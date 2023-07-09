@@ -67,7 +67,6 @@ def onstart_function():
 
 @app.on_event("startup")
 async def startup_event():
-
     onstart_function()
 
 
@@ -75,7 +74,7 @@ async def startup_event():
 def read_root(request: Request):
 
     return {
-        "Welcome to the trendimpact-core.. I Love you Leo, your girlfriend is so cute <3 <3 <3 , LIKE ELMO! ELMO IS GREAT 1337"
+        "Welcome to the trendimpact-core.. Build between Dec 29, 2022, and Jul 9 2023 in the name of Hanhart Trading Technologies "
     }
 
 
