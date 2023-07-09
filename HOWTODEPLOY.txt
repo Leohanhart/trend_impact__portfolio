@@ -2,3 +2,4 @@
 1.1 setup CICD, -- dont forget to make a service of it. 
 2. Change libs import -- cocksuckers. 
 3. make a service of the server.
+# BUILD THE IMAGE AND RUN
