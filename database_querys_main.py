@@ -126,6 +126,8 @@ class database_querys:
                 & (df["total_return_y2"] > 0.8)
                 & (df["total_average_return_y2"] > 6)
             ]
+            tickers = filtered_df.id.to_list()
+            return tickers
 
     def get_liquid_tickers():
         lock = Lock()
@@ -2673,11 +2675,8 @@ if __name__ == "__main__":
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
         #### test
-        x = database_querys.return_list_portfolio_strategys()
-        print(x)
-        x = database_querys.return_list_portfolio_strategys(
-            name_list="ADMIRALMARKETS"
-        )
+        x = database_querys.get_darwin()
+
         print(x)
         print("END")
 
