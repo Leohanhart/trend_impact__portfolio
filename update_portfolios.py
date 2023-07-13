@@ -441,7 +441,7 @@ if __name__ == "__main__":
     # archive
     try:
         x = update_data()
-        x.start_update_scedule()
+        # x.start_update_scedule()
         print("LEETS GOOO")
         sleep(432000)
         # x.pre_startup()

@@ -4,6 +4,7 @@ Created on Fri Dec 30 20:20:32 2022
 
 @author: Gebruiker
 """
+import warnings
 import constants
 import database_querys_main as database_querys
 import stock_analyses_with_ticker_main as stock_analyses_with_ticker
@@ -72,6 +73,7 @@ lock = Lock()
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 class update_trend_kamal_portfolio_selection:
@@ -996,19 +998,17 @@ class add_kko_portfolio:
         if portfolio_strategy:
             model.portfolio_strategy = portfolio_strategy
         else:
-            model.portfolio_strategy = "TREND_STRAT_KKO_HS"
+            model.portfolio_strategy = "REGULAR"
         # create amount
-        model.portfolio_amount = int(
-            len(portfolio.high_sharp_frame.ticker.to_list())
-        )
+        model.portfolio_amount = portfolio.num_assets
 
-        tickers = portfolio.high_sharp_frame.ticker.to_list()
+        tickers = list(portfolio.column_balances.keys())
         serialized_list_of_tickers = json.dumps(tickers)
 
         # set tickers
         model.list_of_tickers = serialized_list_of_tickers
 
-        balances = portfolio.high_sharp_frame.balance.to_list()
+        balances = list(portfolio.column_balances.values())
         balances = [round(num, 3) for num in balances]
 
         serialized_list_balances = json.dumps(balances)
@@ -1033,19 +1033,23 @@ class add_kko_portfolio:
         # perfomnace data =
         performance_data = risk_metrics.details
 
+        # Setup risk parameters
+        serialized_list_of_perfomance_data = json.dumps(performance_data)
+        model.list_of_performance = serialized_list_of_perfomance_data
+
+        # perfomnace data
+        performance_data = {trend: "Leo_Was_Here"}
         serialized_list_of_perfomance_data = json.dumps(performance_data)
         model.list_of_performance = serialized_list_of_perfomance_data
 
         # create an
-        total_expected_return = round(
-            portfolio.max_sharp_y2_expected_return, 2
-        )
-        model.total_expected_return = portfolio.Imax_sharp_expected_return
+        total_expected_return = round(portfolio.expected_return, 2)
+        model.total_expected_return = total_expected_return
 
-        total_sharp = round(portfolio.max_sharp_y2_return, 2)
-        model.total_sharp_y2 = portfolio.Imax_sharp_sharp_ratio
+        total_sharp = round(portfolio.sharpe_ratio, 2)
+        model.total_sharp_y2 = total_sharp
 
-        model.total_volatility_y2 = portfolio.Imax_sharp_volatility
+        model.total_volatility_y2 = round(portfolio.volatility, 2)
 
         today = date.today()
         d1 = today.strftime("%d-%m-%Y")
@@ -1443,6 +1447,7 @@ class kko_portfolio_update_manager:
 
         # starts up normal, this is option is set so functions can be used without startup.
         if startup_is_allowd:
+            # self.startup_new()
             self.startup_multi()
         else:
             return
@@ -1491,14 +1496,15 @@ class kko_portfolio_update_manager:
         for i in range(0, 10):
             random.shuffle(tickers_selected)
 
-        items = self.create_data_of_tickers(selection.selected_tickers)
+        tickers = selection.selected_tickers[0:50]
+        items = self.create_data_of_tickers(tickers)
 
         tickers = list(items.keys())
 
         # self.create_single_options(items[1], lists_[0], "thread Leo")
         # self.create_all_options(selection.selected_tickers, 5)
 
-        self.continues_portfolio_creation(
+        self.multi_portfolio_creation(
             items,
             tickers,
             "thread 0",
@@ -1802,7 +1808,7 @@ class kko_portfolio_update_manager:
             min_amount_tickers, min_sharp_ratio = details
 
         # get the tickers
-        selection = create_kko_tickers_selection(methode_two=True)
+        selection = create_kko_tickers_selection(methode_test=True)
 
         tickers_selected = selection.selected_tickers
 
@@ -2325,19 +2331,13 @@ class kko_portfolio_update_manager:
                     continue
 
             # creates portfolio
-            try:
-                portfolio = portfolio_constructor_manager(data)
-            except:
-                continue
+            portfolio = PortfolioOptimizer(data)
 
-            # checks needed if portfolio is alowed to trade.
-            allowd_to_add = kko_portfolio_gardian(portfolio)
-
-            if portfolio.Imax_sharp_sharp_ratio < start_amount_sharp:
+            if portfolio.sharpe_ratio < start_amount_sharp:
                 continue
 
             # if alowed
-            if allowd_to_add.allowd:
+            if portfolio.is_allowed:
 
                 if "TRHEAD" not in thread_name.upper():
                     # add portfolio to the database.
@@ -2519,33 +2519,36 @@ class kko_portfolio_update_manager:
         with lock:
             # print(f"{thread_name} is using fuction")
             # creates portfolio
+            if portfolio_data.isna().any().any():
+                return False
             try:
-                portfolio = portfolio_constructor_manager(portfolio_data)
+                portfolio = PortfolioOptimizer(portfolio_data)
 
             except:
                 return False
-            # checks needed if portfolio is alowed to trade.
-            allowd_to_add = kko_portfolio_gardian(portfolio)
 
-            if portfolio.Imax_sharp_sharp_ratio < current_sharp_ratio:
+            if portfolio.sharpe_ratio < current_sharp_ratio:
                 return False
 
             # print(portfolio.Imax_sharp_sharp_ratio, " this is the sharp")
             # if alowed
-            if allowd_to_add.allowd:
+            if portfolio.is_allowed:
 
                 if "TRHEAD" not in thread_name.upper():
+
                     # add portfolio to the database.
                     execute = add_kko_portfolio(
                         portfolio=portfolio,
                         portfolio_id=None,
                         portfolio_strategy=thread_name,
                     )
+
                     return True
                 else:
                     execute = add_kko_portfolio(portfolio=portfolio)
 
                     return True
+                # creates portfolio
 
     def create_data_of_tickers(self, list_of_stocks: list):
         tickers_out = list_of_stocks
@@ -2762,9 +2765,9 @@ class kko_portfolio_update_manager:
                     portfolios["portfolio_strategy"] == name_strategie
                 ]
 
-            # if there are no portfolios, return 5 and 0
-            if portfolios.empty:
-                return (5, 3.1)
+                # if there are no portfolios, return 5 and 0
+                if portfolios.empty:
+                    return (5, 3.1)
 
                 height_sharpr = portfolios.total_sharp_y2.tail(1).to_list()[0]
                 height_amount = portfolios.portfolio_amount.tail(1).to_list()[
@@ -2773,6 +2776,7 @@ class kko_portfolio_update_manager:
 
                 return (height_amount, height_sharpr)
 
+            return 5, 3.1
         except:
 
             return (5, 3.1)
@@ -3095,7 +3099,8 @@ class kko_portfolio_update_manager:
                 )
 
         tickers_selected = database_querys.database_querys.get_darwin()
-
+        if tickers_selected is None:
+            return
         tickers_selected = list(set(tickers_selected))
 
         tickers_selected = filtered_tickers = [
@@ -3240,6 +3245,97 @@ class create_stats(object):
         return r_data
 
 
+class PortfolioOptimizer:
+
+    data = None
+    num_assets = None
+    risk_free_rate = 0.00
+    is_allowed = False
+    sharpe_ratio = None
+    max_sharpe_idx = None
+    optimal_weights = None
+    expected_return = None
+    volatility = None
+    column_balances = None
+    var_95 = None
+    downside_risk = None
+
+    def __init__(self, data):
+        with warnings.catch_warnings():
+            self.data = data
+            self.num_assets = len(data.columns)
+            self.optimize_portfolio()
+
+    def calculate_average(self, row):
+        end_value = row.iloc[-1]
+        old_value = row.iloc[0]
+        length = len(row)
+
+        average = (end_value - old_value) / old_value / length
+        return average
+
+    def optimize_portfolio(self):
+        with warnings.catch_warnings():
+            df = self.data
+            percentage_change = (
+                ((df.iloc[-1] - df.iloc[0]) / df.iloc[0]) * 100
+            ) / len(df)
+            returns = percentage_change.values
+            cov_matrix = self.data.pct_change().cov().values * 100
+
+            num_portfolios = 10000
+            portfolio_returns = np.zeros(num_portfolios)
+            portfolio_volatility = np.zeros(num_portfolios)
+            portfolio_weights = np.zeros((num_portfolios, self.num_assets))
+
+            for i in range(num_portfolios):
+                weights = np.random.random(self.num_assets)
+                weights /= np.sum(weights)
+                portfolio_returns[i] = np.dot(weights, returns)
+                portfolio_volatility[i] = np.sqrt(
+                    np.dot(weights.T, np.dot(cov_matrix, weights))
+                )
+
+                portfolio_weights[i, :] = weights
+
+            self.sharpe_ratio = (
+                portfolio_returns - self.risk_free_rate
+            ) / portfolio_volatility
+            self.max_sharpe_idx = np.argmax(self.sharpe_ratio)
+            self.optimal_weights = portfolio_weights[self.max_sharpe_idx, :]
+            self.expected_return = portfolio_returns[self.max_sharpe_idx]
+            self.volatility = portfolio_volatility[self.max_sharpe_idx] * 100
+            self.sharpe_ratio = self.sharpe_ratio[self.max_sharpe_idx]
+
+            data_vol = df * self.optimal_weights
+            self.volatility = data_vol.std().mean()
+
+            # Calculate is_allowed
+            balances = (
+                self.optimal_weights * 100
+            )  # Assuming balances are in percentage
+            self.is_allowed = all(
+                balance
+                >= (100 / self.num_assets / 2 - 0.02 * (self.num_assets - 1))
+                for balance in balances
+            )
+
+            # Create column_balances dictionary
+            self.column_balances = dict(zip(self.data.columns, balances / 100))
+
+            # Calculate Value at Risk (VaR) at 95% confidence level
+            portfolio_values = np.dot(portfolio_weights, self.data.values.T)
+            self.var_95 = -np.percentile(
+                portfolio_values, 5
+            )  # Negative sign to represent downside risk
+
+            # Calculate downside risk as standard deviation of negative returns
+            negative_returns = portfolio_returns[portfolio_returns < 0]
+            self.downside_risk = np.std(negative_returns)
+
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+
 class portfolio_kamal:
 
     tickers: list
@@ -3316,9 +3412,11 @@ if __name__ == "__main__":
         #    tickers=["ADMA", "ALT", "AFYA", "AEPPZ", "ACET"])
         # startup_ = kko_portfolio_update_manager()
         # update_kaufman_kalman_analyses.update_full_analyses()
-    # update_kaufman_kalman_analyses.update_all()
-    # update_trend_performance("AAPL", "D")
+        # update_kaufman_kalman_analyses.update_all()
+        # update_trend_performance("AAPL", "D")
 
+        startup_ = kko_portfolio_update_manager()
+        sleep(500000)
     except Exception as e:
 
         raise Exception("Error with tickers", e)
