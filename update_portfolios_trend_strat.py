@@ -27,8 +27,7 @@ from multiprocessing import Process
 
 # from finquant.portfolio import build_portfolio
 # from finquant.efficient_frontier import EfficientFrontier
-from libs.finquant.portfolio import build_portfolio
-from libs.finquant.efficient_frontier import EfficientFrontier
+
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
 from collections import ChainMap
 import uuid
@@ -376,8 +375,8 @@ class portfolio_constructor_manager:
         data = data.fillna(0)
 
         # sets pf to class object.
-        self.pf = pf = build_portfolio(data=data)
-
+        self.pf = pf = PortfolioOptimizer(data=data)
+        return
         try:
             # set optimalization
             opt_w, opt_res = pf.mc_optimisation(num_trials=500)
