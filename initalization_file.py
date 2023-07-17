@@ -8,8 +8,6 @@ Created on Mon Apr 11 15:04:20 2022
 import initializer_db as initializer_database
 import database_querys_main
 import json
-from core_scripts.stock_data_download import power_stock_object
-import stock_analyses_with_ticker_main as stock_analyses_with_ticker
 from initializer_tickers_main import initiaze_tickers
 import datetime
 import constants

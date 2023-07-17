@@ -7,11 +7,9 @@ Created on Fri Apr 29 11:39:08 2022
 
 import constants
 from core_scripts.stock_data_download import power_stock_object as stock_object
-import stock_analyses_main as stock_analyses
 
 
 class update_support_functions(object):
-
     @staticmethod
     def get_stock_data_with_ticker(ticker: str = "", timeframe="D"):
         """
@@ -30,33 +28,40 @@ class update_support_functions(object):
 
 
 
-        05-01-2022  : Today I add that D and W data are booted seperate 
-        02-03 : coppied the function from the sector-analyses class. 
+        05-01-2022  : Today I add that D and W data are booted seperate
+        02-03 : coppied the function from the sector-analyses class.
         """
 
         # boots powerstockobject with the selected ticker.
         if timeframe == "D":
             power_object = stock_object.power_stock_object(
-                stock_ticker=ticker, simplyfied_load=True, periode_weekly=False)
+                stock_ticker=ticker, simplyfied_load=True, periode_weekly=False
+            )
 
         # boots power stock object with weekly data.
         elif timeframe == "W":
             power_object = stock_object.power_stock_object(
-                stock_ticker=ticker, simplyfied_load=True, periode_weekly=True)
+                stock_ticker=ticker, simplyfied_load=True, periode_weekly=True
+            )
 
         # if no reply, there must be a linking error.
         else:
 
-            raise Exception("timeframe is not avalible for ticker = ",
-                            ticker, "class : sector support functions")
+            raise Exception(
+                "timeframe is not avalible for ticker = ",
+                ticker,
+                "class : sector support functions",
+            )
 
         return power_object.stock_data
 
     @staticmethod
-    def get_stock_analyses_with_ticker(ticker=None, analyeses_name="", periode="W"):
+    def get_stock_analyses_with_ticker(
+        ticker=None, analyeses_name="", periode="W"
+    ):
         """
 
-        returns dict with analyses. These are the options for now analyses_names  = [ "MONEYFLOWS", "LIQUIDTY"] 
+        returns dict with analyses. These are the options for now analyses_names  = [ "MONEYFLOWS", "LIQUIDTY"]
 
         Parameters
         ----------
@@ -79,31 +84,46 @@ class update_support_functions(object):
 
         """
 
-        #sector_analyses_support_funtions = sector_analyse.sector_analyses_support_funtions()
+        # sector_analyses_support_funtions = sector_analyse.sector_analyses_support_funtions()
 
         # grote test
 
         # checks if analyses is exsisting
-        if not sector_analyse.sector_analyses_support_funtions.check_if_analyses_exist(analyeses_name):
+        if not sector_analyse.sector_analyses_support_funtions.check_if_analyses_exist(
+            analyeses_name
+        ):
 
-            raise Exception("Analayses is not avalible for ticker = ",
-                            ticker, "class : sector support functions")
+            raise Exception(
+                "Analayses is not avalible for ticker = ",
+                ticker,
+                "class : sector support functions",
+            )
 
         # check if timeframe is alowed - addiontional function
-        elif not sector_analyse.sector_analyses_support_funtions.check_if_timeframe_is_allowed(periode):
+        elif not sector_analyse.sector_analyses_support_funtions.check_if_timeframe_is_allowed(
+            periode
+        ):
 
-            raise Exception("timeframe is not avalible for ticker = ",
-                            ticker, "class : sector support functions")
+            raise Exception(
+                "timeframe is not avalible for ticker = ",
+                ticker,
+                "class : sector support functions",
+            )
 
         else:
 
             # sets stockdata
             stock_data = sector_analyse.sector_analyses_support_funtions.get_stock_data_with_ticker(
-                ticker, periode)
+                ticker, periode
+            )
 
             # sets analyeses object
             analyses = stock_analyses.main_analyeses(
-                stock_ticker=ticker, stock_data=stock_data, synchronize=True, timeframe=periode)
+                stock_ticker=ticker,
+                stock_data=stock_data,
+                synchronize=True,
+                timeframe=periode,
+            )
 
             # loads analayes
             try:
@@ -125,7 +145,8 @@ if __name__ == "__main__":
     try:
 
         x = update_support_functions.get_stock_analyses_with_ticker(
-            ticker="AACG", analyeses_name="LIQUIDTY", periode="W")
+            ticker="AACG", analyeses_name="LIQUIDTY", periode="W"
+        )
         print(x)
 
     except Exception as e:

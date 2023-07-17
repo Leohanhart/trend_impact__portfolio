@@ -7,7 +7,6 @@ Created on Fri Dec 30 20:20:32 2022
 import warnings
 import constants
 import database_querys_main as database_querys
-import stock_analyses_with_ticker_main as stock_analyses_with_ticker
 from core_scripts.stock_data_download import power_stock_object as stock_object
 from core_update.update_analyses import update_support
 from datetime import datetime, timedelta, date
@@ -24,7 +23,7 @@ from collections import Counter
 from math import sqrt
 from itertools import combinations
 from multiprocessing import Process
-from multiprocessing import Process, Queue
+
 
 # from finquant.portfolio import build_portfolio
 # from finquant.efficient_frontier import EfficientFrontier
