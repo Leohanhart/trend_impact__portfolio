@@ -16,9 +16,7 @@ Idea's correlation / cointegration table. Use for prediction.
 from typing import Optional
 from fastapi import BackgroundTasks, FastAPI, Response, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from core_service_layer.data_service import get_system_info
 from database_querys_main import database_querys
-import startup_script
 import startup_support
 import update_portfolios
 import update_trend_time_series
