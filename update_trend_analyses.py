@@ -23,8 +23,6 @@ from collections import Counter
 from math import sqrt
 from itertools import combinations
 import pytz
-from finquant.portfolio import build_portfolio
-from finquant.efficient_frontier import EfficientFrontier
 
 from loguru import logger
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
