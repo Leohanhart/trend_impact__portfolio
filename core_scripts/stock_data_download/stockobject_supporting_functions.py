@@ -8,8 +8,6 @@ Created on Sat Apr 10 13:03:53 2021
 import pandas as pd
 import numpy as np
 import yfinance as yf
-import matplotlib.pyplot as plt
-from matplotlib import pyplot
 import ta
 import os
 import time
