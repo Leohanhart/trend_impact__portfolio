@@ -11,7 +11,6 @@ import pandas as pd
 import os
 
 from dateutil.parser import parse
-from matplotlib.offsetbox import OffsetImage
 
 from core_scripts.stock_data_download import (
     power_stock_object_support_functions as support_functions,
@@ -1108,105 +1107,7 @@ class plot_generator:
         time_frame="weekly",
         path=None,
     ):
-        pass
-
-        # retreives the logo/ try and catch can be added for deployment
-        logo = plt.imread("icmm_logo.png")
-        #
-        # this print can be added
-
-        #
-        # this figure is added
-        fig = plt.figure(figsize=(20, 8), dpi=200)
-        #
-        #
-        # organize the picture and adding the logo.
-        addLogo = OffsetImage(logo, zoom=0.45)
-        # addLogo.set_zorder(100)
-        addLogo.set_offset(
-            (2551, 1280)
-        )  # pass the position in a tuple # pass the position in a tuple
-
-        #
-        # te figures gridpec
-        gs = fig.add_gridspec(2, hspace=0.2)
-        #
-        # making the x shared
-        axs = gs.subplots(sharex=True, sharey=False)
-        # creating the fig title.
-        fig.suptitle(
-            main_title, fontsize=32, family=["Times"], y=0.99, color="#045BFF"
-        )
-
-        #
-        # creating the first band
-        axs[0].plot(x1, y1, "tab:red")
-        axs[0].set_title(title1)
-        axs[0].yaxis.tick_right()
-
-        #
-        # creating the second plot
-        axs[1].plot(x2, y2, "tab:green")
-        axs[1].set_title(title2)
-        axs[1].yaxis.tick_right()
-        axs[1].add_artist(addLogo)
-        # axs[1].figimage(logo)
-        # axs[2].axis('off')
-
-        # get date for plot
-        now = datetime.now()
-        date = now.strftime("%m-%d-%Y")
-
-        #
-        # check if there is a path filled in, after that it can be used.
-        if type(path) != None:
-            # plt.show()
-            if (
-                ticker_name != None
-                and analyses_name != None
-                and time_frame != None
-            ):
-
-                my_path = os.path.dirname(os.path.abspath(__file__))
-                my_file = (
-                    ticker_name
-                    + "_"
-                    + analyses_name
-                    + "_"
-                    + time_frame
-                    + "_"
-                    + ".png"
-                )
-                fullpath = my_path + "\\Pictures\\" + my_file
-
-                # plot_name = path+ ""+ ticker_name +"_" +analyses_name +"_" +time_frame+"_"+".png"
-
-                self.last_plot_name = fullpath
-
-                #
-                # saving the file in the folder
-
-                plt.savefig(fullpath, bbox_inches="tight")
-
-                plt.draw()
-                plt.show()
-
-                return fullpath
-
-        else:
-
-            my_file = (
-                ticker_name
-                + "_"
-                + analyses_name
-                + "_"
-                + time_frame
-                + "_"
-                + ".png"
-            )
-            plt.savefig(my_file, bbox_inches="tight")
-            plt.draw()
-            plt.show()
+        return 0
 
     def __construct_picture_name(self):
 
