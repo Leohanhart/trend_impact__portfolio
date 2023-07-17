@@ -11,8 +11,6 @@ import pandas as pd
 import os
 
 from dateutil.parser import parse
-import matplotlib.pyplot as plt
-import matplotlib.image as image
 from matplotlib.offsetbox import OffsetImage
 
 from core_scripts.stock_data_download import (
@@ -1291,7 +1289,7 @@ class plot_generator:
         fullpath = my_path + "\\Pictures\\" + my_file + my_extention
 
         print(self.name_of_picture)
-
+        return
         #
         # generates plot
         plot_link = self.plot_2_frames_with_logo(
