@@ -35,7 +35,7 @@ pd.options.mode.chained_assignment = None
 
 """
 
-We create two databases: ONE for the current state of the measure ment. 
+Wde create two databases: ONE for the current state of the measure ment. 
                         : TWO. we build this one where we connect date archive varibles
                         so that we can build an archive, cluster the data and create a 
                         time serie of the archive. The only thing we need is to 
