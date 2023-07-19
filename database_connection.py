@@ -8,8 +8,6 @@ import redis
 
 # from trading_core.data_manager.models.trading_models import Base
 
-load_dotenv()
-
 
 def get_redis_db():
 
