@@ -9,6 +9,8 @@ import database_connection
 import initializer_db
 from initializer_tickers_main import InitializeTickers
 from core_utils.database_tables.tabels import User
+import database_querys_main
+from loguru import logger
 
 
 def check_connection():
@@ -35,7 +37,7 @@ def check_if_tables_exsist():
 
     # Check if tables exist
     if all(table_exists):
-        print("All tables exist.")
+        logger("All tables exist.")
         return True
     else:
         missing_tables = [
@@ -43,7 +45,9 @@ def check_if_tables_exsist():
             for i, exists in enumerate(table_exists)
             if not exists
         ]
-        print(f"The following tables are missing: {', '.join(missing_tables)}")
+        logger(
+            f"The following tables are missing: {', '.join(missing_tables)}"
+        )
 
         if missing_tables:
             return False
@@ -95,11 +99,20 @@ def setup_users():
 
 
 def initialize_server():
+    logger("Starting server initalization")
     check_connection()
     if not check_if_tables_exsist():
         # init db
         initializer_db.initialization()
+
+        database_querys_main.database_querys.add_log_to_logbook(
+            "Server DB initalized"
+        )
         # init tickers
         InitializeTickers.initialize_all_tickers()
+
+        database_querys_main.database_querys.add_log_to_logbook(
+            "Tickers initalized"
+        )
         # setup account
         setup_users()
