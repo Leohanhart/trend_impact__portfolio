@@ -25,6 +25,7 @@ import json
 import constants
 import uvicorn
 from mangum import Mangum
+import setup_server
 from authentication import (
     login_user,
     verify_token,
@@ -58,6 +59,8 @@ acceptatie criteria
 
 def onstart_function():
 
+    setup_server.initialize_server()
+    #
     startup_support.create_path_for_stock_data()
     # startup_script.start_update_scedule()
     data_update = update_portfolios.update_data()
