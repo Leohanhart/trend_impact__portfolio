@@ -329,6 +329,12 @@ def initialization():
         values = Column(String, nullable=False)
         timestamp = Column(DateTime, default=func.now())
 
+    class MarketData(Base):
+        __tablename__ = "market_data"
+        index_column = Column(String, primary_key=True, unique=True)
+        regularMarketVolume = Column(Float)
+        marketCap = Column(Float)
+
     Base.metadata.create_all(engine)
 
     # os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
