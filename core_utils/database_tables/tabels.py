@@ -556,3 +556,21 @@ class Portfolio_Strategy(Base):
     __table_args__ = (
         UniqueConstraint("strategy", "ticker", name="uq_strategy_ticker"),
     )
+
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True)
+    password = Column(String)
+    role = Column(String)
+
+
+class UserActivity(Base):
+    __tablename__ = "user_activity"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user = Column(String)
+    endpoint = Column(String)
+    values = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=func.now())
