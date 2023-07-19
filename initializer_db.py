@@ -21,14 +21,13 @@ from sqlalchemy.sql import func
 import datetime
 import constants
 import os
+import database_connection
 
 
 def initialization():
-    # path_db =constants.DATABASE_MAIN_PATH OLD
-    # path_db =constants.SQLALCHEMY_DATABASE_URI_layer_zero
-    engine = create_engine(
-        "sqlite:///core_data/flowimpact_api_db.db", echo=True
-    )
+
+    #
+    engine = database_connection.get_db_engine()
 
     Base = declarative_base()
 
@@ -242,10 +241,6 @@ def initialization():
         total_sharp_y2 = Column(Float)
         total_volatility_y2 = Column(Float)
 
-    Base.metadata.create_all(engine)
-
-    os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
-
     class user_trades(Base):
 
         __tablename__ = "user_trades"
@@ -256,7 +251,7 @@ def initialization():
 
         __table_args__ = (
             UniqueConstraint(
-                "user_id", "ticker", name="_tickers_unique_value"
+                "user_id", "ticker", name="_tickers_uniqueodeo_value"
             ),
         )
 
@@ -317,6 +312,26 @@ def initialization():
         __table_args__ = (
             UniqueConstraint("strategy", "ticker", name="uq_strategy_ticker"),
         )
+
+    class User(Base):
+        __tablename__ = "users"
+        id = Column(Integer, primary_key=True, index=True)
+        username = Column(String, unique=True)
+        password = Column(String)
+        role = Column(String)
+
+    class UserActivity(Base):
+        __tablename__ = "user_activity"
+
+        id = Column(Integer, primary_key=True, index=True)
+        user = Column(String)
+        endpoint = Column(String)
+        values = Column(String, nullable=False)
+        timestamp = Column(DateTime, default=func.now())
+
+    Base.metadata.create_all(engine)
+
+    # os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
 
 
 if __name__ == "__main__":
