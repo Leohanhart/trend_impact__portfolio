@@ -41,6 +41,7 @@ from core_utils.database_tables.tabels import (
     Sector_Trade_Archive,
     Sector_Trend,
     Portfolio_Strategy,
+    MarketData,
 )
 
 import pandas as pd
@@ -138,15 +139,13 @@ class database_querys:
             session = Session()
 
             # Query to select all rows from the table
-            query = "SELECT * FROM stock_market_data"
+            query = "SELECT * FROM market_data"
 
             # Load the table into a DataFrame
             df = pd.read_sql(query, engine)
 
             # Create the filter
-            filter_condition = (
-                df["regularMarketVolume"] * df["postMarketPrice"]
-            ) > 200000000
+            filter_condition = (df["regularMarketVolume"]) > 200000000
 
             # Apply the filter to the DataFrame
             filtered_df = df[filter_condition]
@@ -2675,7 +2674,7 @@ if __name__ == "__main__":
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
         #### test
-        x = database_querys.get_darwin()
+        x = database_querys.get_liquid_tickers()
 
         print(x)
         print("END")
