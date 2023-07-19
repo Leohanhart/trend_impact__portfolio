@@ -1,27 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from dotenv import load_dotenv
 import psycopg2
 import os
-import redis
-
-# from trading_core.data_manager.models.trading_models import Base
-
-
-def get_redis_db():
-
-    # Create a Redis client
-    load_dotenv()
-
-    # Get the Redis connection details from environment variables
-    redis_host = "localhost"
-    redis_port = 6379
-
-    # Create a Redis client
-    r = redis.Redis(host=redis_host, port=redis_port)
-
-    return r
 
 
 def get_db_connection():
@@ -101,34 +82,9 @@ def test_postgresql_connection():
         print(f"Connection failed: {str(e)}")
 
 
-def test_redis_connection():
-
-    # Get the Redis connection details from environment variables
-
-    # Create a Redis client
-    load_dotenv()
-
-    # Get the Redis connection details from environment variables
-    redis_host = "localhost"
-    redis_port = 6379
-
-    # Create a Redis client
-    r = redis.Redis(host=redis_host, port=redis_port)
-
-    # Test the connection
-    try:
-        r.ping()
-        print("Redis connection established.")
-    except redis.ConnectionError as e:
-        print(f"Failed to connect to Redis: {e}")
-
-
 def test_function():
     print("test")
 
 
 if __name__ == "__main__":
     test_postgresql_connection()
-    # test_redis_connection()
-
-    # test_function()

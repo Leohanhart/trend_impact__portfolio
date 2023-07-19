@@ -32,6 +32,7 @@ from sqlalchemy import desc
 from contextlib import contextmanager
 import constants
 import json
+from core_utils.database_tables.tabels import User, UserActivity
 
 app = FastAPI()
 
@@ -48,41 +49,9 @@ session = Session()
 Base = declarative_base()
 
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True)
-    password = Column(String)
-    role = Column(String)
-
-
-class UserActivity(Base):
-    __tablename__ = "user_activity"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user = Column(String)
-    endpoint = Column(String)
-    values = Column(String, nullable=False)
-    timestamp = Column(DateTime, default=func.now())
-
-
-# Check if the table already exists
-# Create an inspector to inspect the database
-inspector = inspect(engine)
-
-# Check if the table already exists
-table_exists = inspector.has_table("users")
-
-
-# Create the table if it does not exist
-if not table_exists:
-    Base.metadata.create_all(engine)
-
-# Check if the table already exists
-table_exists = inspector.has_table("user_activity")
-
-if not table_exists:
-    Base.metadata.create_all(engine)
+def get_db():
+    db = Session()
+    return db
 
 
 def get_user_activity_data(
@@ -171,11 +140,6 @@ def log_user_activity(username: str, endpoint: str, values: str):
 
         # Commit the changes
         session.commit()
-
-
-def get_db():
-    db = Session()
-    return db
 
 
 def check_user(username: str, password: str) -> bool:
