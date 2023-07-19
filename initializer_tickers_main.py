@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from core_scripts.stock_data_download import power_stock_object
-from core_utils.database_tables.tabels import Ticker
+from core_utils.database_tables.tabels import Ticker, MarketData
 from yahooquery import Ticker as TTicker
 
 import database_querys_main
@@ -30,243 +30,7 @@ import uuid
 import numpy as np
 import os
 from time import sleep
-
-db_dir = "core_data/flowimpact_api_db.db"
-SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
-
-db_path = SQLALCHEMY_DATABASE_URI
-engine = create_engine(db_path, echo=False)
-Session = sessionmaker(bind=engine)
-session = Session()
-
-
-class initialization:
-
-    # the list for the tickers.
-    tickers: list = []
-
-    def __init__(self, load_tickers_only: bool = False):
-        """
-
-        /Dont use this function
-
-        Parameters
-        ----------
-        load_tickers_only : bool, optional
-            DESCRIPTION. The default is False.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
-        #
-        pass
-
-        stocks = initialization_support.load_tickers_txt()
-
-        # check tickers
-        if load_tickers_only:
-
-            self.tickers = stocks
-
-            return self.tickers
-
-        # setting up db stream
-
-        db_dir = "core_data/flowimpact_api_db.db"
-        SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
-
-        db_path = SQLALCHEMY_DATABASE_URI
-        engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        # loop true the tickers, add to DB
-        for i in range(0, len(stocks)):
-
-            db_dir = "core_data/flowimpact_api_db.db"
-            SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
-
-            db_path = SQLALCHEMY_DATABASE_URI
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
-
-            #
-            stock_ticker_in = list(stocks.keys())[i]
-
-            print(stock_ticker_in)
-
-            # getting the stock object
-            stocks_object = power_stock_object.power_stock_object(
-                stock_ticker=stock_ticker_in
-            )
-
-            # testing if stock is: A, valide. B, still active. C, delisted
-            status_stock = initialization_support.check_if_ticker_valide(
-                stocks_object
-            )
-
-            # query for DB
-            data = session.query(Ticker).get(stock_ticker_in)
-
-            #
-            # checks if the location exsists, if yes, action.
-            if data == None:
-
-                if stocks_object.sector == None or stocks_object:
-                    continue
-                # option 1, Ticker is active
-
-                ticker = Ticker(
-                    id=stock_ticker_in,
-                    sector=stocks_object.sector,
-                    industry=stocks_object.industry,
-                    exchange=stocks_object.all_stock_data["exchange"],
-                    active=True,
-                )
-
-                session.add(ticker)
-                session.commit()
-
-            else:
-
-                if stocks_object.sector == None:
-
-                    # Ticker = unit_tests_and_errors(id = location, error = error, error_code = message)
-
-                    data.active = False
-
-                    session.commit()
-
-            session.close()
-
-
-class initialization_support:
-    @staticmethod
-    def check_if_ticker_valide(stocks_object: object = None):
-        """
-        Checks if ticker is valide, meaning: workable data, sector and industy and that stock is not delisted
-
-        first check are based on invalide/mallefide, if error occures it will be because dataframe is loaded
-        correctly, that's why if the exception is thrown this will result in a positive signal(return tru).
-
-        Parameters
-        ----------
-        stocks_object : object, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        bool
-            DESCRIPTION.
-
-        """
-        return True
-        try:
-
-            if (
-                not stocks_object.sector
-                or stocks_object.stock_data == None
-                or type(stocks_object.stock_data) == None
-                or stocks_object.stock_data is None
-            ):
-                return False
-            else:
-                return True
-
-        except Exception as e:
-
-            return True
-
-    @staticmethod
-    def load_tickers_txt():
-        """
-
-        Loads stocks from the txt file.
-
-        Returns
-        -------
-        stocks : DICT
-
-            DESCRIPTION.
-
-        """
-        stocks = {}
-
-        path_tickers = constants.TICKER_DATA___PATH
-
-        path_file = os.path.join(path_tickers, "stocks.txt")
-
-        with open(path_file) as f:
-            contents = f.readlines()
-            # print(contents)
-
-            # create a dictonary for the stocks.
-        for i in range(0, len(contents)):
-            x = contents[i].replace("\n", "")
-            stocks[x] = ""
-
-        return stocks
-
-    @staticmethod
-    def speed_limiter(
-        start_time: float = 0, end_time: float = 0, limiter: float = 2.6
-    ):
-        """
-        Speedlimiter calculates additional time and sleeps in the meanwhile.
-
-        Used when a function needs to be speedlimit doe to api restrictions.
-
-        what happens is that the function calclulatse the passet time and sleeps the additional time so
-
-        te speedlimiter will not be upset.
-
-        Parameters
-        ----------
-        start_time : float, optional
-            DESCRIPTION. The default is 0.
-        end_time : float, optional
-            DESCRIPTION. The default is 0.
-        limiter : TYPE, optional
-            DESCRIPTION. The default is 2.6.
-
-        Returns
-        -------
-        None.
-
-        """
-
-        # print(start_time, end_time)
-
-        # sets seconds past
-        time_past = end_time - start_time
-
-        # print(time_past)
-
-        # subtracts the limit time
-        additional_time = limiter - time_past
-
-        # if additional time is larger than
-        if additional_time > 0:
-
-            # print("this is the total sleep time", additional_time )
-
-            # time.sleep(additional_time)
-
-            return additional_time
-
-        else:
-
-            print("No time to sleep")
-
-            return 0.0001
-
-    @staticmethod
-    def load_malfunctioning_ticker():
-        pass
+import finnhub
 
 
 class InitializeTickers:
@@ -280,7 +44,7 @@ class InitializeTickers:
 
         database_connection.test_postgresql_connection()
 
-        session = database_connection.get_db_connection()
+        db_connection = database_connection.get_db_connection()
 
         df = pd.read_excel("tickers.xlsx")
 
@@ -291,7 +55,7 @@ class InitializeTickers:
         df[columns_to_convert] = df[columns_to_convert].astype(str)
 
         # Use the session as a context manager
-        with Session() as session:
+        with db_connection as session:
             # Loop through the DataFrame and fill the Ticker class
             for _, row in df.iterrows():
                 ticker = Ticker(
@@ -310,39 +74,110 @@ class InitializeTickers:
 
         print("tickers are loaded in")
 
-        # Additional code if needed
+    @classmethod
+    def initialize_all_market_data(cls):
+        """
+        In this function, there is checked if ticker is still active,
+        update the market cap, update everything, if problems
 
+        Kalman trend will be deleted, kalman performance will be delete,
+        archive will stay intact.
 
-class initiaze_tickers:
-    """
-    Logbook:
-        14-07-22 We ended all the bullshit over that wird library.
-    """
+        Returns
+        -------
+        None.
 
-    def __init__(self):
+        """
 
-        stocks_object = 0
+        tickers = database_querys_main.database_querys.get_all_active_tickers()
 
-        stocks = initialization_support.load_tickers_txt()
+        finnhub_client = finnhub.Client(api_key=constants.APIKEY_FINNHUB)
 
-        stocks = list(stocks)
+        db_connection = database_connection.get_db_connection()
+        with db_connection as session:
+            for ticker in tickers:
 
-        start_time = time.time()
-        end_time = time.time()
+                sleep(1)
 
-        for stock in stocks:
+                data = finnhub_client.company_profile2(symbol=ticker)
 
-            sleep(1)
+                stocks_object = power_stock_object.power_stock_object(
+                    stock_ticker=ticker
+                )
 
-            try:
+                if data == {} or not data:
 
-                initiaze_singel_ticker(stock_ticker=stock, auto_modus=True)
+                    if stocks_object.stock_data.empty:
+                        # Get the ticker with id "AAPL" from the database
+                        ticker_aapl = (
+                            session.query(Ticker).filter_by(id=ticker).first()
+                        )
 
-            except Exception as e:
+                        # Check if the ticker exists and update its active status
+                        if ticker_aapl:
 
-                print("Error ")
+                            ticker_aapl.active = False  # Set active to False for the specified ticker
 
-                pass
+                            # Commit the changes to the database
+                            session.commit()
+
+                            database_querys_main.database_querys.delete_trend_kamal()
+
+                    else:
+                        database_querys_main.database_querys.add_log_to_logbook(
+                            "MaketData API mallfunctioned on ticker {ticker}"
+                        )
+
+                print(data)
+                if "shareOutstanding" not in data.keys():
+                    # Check if a row with the matching index_column exists
+                    existing_row = (
+                        session.query(MarketData)
+                        .filter_by(index_column=ticker)
+                        .first()
+                    )
+
+                    if existing_row:
+                        session.delete(existing_row)
+                try:
+                    market_cap = data["shareOutstanding"]
+                except:
+                    continue
+
+                real_market_shares_out = round(market_cap * 1000000, 0)
+                real_market_cap = (
+                    stocks_object.stock_data.Close.tail(1).mean().round()
+                    * real_market_shares_out
+                )
+
+                average_volume = (
+                    stocks_object.stock_data.Volume.tail(10).mean()
+                    * stocks_object.stock_data.Close.tail(1).mean()
+                )
+
+                # Check if a row with the matching index_column exists
+                existing_row = (
+                    session.query(MarketData)
+                    .filter_by(index_column=ticker)
+                    .first()
+                )
+
+                if existing_row:
+                    # Row exists, update its data
+                    existing_row.regularMarketVolume = round(real_market_cap)
+                    existing_row.marketCap = round(average_volume)
+
+                else:
+                    # Row doesn't exist, create a new one
+                    new_market_data = MarketData(
+                        index_column=ticker,
+                        regularMarketVolume=round(real_market_cap),
+                        marketCap=round(average_volume),
+                    )
+                    session.add(new_market_data)
+
+                # Commit the session to persist the changes
+                session.commit()
 
 
 class initiaze_singel_ticker:
@@ -419,9 +254,6 @@ class initiaze_singel_ticker:
                 return False
 
             # testing if stock is: A, valide. B, still active. C, delisted
-            status_stock = initialization_support.check_if_ticker_valide(
-                stocks_object
-            )
 
             # tries to run all functions.
             """
@@ -574,233 +406,6 @@ class initiaze_singel_ticker:
 
         session.close()
 
-    def add_ticker_to_db_depresiated(self):
-        """
-
-        Adds ticker to database with tickers
-
-        Returns
-        -------
-        None.
-
-        """
-
-        stock = self.main_ticker
-        try:
-
-            session = database_connection.get_db_connection()
-
-            # try:
-            stocks_object = power_stock_object.power_stock_object(
-                stock_ticker=stock
-            )
-
-            if not self.check_if_ticker_exsist():
-
-                ticker = Ticker(
-                    id=str(stock),
-                    sector="ETF",
-                    industry="ETF",
-                    exchange="ETF",
-                    blacklist=False,
-                    safe=True,
-                    active=True,
-                )
-                # ticker class is added
-                session.add(ticker)
-            # testing if stock is: A, valide. B, still active. C, delisted
-            # status_stock = initialization_support.check_if_ticker_valide(
-            #    stocks_object)
-
-            data = session.query(Ticker).get(stock)
-
-            # write price
-            stock_ = TTicker(stock)
-
-            # if there is a marketcap field (than make it run)
-            if "marketCap" in stock_.price[self.main_ticker].keys():
-
-                # Execute the DELETE statement to remove expired data so we dont get a data over flow.
-                # Execute the DELETE statement
-                with engine.begin() as connection:
-                    result = connection.execute(
-                        """
-                        DELETE FROM stock_market_data
-                        WHERE preMarketTime < DATE('now', '-7 days')
-                    """
-                    )
-
-                    # print(f"Deleted {result.rowcount} rows.")
-
-                df = pd.DataFrame.from_dict(stock_.price, orient="index")
-                # Convert 'preMarketTime' column to datetime
-                df["preMarketTime"] = pd.to_datetime(df["preMarketTime"])
-
-                df.to_sql(
-                    name="stock_market_data",
-                    con=engine,
-                    if_exists="append",
-                    index=True,
-                    index_label="index_column",
-                )
-
-            # ticker is not a stock
-            if type(stock_.asset_profile[stock]) == str:
-
-                data.active = False
-
-                database_querys_main.database_querys.delete_trend_kamal(stock)
-
-                session.commit()
-
-                session.close()
-
-                return
-
-            NotEquiy: bool = False
-
-            # check if ticker is ETF
-            if stock_.quote_type[stock]["quoteType"] != "EQUITY":
-                # check if data is new.
-                if data == None:
-                    # print("stock is added")
-                    # if data is new, ticker is added, in_ data is inserted. if single var fails, rest is added anyway.
-                    ticker = Ticker(
-                        id=str(stock),
-                        sector="ETF",
-                        industry="ETF",
-                        exchange="ETF",
-                        blacklist=False,
-                        safe=True,
-                        active=True,
-                    )
-                    # ticker class is added
-                    session.add(ticker)
-                    # ticker class is commited.
-                    session.commit()
-
-                    session.close()
-
-                    return
-
-                # if ticker already exsist there is only one var that's need to be maintained. The active var.
-                else:
-                    # print("stock is re-added")
-
-                    # sets bool
-                    data.active = True
-
-                    # commits.
-                    session.commit()
-
-                    session.close()
-
-                    return
-
-            # tries to run all functions.
-            """
-            
-            3 types of stocks.
-            1. Has sector, industry, timeseries, exchange
-            2. Has industry, timeseries,
-            3. is totally invlaide. 
-            
-            - Invalides have no timeserie. 
-            
-            There must be a check that or assigns the db vars with the value, otherwise NA. 
-            
-            
-            
-            """
-            # check if sector is legid
-            if not stocks_object.sector:
-
-                sector_in = stock_.asset_profile[stock]["sector"]
-
-            elif stocks_object.sector == "Unkown":
-                sector_in = stock_.asset_profile[stock]["sector"]
-
-            else:
-                sector_in = stocks_object.sector
-
-            # check if industry is legid
-            if not stocks_object.industry:
-
-                industry_in = stock_.asset_profile[stock]["industry"]
-
-            elif stocks_object.industry == "Unkown":
-
-                industry_in = stock_.asset_profile[stock]["industry"]
-
-            else:
-
-                industry_in = stocks_object.industry
-
-            # check if stockexchange is legid.
-            if not stocks_object.all_stock_data == False:
-
-                try:
-                    exchange_in = stock_.quote_type[stock]["exchange"]
-                except:
-                    exchange_in = "NA"
-            else:
-
-                exchange_in = stocks_object.all_stock_data["exchange"]
-
-            # tries manipulation on time serie, if fails, problem with time serie, stock is inactive.
-            if self.check_if_ticker_is_capable():
-                active_in = True
-            else:
-
-                active_in = False
-
-                database_querys_main.database_querys.delete_trend_kamal(stock)
-
-            # check if data is new.
-            if data is None:
-
-                # if data is new, ticker is added, in_ data is inserted. if single var fails, rest is added anyway.
-                ticker = Ticker(
-                    id=str(stock),
-                    sector=sector_in,
-                    industry=industry_in,
-                    exchange=exchange_in,
-                    blacklist=False,
-                    safe=True,
-                    active=active_in,
-                )
-
-                # ticker class is added
-                session.add(ticker)
-
-                # ticker class is commited.
-                session.commit()
-
-                session.close()
-                return
-
-            # if ticker already exsist there is only one var that's need to be maintained. The active var.
-            else:
-                # print("stock is added")
-                Session = sessionmaker(bind=engine)
-                session = Session()
-                data = session.query(Ticker).get(stock)
-                # sets bool
-                data.active = active_in
-                data.sector = stock_.asset_profile[stock]["sector"]
-                data.industry = stock_.asset_profile[stock]["industry"]
-                data.exchange = stock_.quote_type[stock]["exchange"]
-
-                # commits.
-                session.commit()
-
-            session.close()
-
-        except Exception as e:
-
-            return
-            print("Error in inizaliation", e)
-
 
 if __name__ == "__main__":
 
@@ -812,7 +417,7 @@ if __name__ == "__main__":
         # infile_ = initiaze_singel_ticker("AAPL")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
-        InitializeTickers.initialize_all_tickers()
+        InitializeTickers.initialize_all_market_data()
     except Exception as e:
 
         raise Exception("Error with tickers", e)

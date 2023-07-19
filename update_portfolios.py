@@ -62,7 +62,7 @@ from loguru import logger
 import multiprocessing
 import datetime
 import initalization_file
-import initializer_tickers_main
+from initializer_tickers_main import InitializeTickers
 import subprocess
 import os
 import atexit
@@ -103,136 +103,17 @@ class update_data:
             "Started updating trend data ..."
         )
         if first_run:
-            init = initializer_tickers_main.initiaze_tickers()
+            database_querys.database_querys.add_log_to_logbook(
+                "Started initalizing tickers"
+            )
+            InitializeTickers.initialize_all_tickers()
 
-            #### just implement the afterhour update here and you finished.
-            # get tickers
-
-            database_querys.database_querys.add_log_to_logbook("Started cycle")
+            database_querys.database_querys.add_log_to_logbook(
+                "Started start update cycle"
+            )
             self.afterhour_update_cycle()
 
         return
-
-        tickers = database_querys.database_querys.get_all_active_tickers()
-
-        #
-        tickers.reverse()
-
-        # list for updated tickers
-        tickers_that_are_updated = []
-
-        # update function
-        update_function = (
-            update_stats_trend_analyses.update_kaufman_support.update_all_analyses_with_ticker
-        )
-
-        update_trend = (
-            update_stats_trend_analyses.update_kaufman_support.update_all_trends_with_ticker
-        )
-
-        # lists
-        total_items = []
-
-        daily_procedure_run_q = False
-
-        # counter.
-        i = 0
-        # do archive update on the tickers
-        while True:
-
-            # add the tickers to a special list that updates every 24 hours.
-            now = datetime.datetime.now()
-
-            """            
-            if datetime.time(23, 0) <= now <= datetime.time(23, 15):
-                # Do phase 1 for 15 minutes starting at 11pm
-                print("Phase 1: starting at 11pm...")
-                time.sleep(15 * 60)  # Sleep for 15 minutes
-            elif datetime.time(23, 15) < now <= datetime.time(0, 15):
-                # Do phase 2 for 60 minutes after phase 1
-                print("Phase 2: starting after phase 1...")
-                time.sleep(60 * 60)  # Sleep for 60 minutes
-            else:
-                # Do phas
-            """
-            if datetime.time(23, 0) <= now <= datetime.time(23, 15):
-                # Do phase 1 for 15 minutes starting at 11pm
-                daily_procedure_run_q = False
-                time.sleep(60)  # Sleep for 15 minutes
-
-            elif datetime.time(23, 15) < now <= datetime.time(0, 15):
-                # Do phase 2 for 60 minutes after phase 1
-                if not daily_procedure_run_q:
-
-                    update_tickers = total_items.copy()
-                    up_t = []
-                    threads = []
-                    while True:
-                        try:
-                            for i in range(5):
-                                item = update_tickers.pop()
-                                up_t.append(item)
-
-                        except IndexError:
-                            break
-
-                        # start each thread with the function and its argument
-                        for ticker in up_t:
-                            p = Process(target=update_function, args=(ticker,))
-                            threads.append(p)
-                            p.start()
-
-                        # wait for all threads to finish
-                        for p in threads:
-                            p.join()
-
-                        threads = []
-                        up_t = []
-
-                        time.sleep(
-                            5
-                        )  # wait for 60 seconds before running again
-
-                        daily_procedure_run_q = True
-                else:
-                    sleep(60)
-
-            else:
-
-                tickers_for_loop = []
-
-                # Remove 5 items from the original list and append them to the new list
-                try:
-                    for i in range(10):
-                        item = tickers.pop()
-                        tickers_for_loop.append(item)
-                        total_items.append(item)
-                except IndexError:
-                    break
-
-                # create a list to hold the threads
-                threads = []
-
-                # start each thread with the function and its argument
-                for ticker in tickers_for_loop:
-                    print(f"update {ticker}")
-                    p = Process(target=update_function, args=(ticker,))
-                    threads.append(p)
-                    p.start()
-
-                # wait for all threads to finish
-                for p in threads:
-                    p.join()
-
-                threads = []
-
-                time.sleep(5)  # wait for 60 seconds before running again
-
-                tickers_for_loop = []
-
-            # exit criteria.
-            if 0 >= len(tickers):
-                break
 
     def afterhour_update_cycle(self):
 
@@ -279,6 +160,8 @@ class update_data:
         portfolio_synch.update_trading_portfolios.startup_update()
 
         database_querys.database_querys.update_last_update()
+
+        InitializeTickers.initialize_all_market_data()
 
     def task_1(self):
 

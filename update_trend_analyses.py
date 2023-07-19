@@ -291,13 +291,21 @@ class update_kaufman_support(object):
 
         logger.info(f"updateing full analyses {ticker}")
 
-        ticker_status = initiaze_singel_ticker(stock_ticker=ticker)
+        if not database_querys.database_querys.check_if_ticker_is_allowd(
+            ticker_name=ticker
+        ):
+            logger.info(f"canceld full analyses {ticker}")
+            return
 
         power_object = stock_object.power_stock_object(
             stock_ticker=ticker,
             simplyfied_load=True,
             periode_weekly=False,
         )
+
+        if power_object.stock_data.empty:
+            logger.info(f"canceld full analyses {ticker}")
+            return
 
         model = update_kaufman_support.return_full_analyses_dict(
             stock_data=power_object.stock_data,
