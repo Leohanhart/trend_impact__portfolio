@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 19 12:18:29 2023
+
+@author: Gebruiker
+"""
+
+# -*- coding: utf-8 -*-
 
 # -*- coding: utf-8 -*-
 
@@ -27,15 +34,12 @@ def initialization():
     Base = declarative_base()
 
     class Table(Base):
-        __tablename__ = "trend_archive_archive"
-        archive_id = Column(
-            String, primary_key=True, nullable=False, unique=True
-        )
-        updated_at = Column(DateTime)
+        __tablename__ = "market_data"
+        index_column = Column(String, primary_key=True, unique=True)
+        regularMarketVolume = Column(Float)
+        marketCap = Column(Float)
 
     Base.metadata.create_all(engine)
-
-    # os.rename(constants.DATABASE_SPAN_PATH, constants.DATABASE_MAIN_PATH)
 
 
 if __name__ == "__main__":

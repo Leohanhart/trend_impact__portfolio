@@ -574,3 +574,10 @@ class UserActivity(Base):
     endpoint = Column(String)
     values = Column(String, nullable=False)
     timestamp = Column(DateTime, default=func.now())
+
+
+class MarketData(Base):
+    __tablename__ = "market_data"
+    index_column = Column(String, primary_key=True, unique=True)
+    regularMarketVolume = Column(Float)
+    marketCap = Column(Float)
