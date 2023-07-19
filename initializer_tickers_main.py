@@ -20,6 +20,7 @@ from core_utils.database_tables.tabels import Ticker
 from yahooquery import Ticker as TTicker
 
 import database_querys_main
+import database_connection
 
 from tqdm import tqdm
 import os
@@ -268,6 +269,50 @@ class initialization_support:
         pass
 
 
+class InitializeTickers:
+    """
+    Logbook:
+        14-07-22 We ended all the bullshit over that weird library.
+    """
+
+    @classmethod
+    def initialize_all_tickers(cls):
+
+        database_connection.test_postgresql_connection()
+
+        session = database_connection.get_db_connection()
+
+        df = pd.read_excel("tickers.xlsx")
+
+        # Specify the columns to change the data type
+        columns_to_convert = ["id", "sector", "industry", "exchange"]
+
+        # Change the data type of selected columns to string
+        df[columns_to_convert] = df[columns_to_convert].astype(str)
+
+        # Use the session as a context manager
+        with Session() as session:
+            # Loop through the DataFrame and fill the Ticker class
+            for _, row in df.iterrows():
+                ticker = Ticker(
+                    id=row["id"],
+                    sector=row["sector"],
+                    industry=row["industry"],
+                    exchange=row["exchange"],
+                    blacklist=row["blacklist"],
+                    safe=row["safe"],
+                    active=row["active"],
+                )
+                print(row["id"])
+                session.add(ticker)
+                session.commit()
+            # Commit the session to persist the changes
+
+        print("tickers are loaded in")
+
+        # Additional code if needed
+
+
 class initiaze_tickers:
     """
     Logbook:
@@ -444,13 +489,7 @@ class initiaze_singel_ticker:
         """
         try:
             # setting up the database
-            db_dir = "core_data/flowimpact_api_db.db"
-            SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
-
-            db_path = SQLALCHEMY_DATABASE_URI
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            session = database_connection.get_db_connection()
 
             stock = self.main_ticker
             data = session.query(Ticker).get(stock)
@@ -472,10 +511,10 @@ class initiaze_singel_ticker:
 
             pass
 
-    def delete_ticker_from_db(self):
+    def add_ticker_to_db(self):
         """
 
-        Deletes ticker from db.
+        Adds ticker to database with tickers
 
         Returns
         -------
@@ -483,7 +522,59 @@ class initiaze_singel_ticker:
 
         """
 
-    def add_ticker_to_db(self):
+        stock = self.main_ticker
+
+        session = database_connection.get_db_connection()
+
+        # try:
+        stocks_object = power_stock_object.power_stock_object(
+            stock_ticker=stock
+        )
+
+        if not self.check_if_ticker_exsist():
+
+            ticker = Ticker(
+                id=str(stock),
+                sector="ETF",
+                industry="ETF",
+                exchange="ETF",
+                blacklist=False,
+                safe=True,
+                active=True,
+            )
+            # ticker class is added
+            session.add(ticker)
+            session.commit
+
+        data = session.query(Ticker).get(stock)
+
+        # Check if DataFrame is empty
+        if stocks_object.get("stock_data").empty:
+            is_empty = True
+
+        # Check if DataFrame type is an empty string
+        if (
+            isinstance(stocks_object.get("stock_data"), pd.DataFrame)
+            and not stocks_object.get("stock_data").columns.tolist()
+        ):
+            is_empty = True
+        else:
+            is_empty = False
+
+        data = session.query(Ticker).get(stock)
+
+        if is_empty:
+            data.active = False
+
+            database_querys_main.database_querys.delete_trend_kamal(stock)
+
+            session.commit()
+
+            session.close()
+
+        session.close()
+
+    def add_ticker_to_db_depresiated(self):
         """
 
         Adds ticker to database with tickers
@@ -497,21 +588,26 @@ class initiaze_singel_ticker:
         stock = self.main_ticker
         try:
 
-            # setting up the database
-            db_dir = "core_data/flowimpact_api_db.db"
-            SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(db_dir)
-
-            db_path = SQLALCHEMY_DATABASE_URI
-            engine = create_engine(db_path, echo=False)
-
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            session = database_connection.get_db_connection()
 
             # try:
             stocks_object = power_stock_object.power_stock_object(
                 stock_ticker=stock
             )
 
+            if not self.check_if_ticker_exsist():
+
+                ticker = Ticker(
+                    id=str(stock),
+                    sector="ETF",
+                    industry="ETF",
+                    exchange="ETF",
+                    blacklist=False,
+                    safe=True,
+                    active=True,
+                )
+                # ticker class is added
+                session.add(ticker)
             # testing if stock is: A, valide. B, still active. C, delisted
             # status_stock = initialization_support.check_if_ticker_valide(
             #    stocks_object)
@@ -709,13 +805,14 @@ class initiaze_singel_ticker:
 if __name__ == "__main__":
 
     try:
+        pass
         # NOT DELETE: DELISTED TICKER : FRTA
         # x = initiaze_tickers()
         #
-        infile_ = initiaze_singel_ticker("AAPL")
+        # infile_ = initiaze_singel_ticker("AAPL")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
-
+        InitializeTickers.initialize_all_tickers()
     except Exception as e:
 
         raise Exception("Error with tickers", e)
