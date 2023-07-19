@@ -37,7 +37,7 @@ def check_if_tables_exsist():
 
     # Check if tables exist
     if all(table_exists):
-        logger("All tables exist.")
+        logger.info("All tables exist.")
         return True
     else:
         missing_tables = [
@@ -45,7 +45,7 @@ def check_if_tables_exsist():
             for i, exists in enumerate(table_exists)
             if not exists
         ]
-        logger(
+        logger.warning(
             f"The following tables are missing: {', '.join(missing_tables)}"
         )
 
@@ -99,7 +99,7 @@ def setup_users():
 
 
 def initialize_server():
-    logger("Starting server initalization")
+    logger.info("Starting server initalization")
     check_connection()
     if not check_if_tables_exsist():
         # init db

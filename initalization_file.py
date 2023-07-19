@@ -8,11 +8,14 @@ Created on Mon Apr 11 15:04:20 2022
 import initializer_db as initializer_database
 import database_querys_main
 import json
-from initializer_tickers_main import initiaze_tickers
 import datetime
 import constants
 from collections import ChainMap
 import warnings
+from core_utils.database_tables.tabels import (
+    Analyses_archive_kamal,
+)
+import database_connection
 
 warnings.filterwarnings(
     "ignore", message="Columns (1,2) have mixed types", category=UserWarning
@@ -78,14 +81,16 @@ def add_data_to_archive():
 
     ## here there is checked if there is any data availble, if this is the case, nothing, if empty load data
     # check if archive is needed to be updated.
-    data = database_querys_main.database_querys.get_trend_kalman_data(
-        ticker="AAPL"
-    )
-    if not data.empty:
+
+    session = database_connection.get_db_connection()
+
+    result = session.query(Analyses_archive_kamal).first()
+
+    if result is not None:
         return False
 
     add_trend_timeserie_data()
-    tickers = initiaze_tickers()
+
     # Load the CSV file into a Pandas DataFrame
     df = pd.read_csv("core_data/trend_archive.csv")
 
@@ -238,10 +243,10 @@ def add_trend_timeserie_data():
 if __name__ == "__main__":
 
     try:
-
-        add_trend_timeserie_data()
+        # add_data_to_archive()
+        # add_trend_timeserie_data()
         # initializer_database.initialization()
-
+        print("test")
     except Exception as e:
 
         pass

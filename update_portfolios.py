@@ -106,7 +106,7 @@ class update_data:
             database_querys.database_querys.add_log_to_logbook(
                 "Started initalizing tickers"
             )
-            InitializeTickers.initialize_all_tickers()
+            InitializeTickers.initialize_all_market_data()
 
             database_querys.database_querys.add_log_to_logbook(
                 "Started start update cycle"
