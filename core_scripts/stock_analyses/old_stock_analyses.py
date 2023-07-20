@@ -1245,53 +1245,6 @@ class plot_generator:
         return plot_link
 
 
-class twitter_module:
-    def __init__(self):
-
-        # load analyses, ticker, ect,
-        # generate text,
-        # generate plot,
-        # post tweet,
-        # save message.
-        pass
-
-    def post_tweet(self, text=None, path_photo=None):
-        """
-        this is a test text
-
-        Parameters
-        ----------
-        text : TYPE, optional
-            DESCRIPTION. The default is None.
-        path_photo : TYPE, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
-        # Authenticate to Twitter
-        auth = tweepy.OAuthHandler(
-            "wX4lco85Qu9zYqLPchbD4DUov",
-            "G3mKMivifmMJoE8pZGats8fHl8BrMUfMRuhklL6r90aJ0139Qy",
-        )
-        auth.set_access_token(
-            "1227626390171852800-2nSTPjqtaHXk6zO3omtGD6WnUyQDN5",
-            "aGYrAJR6uUkKJYjltSPGkdzsE6wyh9O1nGeJz4Rs1GsU4",
-        )
-
-        # Create API object
-        api = tweepy.API(auth)
-
-        # load image
-        imagePath = path_photo
-        status = text
-
-        # Send the tweet.
-        api.update_with_media(imagePath, status)
-
-
 class liquidity_analyses_rf:
     """
     Voor het afsluiten moeten
