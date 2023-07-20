@@ -12,7 +12,6 @@ import ta
 import os
 import time
 import pickle
-import pandas_datareader as web
 from datetime import datetime, timedelta
 import pathlib
 from datetime import date
