@@ -395,34 +395,46 @@ class update_kaufman_support(object):
                 continue
 
     def update_all_analyse_multi(amount_per_thread: int = 5):
+        try:
+            # get tickers
+            tickers = database_querys.database_querys.get_all_active_tickers()
 
-        tickers = database_querys.database_querys.get_all_active_tickers()
+            update_function = (
+                update_kaufman_support.update_all_analyses_with_ticker
+            )
 
-        update_function = (
-            update_kaufman_support.update_all_analyses_with_ticker
-        )
+            update_tickers = tickers.copy()
+            up_t = []
+            threads = []
+            while True:
+                try:
+                    for i in range(amount_per_thread):
+                        item = update_tickers.pop()
+                        up_t.append(item)
 
-        while tickers:
-            batch_tickers = tickers[:amount_per_thread]
-            tickers = tickers[amount_per_thread:]
+                except IndexError:
+                    break
 
-            with ThreadPoolExecutor(max_workers=amount_per_thread) as executor:
-                # Start each thread with the function and its argument
-                futures = {
-                    executor.submit(update_function, ticker): ticker
-                    for ticker in batch_tickers
-                }
-                for future in futures:
-                    ticker = futures[future]
+                # start each thread with the function and its argument
+                for ticker in up_t:
                     print(f"{ticker} is updating")
+                    p = Process(target=update_function, args=(ticker,))
+                    p.start()
+                    threads.append(p)
 
-            # Wait for all threads to finish
-            print("Waiting for all threads to finish...")
-            time.sleep(
-                1
-            )  # Wait for 1 second before processing the next batch of tickers
+                # wait for all threads to finish
+                for p in threads:
+                    p.join()
+                    print("Thread has joined")
 
-        return
+                threads = []
+                up_t = []
+
+                time.sleep(1)  # wait for 60 seconds before running again
+
+            return
+        except Exception as e:
+            print(e)
 
     def return_full_analyses_dict(
         stock_data,
