@@ -1539,7 +1539,7 @@ class database_querys:
     def add_log_to_logbook(text: str = ""):
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        engine = create_engine(db_path, echo=True)  # , check_same_thread=True
         Session = sessionmaker(bind=engine)
         session = Session()
 
