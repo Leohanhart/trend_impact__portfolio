@@ -64,7 +64,7 @@ def setup_users():
         {
             "username": "LEODEADMIN",
             "password": "QWERTY12345",
-            "role": "LEOISADMIN",
+            "role": "ADMIN",
         },
         {
             "username": "KWEE",

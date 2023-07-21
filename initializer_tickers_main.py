@@ -417,7 +417,7 @@ if __name__ == "__main__":
         # infile_ = initiaze_singel_ticker("AAPL")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
-        InitializeTickers.initialize_all_market_data()
+        InitializeTickers.initialize_all_tickers()
     except Exception as e:
 
         raise Exception("Error with tickers", e)
