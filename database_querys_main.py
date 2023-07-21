@@ -15,7 +15,7 @@ TASKS TO DO:
     AFTER NEW DATABASE MIGRATION
     - create get _ analyseses (Liq / Mon) For daily tables and also update.
 
-
+#
 
 
 
@@ -62,8 +62,8 @@ from datetime import datetime, timedelta
 
 class database_querys:
     def get_last_update():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -78,8 +78,8 @@ class database_querys:
 
     def update_last_update():
 
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -101,8 +101,8 @@ class database_querys:
             return df
 
     def get_darwin():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -131,8 +131,8 @@ class database_querys:
             return tickers
 
     def get_liquid_tickers():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -155,8 +155,8 @@ class database_querys:
             return tickers
 
     def get_mid_and_large_cap_tickers():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -178,8 +178,8 @@ class database_querys:
             return tickers
 
     def get_mid_and_large_cap():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -207,8 +207,8 @@ class database_querys:
         excluded_own_recomanded: bool = False,
     ):
 
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -264,8 +264,8 @@ class database_querys:
         apply_to_safe: bool = False,
         remove_from_safe: bool = False,
     ):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -304,8 +304,8 @@ class database_querys:
             DESCRIPTION.
 
         """
-        lock = Lock()
-        with lock:
+        
+        
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
@@ -355,8 +355,8 @@ class database_querys:
         None.
 
         """
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -398,8 +398,8 @@ class database_querys:
 
         """
 
-        lock = Lock()
-        with lock:
+        
+        
             # Create the SQLAlchemy engine and session
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
@@ -482,8 +482,8 @@ class database_querys:
     def remove_list_portfolio_strategys(
         name_list: str = "", ticker_name: str = ""
     ):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -533,8 +533,8 @@ class database_querys:
             DESCRIPTION.
 
         """
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -586,8 +586,8 @@ class database_querys:
         None.
 
         """
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -604,8 +604,7 @@ class database_querys:
 
             first_row = session.query(PortfolioArchive).first()
             if first_row is None:
-                print("waiting for archive")
-                time.sleep(86000)
+
                 return
 
             query_string = (
@@ -643,8 +642,8 @@ class database_querys:
              'AEAC']
 
         """
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -872,8 +871,8 @@ class database_querys:
 
     def get_trend_kalman(ticker: str = None):
 
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -929,8 +928,8 @@ class database_querys:
         None.
 
         """
-        lock = Lock()
-        with lock:
+        
+        
             # creates database engine.
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
@@ -1034,8 +1033,8 @@ class database_querys:
     def get_trend_kalman_performance(
         ticker: str = "", periode: str = "D", as_pandas: bool = True
     ):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -1350,8 +1349,8 @@ class database_querys:
         return df
 
     def get_trend_timeseries_data(name_of_timeserie: str):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -1363,8 +1362,8 @@ class database_querys:
             return df
 
     def get_sector_trade_stats():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             conn = engine.connect()
@@ -1404,8 +1403,8 @@ class database_querys:
             return json.dumps(trade_stats)
 
     def get_sector_trends():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -1432,8 +1431,8 @@ class database_querys:
             return json.dumps(result)
 
     def add_sector_trends(data: dict):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -1488,8 +1487,8 @@ class database_querys:
                 session.close
 
     def add_sector_trade_stats(trade_stats_dict: dict):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -1540,8 +1539,8 @@ class database_querys:
             session.commit()
 
     def add_trend_timeserie(df):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=True)
             Session = sessionmaker(bind=engine)
@@ -1573,8 +1572,8 @@ class database_querys:
             session.close()
 
     def add_log_to_logbook(text: str = ""):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False  # , check_same_thread=True
@@ -1589,8 +1588,8 @@ class database_querys:
             session.close()
 
     def add_portfolio_to_archive(id_portfolio: str):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False
@@ -1653,8 +1652,8 @@ class database_querys:
         return df
 
     def add_or_update_archive_of_trend_archive(ticker_id: str):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False
@@ -1694,8 +1693,8 @@ class database_querys:
                 return
 
     def get_archive_of_trend_archive():
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False
@@ -1745,8 +1744,8 @@ class database_querys:
         session.close()
 
     def get_portfolio(id_: str = "", strategy: str = ""):
-        lock = Lock()
-        with lock:
+        
+        
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
@@ -1807,8 +1806,8 @@ class database_querys:
 
     def get_portfolio_archive():
 
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
@@ -1903,8 +1902,8 @@ class database_querys:
 
     def delete_portfolio_archive(id_portfolio: str):
 
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False
@@ -1934,8 +1933,8 @@ class database_querys:
             session.close()
 
     def delete_portfolio(portfio_id: str = ""):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False
@@ -1965,8 +1964,8 @@ class database_querys:
             session.close()
 
     def update_analyses_trend_kamal(model):
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False  # , check_same_thread=True
@@ -2061,9 +2060,9 @@ class database_querys:
         model, check_if_exsits: bool = False
     ):
 
-        lock = Lock()
+        
 
-        with lock:
+        
 
             add_report = {}
 
@@ -2392,8 +2391,8 @@ class database_querys:
             DESCRIPTION.
 
         """
-        lock = Lock()
-        with lock:
+        
+        
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(
                 db_path, echo=False  # , check_same_thread=True
