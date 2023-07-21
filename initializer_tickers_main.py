@@ -125,7 +125,7 @@ class InitializeTickers:
 
                     else:
                         database_querys_main.database_querys.add_log_to_logbook(
-                            "MaketData API mallfunctioned on ticker {ticker}"
+                            f"MaketData API mallfunctioned on ticker {ticker}"
                         )
 
                 print(data)
@@ -143,38 +143,42 @@ class InitializeTickers:
                     market_cap = data["shareOutstanding"]
                 except:
                     continue
-
-                real_market_shares_out = round(market_cap * 1000000, 0)
-                real_market_cap = (
-                    stocks_object.stock_data.Close.tail(1).mean().round()
-                    * real_market_shares_out
-                )
-
-                average_volume = (
-                    stocks_object.stock_data.Volume.tail(10).mean()
-                    * stocks_object.stock_data.Close.tail(1).mean()
-                )
-
-                # Check if a row with the matching index_column exists
-                existing_row = (
-                    session.query(MarketData)
-                    .filter_by(index_column=ticker)
-                    .first()
-                )
-
-                if existing_row:
-                    # Row exists, update its data
-                    existing_row.regularMarketVolume = round(real_market_cap)
-                    existing_row.marketCap = round(average_volume)
-
-                else:
-                    # Row doesn't exist, create a new one
-                    new_market_data = MarketData(
-                        index_column=ticker,
-                        regularMarketVolume=round(real_market_cap),
-                        marketCap=round(average_volume),
+                try:
+                    real_market_shares_out = round(market_cap * 1000000, 0)
+                    real_market_cap = (
+                        stocks_object.stock_data.Close.tail(1).mean().round()
+                        * real_market_shares_out
                     )
-                    session.add(new_market_data)
+
+                    average_volume = (
+                        stocks_object.stock_data.Volume.tail(10).mean()
+                        * stocks_object.stock_data.Close.tail(1).mean()
+                    )
+
+                    # Check if a row with the matching index_column exists
+                    existing_row = (
+                        session.query(MarketData)
+                        .filter_by(index_column=ticker)
+                        .first()
+                    )
+
+                    if existing_row:
+                        # Row exists, update its data
+                        existing_row.regularMarketVolume = round(
+                            real_market_cap
+                        )
+                        existing_row.marketCap = round(average_volume)
+
+                    else:
+                        # Row doesn't exist, create a new one
+                        new_market_data = MarketData(
+                            index_column=ticker,
+                            regularMarketVolume=round(real_market_cap),
+                            marketCap=round(average_volume),
+                        )
+                        session.add(new_market_data)
+                except:
+                    continue
 
                 # Commit the session to persist the changes
                 session.commit()
