@@ -396,7 +396,7 @@ class update_kaufman_support(object):
 
     def update_all_analyse_multi(amount_per_thread: int = 5):
 
-        tickers = database_querys.get_all_active_tickers()
+        tickers = database_querys.database_querys.get_all_active_tickers()
 
         update_function = (
             update_kaufman_support.update_all_analyses_with_ticker
