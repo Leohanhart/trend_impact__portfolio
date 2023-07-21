@@ -80,6 +80,7 @@ class update_data:
 
         if no_action:
             return
+
         self.lock_file_path = "process.lock"
         atexit.register(
             self._remove_lock_file
@@ -326,9 +327,9 @@ if __name__ == "__main__":
 
     # archive
     try:
-        x = update_data()
+        x = update_data(no_action=True)
         # x.start_update_scedule()
-        afterhour_update_cycle(no_sleep=True)
+        x.afterhour_update_cycle(no_sleep=True)
         print("LEETS GOOO")
         sleep(432000)
         # x.pre_startup()
