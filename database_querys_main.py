@@ -2606,7 +2606,7 @@ if __name__ == "__main__":
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
         #### test
-        x = database_querys.get_liquid_tickers()
+        x = database_querys.get_all_active_tickers()
 
         print(x)
         print("END")
