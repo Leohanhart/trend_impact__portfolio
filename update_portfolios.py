@@ -118,14 +118,13 @@ class update_data:
 
         return
 
-    def afterhour_update_cycle(self, no_sleep: bool = False):
+    def afterhour_update_cycle(self):
 
         logger.info("starting daily update cycle")
 
-        if no_sleep:
-            update_stats_trend_analyses.update_kaufman_support.sleep_until(
-                17, 0, 10
-            )
+        update_stats_trend_analyses.update_kaufman_support.sleep_until(
+            17, 0, 10
+        )
 
         # started
         database_querys.database_querys.add_log_to_logbook(
@@ -329,7 +328,7 @@ if __name__ == "__main__":
     try:
         x = update_data(no_action=True)
         # x.start_update_scedule()
-        x.afterhour_update_cycle(no_sleep=True)
+        x.afterhour_update_cycle()
         print("LEETS GOOO")
         sleep(432000)
         # x.pre_startup()
