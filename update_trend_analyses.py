@@ -33,7 +33,10 @@ from collections import ChainMap
 import uuid
 
 pd.options.mode.chained_assignment = None
+multiprocessing.set_start_method("spawn")
 
+# ignore error
+np.seterr(divide="ignore", invalid="ignore")
 """
 
 Wde create two databases: ONE for the current state of the measure ment. 
@@ -393,11 +396,6 @@ class update_kaufman_support(object):
                 continue
 
     def update_all_analyse_multi(amount_per_thread: int = 5):
-
-        multiprocessing.set_start_method("spawn")
-
-        # ignore error
-        np.seterr(divide="ignore", invalid="ignore")
 
         # get tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
