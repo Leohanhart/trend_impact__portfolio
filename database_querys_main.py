@@ -205,13 +205,12 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = (
-            session.query(Ticker)
-            .filter(Ticker.id == ticker_name)
-            .statement.compile()
-        )
+        query = session.query(Ticker).filter(Ticker.id == ticker_name)
 
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(compile_kwargs={"literal_binds": True}),
+            session.bind,
+        )
 
         session.close()
         try:
