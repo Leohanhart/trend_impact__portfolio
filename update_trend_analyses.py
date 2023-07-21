@@ -11,6 +11,7 @@ from core_scripts.stock_data_download import power_stock_object as stock_object
 from core_update.update_analyses import update_support
 from datetime import datetime, timedelta
 from multiprocessing import Process
+import multiprocessing
 import time
 import numpy as np
 import pandas as pd
@@ -392,6 +393,8 @@ class update_kaufman_support(object):
                 continue
 
     def update_all_analyse_multi(amount_per_thread: int = 5):
+
+        multiprocessing.set_start_method("spawn")
 
         # ignore error
         np.seterr(divide="ignore", invalid="ignore")
