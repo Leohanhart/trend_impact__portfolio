@@ -1352,16 +1352,30 @@ class database_querys:
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False)
-        conn = engine.connect()
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-        query = conn.query(Sector_Trade_Archive)
-        df = pd.read_sql_query(
-            query.statement.compile(
-                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
-            ),
-            conn,
-        )
-        result = conn.execute(query)
+        try:
+            query = session.query(Sector_Trade_Archive)
+            df = pd.read_sql_query(
+                query.statement.compile(
+                    compile_kwargs={
+                        "literal_binds": True,
+                        "dialect": "postgresql",
+                    }
+                ),
+                session.bind,
+            )
+            result = session.execute(
+                query
+            )  # Optional: If you want to execute the query and get the result object
+
+        except Exception as e:
+            print("Error:")
+            print(e)
+            df = (
+                pd.DataFrame()
+            )  # Return an empty DataFrame in case of an error
 
         trade_stats = []
         for row in result:
@@ -2627,6 +2641,7 @@ if __name__ == "__main__":
         print("test get time series")
         x = database_querys.get_trend_timeseries_data("ALL")
 
+        print(x)
         print("test get trade sector stats")
         x = database_querys.get_sector_trade_stats()
 
