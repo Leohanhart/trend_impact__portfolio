@@ -626,18 +626,12 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = (
-            session.query(Ticker)
-            .filter(Ticker.active == True)
-            .statement.compile()
-        )  # .all()
+        query = session.query(Ticker).filter(and_(Ticker.active == True))
 
-        df = pd.read_sql_query(query_string, session.bind)
-
+        df = pd.read_sql_query(query.statement, session.bind)
         session.close()
 
         data = df[df.active == True]
-
         data = data.id.to_list()
 
         return data
