@@ -601,6 +601,11 @@ class database_querys:
 
             # Query for orders that have expired within the last n days
             session = Session()
+
+            first_row = session.query(PortfolioArchive).first()
+            if first_row is None:
+                return
+
             query_string = (
                 session.query(PortfolioArchive)
                 .filter(PortfolioArchive.created <= cutoff_date)
