@@ -55,7 +55,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 from sqlalchemy import and_, or_, not_
-
+import time
 from multiprocessing import Lock
 from datetime import datetime, timedelta
 
@@ -604,6 +604,8 @@ class database_querys:
 
             first_row = session.query(PortfolioArchive).first()
             if first_row is None:
+                print("waiting for archive")
+                time.sleep(86000)
                 return
 
             query_string = (

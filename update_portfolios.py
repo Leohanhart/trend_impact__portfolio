@@ -76,8 +76,10 @@ class update_data:
 
     update_allowd: bool = False
 
-    def __init__(self):
+    def __init__(self, no_action: bool = False):
 
+        if no_action:
+            return
         self.lock_file_path = "process.lock"
         atexit.register(
             self._remove_lock_file
@@ -115,13 +117,14 @@ class update_data:
 
         return
 
-    def afterhour_update_cycle(self):
+    def afterhour_update_cycle(self, no_sleep: bool = False):
 
         logger.info("starting daily update cycle")
 
-        update_stats_trend_analyses.update_kaufman_support.sleep_until(
-            17, 0, 10
-        )
+        if no_sleep:
+            update_stats_trend_analyses.update_kaufman_support.sleep_until(
+                17, 0, 10
+            )
 
         # started
         database_querys.database_querys.add_log_to_logbook(
@@ -325,6 +328,7 @@ if __name__ == "__main__":
     try:
         x = update_data()
         # x.start_update_scedule()
+        afterhour_update_cycle(no_sleep=True)
         print("LEETS GOOO")
         sleep(432000)
         # x.pre_startup()
