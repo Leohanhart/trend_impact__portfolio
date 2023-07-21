@@ -116,3 +116,14 @@ def initialize_server():
         )
         # setup account
         setup_users()
+
+
+if __name__ == "__main__":
+
+    try:
+
+        setup_users()
+
+    except Exception as e:
+
+        raise Exception("Error with tickers", e)
