@@ -62,143 +62,136 @@ from datetime import datetime, timedelta
 
 class database_querys:
     def get_last_update():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
-            # Retrieve data from the "last_update" table
-            df = pd.read_sql_table("last_update", con=engine)
 
-            # Convert DataFrame to JSON
-            json_data = df.to_json(orient="records")
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        # Retrieve data from the "last_update" table
+        df = pd.read_sql_table("last_update", con=engine)
 
-            return json_data
+        # Convert DataFrame to JSON
+        json_data = df.to_json(orient="records")
+
+        return json_data
 
     def update_last_update():
 
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Get the current date and time
-            current_datetime = datetime.now()
+        # Get the current date and time
+        current_datetime = datetime.now()
 
-            # Create a DataFrame
-            df = pd.DataFrame({"DateTime": [current_datetime]})
-            # Write DataFrame to the "last_update" table
-            df.to_sql(
-                name="last_update",
-                con=engine,
-                if_exists="replace",
-                index=False,
-            )
+        # Create a DataFrame
+        df = pd.DataFrame({"DateTime": [current_datetime]})
+        # Write DataFrame to the "last_update" table
+        df.to_sql(
+            name="last_update",
+            con=engine,
+            if_exists="replace",
+            index=False,
+        )
 
-            return df
+        return df
 
     def get_darwin():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            query_string = session.query(
-                Analyses_trend_kamal_performance
-            ).statement.compile()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            try:
-                df = pd.read_sql_query(query_string, session.bind)
-            except Exception as e:
-                print("rerror")
-                print(e)
+        query_string = session.query(
+            Analyses_trend_kamal_performance
+        ).statement.compile()
 
-            # close session
-            session.close()
+        try:
+            df = pd.read_sql_query(query_string, session.bind)
+        except Exception as e:
+            print("rerror")
+            print(e)
 
-            filtered_df = df[
-                (df["total_profitible_trades_all"] >= 98)
-                & (df["amount_of_trades_y2"] != 1)
-                & (df["total_return_y2"] > 0.8)
-                & (df["total_average_return_y2"] > 6)
-            ]
-            tickers = filtered_df.id.to_list()
-            return tickers
+        # close session
+        session.close()
+
+        filtered_df = df[
+            (df["total_profitible_trades_all"] >= 98)
+            & (df["amount_of_trades_y2"] != 1)
+            & (df["total_return_y2"] > 0.8)
+            & (df["total_average_return_y2"] > 6)
+        ]
+        tickers = filtered_df.id.to_list()
+        return tickers
 
     def get_liquid_tickers():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            # Query to select all rows from the table
-            query = "SELECT * FROM market_data"
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Load the table into a DataFrame
-            df = pd.read_sql(query, engine)
+        # Query to select all rows from the table
+        query = "SELECT * FROM market_data"
 
-            # Create the filter
-            filter_condition = (df["regularMarketVolume"]) > 200000000
+        # Load the table into a DataFrame
+        df = pd.read_sql(query, engine)
 
-            # Apply the filter to the DataFrame
-            filtered_df = df[filter_condition]
+        # Create the filter
+        filter_condition = (df["regularMarketVolume"]) > 200000000
 
-            tickers = filtered_df.index_column.to_list()
+        # Apply the filter to the DataFrame
+        filtered_df = df[filter_condition]
 
-            return tickers
+        tickers = filtered_df.index_column.to_list()
+
+        return tickers
 
     def get_mid_and_large_cap_tickers():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            # Query to select all rows from the table
-            query = "SELECT * FROM stock_market_data"
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Load the table into a DataFrame
-            df = pd.read_sql(query, engine)
+        # Query to select all rows from the table
+        query = "SELECT * FROM stock_market_data"
 
-            mid_cap_threshold = 2000000000  # $2 billion
+        # Load the table into a DataFrame
+        df = pd.read_sql(query, engine)
 
-            # Select rows with marketCap higher than the mid-cap threshold
-            mid_cap_stocks = df[df["marketCap"] > mid_cap_threshold]
+        mid_cap_threshold = 2000000000  # $2 billion
 
-            tickers = mid_cap_stocks.index_column.to_list()
+        # Select rows with marketCap higher than the mid-cap threshold
+        mid_cap_stocks = df[df["marketCap"] > mid_cap_threshold]
 
-            return tickers
+        tickers = mid_cap_stocks.index_column.to_list()
+
+        return tickers
 
     def get_mid_and_large_cap():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            # Query to select all rows from the table
-            query = "SELECT * FROM stock_market_data"
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Load the table into a DataFrame
-            df = pd.read_sql(query, engine)
+        # Query to select all rows from the table
+        query = "SELECT * FROM stock_market_data"
 
-            mid_cap_threshold = 2000000000  # $2 billion
+        # Load the table into a DataFrame
+        df = pd.read_sql(query, engine)
 
-            # Select rows with marketCap higher than the mid-cap threshold
-            mid_cap_stocks = df[df["marketCap"] > mid_cap_threshold]
+        mid_cap_threshold = 2000000000  # $2 billion
 
-            tickers = mid_cap_stocks.index_column.to_list()
+        # Select rows with marketCap higher than the mid-cap threshold
+        mid_cap_stocks = df[df["marketCap"] > mid_cap_threshold]
 
-            return tickers
+        tickers = mid_cap_stocks.index_column.to_list()
+
+        return tickers
 
     def check_if_ticker_is_allowd(
         ticker_name: str,
@@ -207,55 +200,53 @@ class database_querys:
         excluded_own_recomanded: bool = False,
     ):
 
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            query_string = (
-                session.query(Ticker)
-                .filter(Ticker.id == ticker_name)
-                .statement.compile()
-            )
+        query_string = (
+            session.query(Ticker)
+            .filter(Ticker.id == ticker_name)
+            .statement.compile()
+        )
 
-            df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(query_string, session.bind)
 
-            session.close()
-            try:
-                if df.empty:
-                    return False
-            except:
+        session.close()
+        try:
+            if df.empty:
+                return False
+        except:
+            return False
+
+        data = df.to_dict(orient="records")
+        try:
+
+            if data[0]["active"] != True:
                 return False
 
-            data = df.to_dict(orient="records")
-            try:
-
-                if data[0]["active"] != True:
+            if exclude_blacklisted:
+                if data[0]["blacklist"] == True:
                     return False
 
-                if exclude_blacklisted:
-                    if data[0]["blacklist"] == True:
-                        return False
+            if excluded_non_safe:
 
-                if excluded_non_safe:
+                if data[0]["safe"] != True:
+                    return False
 
-                    if data[0]["safe"] != True:
-                        return False
+        except KeyError:
 
-            except KeyError:
+            return False
 
+        except NameError:
+
+            if data[0]["active"] != True:
                 return False
+            else:
+                return True
 
-            except NameError:
-
-                if data[0]["active"] != True:
-                    return False
-                else:
-                    return True
-
-            return True
+        return True
 
     def update_ticker(
         ticker_name: str = "",
@@ -264,27 +255,26 @@ class database_querys:
         apply_to_safe: bool = False,
         remove_from_safe: bool = False,
     ):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            data = session.query(Ticker).get(ticker_name)
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            if apply_to_blacklist:
-                data.blacklist = True
-            elif remove_from_blacklist:
-                data.blacklist = False
-            elif apply_to_safe:
-                data.safe = True
-            elif remove_from_safe:
-                data.safe = False
+        data = session.query(Ticker).get(ticker_name)
 
-            session.commit()
+        if apply_to_blacklist:
+            data.blacklist = True
+        elif remove_from_blacklist:
+            data.blacklist = False
+        elif apply_to_safe:
+            data.safe = True
+        elif remove_from_safe:
+            data.safe = False
 
-            session.close()
+        session.commit()
+
+        session.close()
         return
 
     def add_tickers_to_list(name_list: str = "", name_ticker: str = ""):
@@ -304,42 +294,42 @@ class database_querys:
             DESCRIPTION.
 
         """
-        
-        
 
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Check if the strategy already exists in the database
-            existing_strategy = (
-                session.query(Portfolio_Strategy)
-                .filter_by(strategy=name_list)
-                .first()
-            )
-            if not existing_strategy:
-                return "Strategy not found{name_list}"
+        # Check if the strategy already exists in the database
+        existing_strategy = (
+            session.query(Portfolio_Strategy)
+            .filter_by(strategy=name_list)
+            .first()
+        )
+        if not existing_strategy:
+            return "Strategy not found{name_list}"
 
-            if not database_querys.check_if_ticker_is_allowd(name_ticker):
-                return f"Ticker = {name_ticker} is not allowd, add ticker before add"
-
-            # Create a new Portfolio_Strategy object with the provided strategy and ticker
-            new_strategy = Portfolio_Strategy(
-                strategy=name_list, ticker=name_ticker
+        if not database_querys.check_if_ticker_is_allowd(name_ticker):
+            return (
+                f"Ticker = {name_ticker} is not allowd, add ticker before add"
             )
 
-            # Add the new strategy to the session and commit the changes
-            session.add(new_strategy)
-            try:
-                session.commit()
-            except IntegrityError:
-                return 409
+        # Create a new Portfolio_Strategy object with the provided strategy and ticker
+        new_strategy = Portfolio_Strategy(
+            strategy=name_list, ticker=name_ticker
+        )
 
-            # Close the session
-            session.close()
+        # Add the new strategy to the session and commit the changes
+        session.add(new_strategy)
+        try:
+            session.commit()
+        except IntegrityError:
+            return 409
 
-            return 200
+        # Close the session
+        session.close()
+
+        return 200
 
     def add_list_portfolio_strategys(name_list: str = ""):
         """
@@ -355,27 +345,26 @@ class database_querys:
         None.
 
         """
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            # Load data from table into DataFrame
-            query = session.query(Portfolio_Strategy)
-            df = pd.read_sql(query.statement, query.session.bind)
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Check if variable exists in strategy column
-            incoming_variable = name_list
-            if incoming_variable in df["strategy"].values:
-                return 409
-            else:
-                # Add the variable to the table
-                new_strategy = Portfolio_Strategy(strategy=name_list)
-                session.add(new_strategy)
-                session.commit()
-                return 200
+        # Load data from table into DataFrame
+        query = session.query(Portfolio_Strategy)
+        df = pd.read_sql(query.statement, query.session.bind)
+
+        # Check if variable exists in strategy column
+        incoming_variable = name_list
+        if incoming_variable in df["strategy"].values:
+            return 409
+        else:
+            # Add the variable to the table
+            new_strategy = Portfolio_Strategy(strategy=name_list)
+            session.add(new_strategy)
+            session.commit()
+            return 200
 
     def return_list_portfolio_strategys(
         name_list: str = "", ticker_name: str = "", return_all: bool = False
@@ -398,117 +387,108 @@ class database_querys:
 
         """
 
-        
-        
-            # Create the SQLAlchemy engine and session
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        # Create the SQLAlchemy engine and session
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Check if name_list is provided
-            if name_list:
-                # Check if strategy exists in the data
-                rows = (
-                    session.query(Portfolio_Strategy)
-                    .filter_by(strategy=name_list)
-                    .all()
-                )
+        # Check if name_list is provided
+        if name_list:
+            # Check if strategy exists in the data
+            rows = (
+                session.query(Portfolio_Strategy)
+                .filter_by(strategy=name_list)
+                .all()
+            )
 
-                data = []
-                for row in rows:
-                    data.append(
-                        {"strategy": row.strategy, "ticker": row.ticker}
-                    )
-
-                return json.dumps(data)
-
-                if not row:
-                    return json.dumps({"error": "Strategy not found"}), 404
-
-            elif return_all:
-                rows = session.query(Portfolio_Strategy).all()
-
-            elif ticker_name:
-                rows = (
-                    session.query(Portfolio_Strategy)
-                    .filter_by(ticker=ticker_name)
-                    .all()
-                )
-
-                if not rows:
-                    return (
-                        json.dumps(
-                            {
-                                "error": "No rows found with the specified ticker"
-                            }
-                        ),
-                        404,
-                    )
-
-                data = []
-                for row in rows:
-                    data.append(
-                        {"strategy": row.strategy, "ticker": row.ticker}
-                    )
-
-                return json.dumps(data)
-
-            else:
-                # Load available strategy values from the data
-                available_strategies = (
-                    session.query(Portfolio_Strategy.strategy).distinct().all()
-                )
-                unpacked_values = [value for (value,) in available_strategies]
-                return json.dumps(unpacked_values)
-
-            # Load data from table into a list of dictionaries
             data = []
-            for row in session.query(Portfolio_Strategy).all():
-                data.append(
-                    {
-                        "id": row.id,
-                        "strategy": row.strategy,
-                        "ticker": row.ticker,
-                    }
+            for row in rows:
+                data.append({"strategy": row.strategy, "ticker": row.ticker})
+
+            return json.dumps(data)
+
+            if not row:
+                return json.dumps({"error": "Strategy not found"}), 404
+
+        elif return_all:
+            rows = session.query(Portfolio_Strategy).all()
+
+        elif ticker_name:
+            rows = (
+                session.query(Portfolio_Strategy)
+                .filter_by(ticker=ticker_name)
+                .all()
+            )
+
+            if not rows:
+                return (
+                    json.dumps(
+                        {"error": "No rows found with the specified ticker"}
+                    ),
+                    404,
                 )
 
-            # Close the session
-            session.close()
+            data = []
+            for row in rows:
+                data.append({"strategy": row.strategy, "ticker": row.ticker})
 
-            # Return the data as JSON
             return json.dumps(data)
+
+        else:
+            # Load available strategy values from the data
+            available_strategies = (
+                session.query(Portfolio_Strategy.strategy).distinct().all()
+            )
+            unpacked_values = [value for (value,) in available_strategies]
+            return json.dumps(unpacked_values)
+
+        # Load data from table into a list of dictionaries
+        data = []
+        for row in session.query(Portfolio_Strategy).all():
+            data.append(
+                {
+                    "id": row.id,
+                    "strategy": row.strategy,
+                    "ticker": row.ticker,
+                }
+            )
+
+        # Close the session
+        session.close()
+
+        # Return the data as JSON
+        return json.dumps(data)
 
     def remove_list_portfolio_strategys(
         name_list: str = "", ticker_name: str = ""
     ):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            # Filter rows based on name_list and ticker_name
-            query = session.query(Portfolio_Strategy)
-            if name_list and ticker_name:
-                query = query.filter_by(strategy=name_list, ticker=ticker_name)
-            elif name_list:
-                query = query.filter_by(strategy=name_list)
-            elif ticker_name:
-                query = query.filter_by(ticker=ticker_name)
-            else:
-                return 404
-            # Delete the filtered rows
-            rows_to_delete = query.all()
-            for row in rows_to_delete:
-                session.delete(row)
-            session.commit()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Close the session
-            session.close()
+        # Filter rows based on name_list and ticker_name
+        query = session.query(Portfolio_Strategy)
+        if name_list and ticker_name:
+            query = query.filter_by(strategy=name_list, ticker=ticker_name)
+        elif name_list:
+            query = query.filter_by(strategy=name_list)
+        elif ticker_name:
+            query = query.filter_by(ticker=ticker_name)
+        else:
+            return 404
+        # Delete the filtered rows
+        rows_to_delete = query.all()
+        for row in rows_to_delete:
+            session.delete(row)
+        session.commit()
 
-            return 204
+        # Close the session
+        session.close()
+
+        return 204
 
     def get_trend_archive_with_tickers_and_date(
         tickers: list = [], year: int = 0, month: int = 0, date: int = 0
@@ -533,43 +513,42 @@ class database_querys:
             DESCRIPTION.
 
         """
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            dt_object = datetime(year, month, date)
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # convert the datetime object to a date object
-            hit_date = dt_object.date()
+        dt_object = datetime(year, month, date)
 
-            if tickers:
-                query_string = session.query(Analyses_archive_kamal).filter(
-                    and_(
-                        Analyses_archive_kamal.ticker.in_(tickers),
-                        Analyses_archive_kamal.start_date <= hit_date,
-                        Analyses_archive_kamal.end_date >= hit_date,
-                    )
-                )
-            else:
-                query_string = session.query(Analyses_archive_kamal).filter(
-                    and_(
-                        Analyses_archive_kamal.start_date <= hit_date,
-                        Analyses_archive_kamal.end_date >= hit_date,
-                    )
-                )
+        # convert the datetime object to a date object
+        hit_date = dt_object.date()
 
-            sql_statement = str(
-                query_string.statement.compile(
-                    compile_kwargs={"literal_binds": True}
+        if tickers:
+            query_string = session.query(Analyses_archive_kamal).filter(
+                and_(
+                    Analyses_archive_kamal.ticker.in_(tickers),
+                    Analyses_archive_kamal.start_date <= hit_date,
+                    Analyses_archive_kamal.end_date >= hit_date,
                 )
             )
-            # load SQL statement into pandas dataframe
-            df = pd.read_sql(sql_statement, engine)
+        else:
+            query_string = session.query(Analyses_archive_kamal).filter(
+                and_(
+                    Analyses_archive_kamal.start_date <= hit_date,
+                    Analyses_archive_kamal.end_date >= hit_date,
+                )
+            )
 
-            return df
+        sql_statement = str(
+            query_string.statement.compile(
+                compile_kwargs={"literal_binds": True}
+            )
+        )
+        # load SQL statement into pandas dataframe
+        df = pd.read_sql(sql_statement, engine)
+
+        return df
 
     @staticmethod
     def get_expired_portfolio_archives(amount_of_days: int = 62):
@@ -586,41 +565,40 @@ class database_querys:
         None.
 
         """
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            # Number of days before expiration date to filter by
-            n_days = amount_of_days
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            # Subtract n days from current date and time
-            cutoff_date = datetime.now() - timedelta(days=n_days)
+        # Number of days before expiration date to filter by
+        n_days = amount_of_days
 
-            # Query for orders that have expired within the last n days
-            session = Session()
+        # Subtract n days from current date and time
+        cutoff_date = datetime.now() - timedelta(days=n_days)
 
-            first_row = session.query(PortfolioArchive).first()
-            if first_row is None:
+        # Query for orders that have expired within the last n days
+        session = Session()
 
-                return
+        first_row = session.query(PortfolioArchive).first()
+        if first_row is None:
 
-            query_string = (
-                session.query(PortfolioArchive)
-                .filter(PortfolioArchive.created <= cutoff_date)
-                .statement.compile()
-            )
-            df = pd.read_sql_query(query_string, session.bind)
+            return
 
-            session.close()
+        query_string = (
+            session.query(PortfolioArchive)
+            .filter(PortfolioArchive.created <= cutoff_date)
+            .statement.compile()
+        )
+        df = pd.read_sql_query(query_string, session.bind)
 
-            df.portfolio_id
+        session.close()
 
-            list_expired_tickers = df.portfolio_id.to_list()
+        df.portfolio_id
 
-            return list_expired_tickers
+        list_expired_tickers = df.portfolio_id.to_list()
+
+        return list_expired_tickers
 
     @staticmethod
     def get_all_active_tickers():
@@ -642,28 +620,27 @@ class database_querys:
              'AEAC']
 
         """
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            query_string = (
-                session.query(Ticker)
-                .filter(Ticker.active == True)
-                .statement.compile()
-            )  # .all()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            df = pd.read_sql_query(query_string, session.bind)
+        query_string = (
+            session.query(Ticker)
+            .filter(Ticker.active == True)
+            .statement.compile()
+        )  # .all()
 
-            session.close()
+        df = pd.read_sql_query(query_string, session.bind)
 
-            data = df[df.active == True]
+        session.close()
 
-            data = data.id.to_list()
+        data = df[df.active == True]
 
-            return data
+        data = data.id.to_list()
+
+        return data
 
     @staticmethod
     def get_all_active_industrys():
@@ -871,28 +848,26 @@ class database_querys:
 
     def get_trend_kalman(ticker: str = None):
 
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            query_string = (
-                session.query(Analyses_trend_kamal)
-                .filter(
-                    Analyses_trend_kamal.id == ticker,
-                )
-                .statement.compile()
+        query_string = (
+            session.query(Analyses_trend_kamal)
+            .filter(
+                Analyses_trend_kamal.id == ticker,
             )
+            .statement.compile()
+        )
 
-            df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(query_string, session.bind)
 
-            # close session
-            session.close()
+        # close session
+        session.close()
 
-            # return frame.
-            return df
+        # return frame.
+        return df
 
     def get_all_trend_kalman():
 
@@ -928,76 +903,75 @@ class database_querys:
         None.
 
         """
-        
-        
-            # creates database engine.
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            query_string = (
-                session.query(Analyses_archive_kamal)
-                .filter(
-                    Analyses_archive_kamal.ticker == ticker,
-                    Analyses_archive_kamal.periode == periode,
-                )
-                .statement.compile()
+        # creates database engine.
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        query_string = (
+            session.query(Analyses_archive_kamal)
+            .filter(
+                Analyses_archive_kamal.ticker == ticker,
+                Analyses_archive_kamal.periode == periode,
             )
+            .statement.compile()
+        )
 
-            df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(query_string, session.bind)
 
-            # close session
-            session.close()
+        # close session
+        session.close()
 
-            # return frame.
-            return df
+        # return frame.
+        return df
 
-            if type(ticker) == str:
+        if type(ticker) == str:
 
-                # if pandas, return all.
-                if as_pandas:
+            # if pandas, return all.
+            if as_pandas:
 
-                    if periode == "D" or periode == "W":
+                if periode == "D" or periode == "W":
 
-                        query_string = (
-                            session.query(Analyses_archive_kamal)
-                            .filter(
-                                Analyses_archive_kamal.ticker == ticker,
-                                Analyses_archive_kamal.periode == periode,
-                            )
-                            .statement.compile()
-                        )  # .all()
-                        # load dataframe with query
+                    query_string = (
+                        session.query(Analyses_archive_kamal)
+                        .filter(
+                            Analyses_archive_kamal.ticker == ticker,
+                            Analyses_archive_kamal.periode == periode,
+                        )
+                        .statement.compile()
+                    )  # .all()
+                    # load dataframe with query
 
-                        df = pd.read_sql_query(query_string, session.bind)
+                    df = pd.read_sql_query(query_string, session.bind)
 
-                        # close session
-                        session.close()
+                    # close session
+                    session.close()
 
-                        # return frame.
-                        return df
+                    # return frame.
+                    return df
 
-                    elif periode != None:
+                elif periode != None:
 
-                        # generate query
-                        query_string = (
-                            session.query(Analyses_archive_kamal)
-                            .filter(
-                                Analyses_archive_kamal.ticker == ticker,
-                                Analyses_archive_kamal.periode == "D",
-                            )
-                            .statement.compile()
-                        )  # .all()
-                        # load dataframe with query
+                    # generate query
+                    query_string = (
+                        session.query(Analyses_archive_kamal)
+                        .filter(
+                            Analyses_archive_kamal.ticker == ticker,
+                            Analyses_archive_kamal.periode == "D",
+                        )
+                        .statement.compile()
+                    )  # .all()
+                    # load dataframe with query
 
-                        df = pd.read_sql_query(query_string, session.bind)
+                    df = pd.read_sql_query(query_string, session.bind)
 
-                        # close session
-                        session.close()
+                    # close session
+                    session.close()
 
-                        # return frame.
-                        return df
+                    # return frame.
+                    return df
 
     def try_trend_kalman_performance(
         ticker: str = "", periode: str = "D", as_pandas: bool = True
@@ -1033,72 +1007,71 @@ class database_querys:
     def get_trend_kalman_performance(
         ticker: str = "", periode: str = "D", as_pandas: bool = True
     ):
-        
-        
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        if periode == "D" and ticker != "":
+
+            print(8.1)
+            query_string = (
+                session.query(Analyses_trend_kamal_performance)
+                .filter(
+                    Analyses_trend_kamal_performance.id == ticker,
+                    Analyses_trend_kamal_performance.periode == periode,
+                )
+                .statement.compile()
+            )  # .all()
+            # load dataframe with query
+            print(8.2)
+            df = pd.read_sql_query(query_string, session.bind)
+
+            print(8.3)
+            # close session
+            session.close()
+
+            # return frame.
+            return df
+
+        elif periode == "D" and ticker == "":
+            print(9.3)
+
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
-            if periode == "D" and ticker != "":
+            query_string = session.query(
+                Analyses_trend_kamal_performance
+            ).statement.compile()  # .all()
+            # load dataframe with query
+            print(9.4)
+            df = pd.read_sql_query(query_string, session.bind)
+            print(9.5)
+            # close session
+            session.close()
+            print(9.6)
+            # return frame.
+            return df
 
-                print(8.1)
-                query_string = (
-                    session.query(Analyses_trend_kamal_performance)
-                    .filter(
-                        Analyses_trend_kamal_performance.id == ticker,
-                        Analyses_trend_kamal_performance.periode == periode,
-                    )
-                    .statement.compile()
-                )  # .all()
-                # load dataframe with query
-                print(8.2)
-                df = pd.read_sql_query(query_string, session.bind)
+        elif periode != None:
 
-                print(8.3)
-                # close session
-                session.close()
+            print(10.1)
+            # generate query
+            query_string = session.query(
+                Analyses_trend_kamal_performance
+            ).statement.compile()  # .all()
+            # load dataframe with query
+            print(10.2)
+            df = pd.read_sql_query(query_string, session.bind)
+            print(10.3)
+            # close session
+            session.close()
 
-                # return frame.
-                return df
-
-            elif periode == "D" and ticker == "":
-                print(9.3)
-
-                db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-                engine = create_engine(db_path, echo=False)
-                Session = sessionmaker(bind=engine)
-                session = Session()
-
-                query_string = session.query(
-                    Analyses_trend_kamal_performance
-                ).statement.compile()  # .all()
-                # load dataframe with query
-                print(9.4)
-                df = pd.read_sql_query(query_string, session.bind)
-                print(9.5)
-                # close session
-                session.close()
-                print(9.6)
-                # return frame.
-                return df
-
-            elif periode != None:
-
-                print(10.1)
-                # generate query
-                query_string = session.query(
-                    Analyses_trend_kamal_performance
-                ).statement.compile()  # .all()
-                # load dataframe with query
-                print(10.2)
-                df = pd.read_sql_query(query_string, session.bind)
-                print(10.3)
-                # close session
-                session.close()
-
-                # return frame.
-                return df
+            # return frame.
+            return df
 
     def get_trend_and_performance_kamal():
 
@@ -1349,258 +1322,244 @@ class database_querys:
         return df
 
     def get_trend_timeseries_data(name_of_timeserie: str):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            query = f"SELECT * FROM trend_analyses_timeseries WHERE name='{name_of_timeserie}'"
-            df = pd.read_sql(query, con=engine)
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            return df
+        query = f"SELECT * FROM trend_analyses_timeseries WHERE name='{name_of_timeserie}'"
+        df = pd.read_sql(query, con=engine)
+
+        return df
 
     def get_sector_trade_stats():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            conn = engine.connect()
 
-            query = "SELECT * FROM sector_trades_archive"
-            result = conn.execute(query)
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        conn = engine.connect()
 
-            trade_stats = []
-            for row in result:
-                (
-                    sector,
-                    amount_2_years,
-                    positive_percent_y2,
-                    mean_performance_y2,
-                    amount_5_years,
-                    positive_percent_y5,
-                    amount_all_years,
-                    positive_all_percent,
-                    mean_all_performance_,
-                ) = row
-                trade_stats.append(
-                    {
-                        "sector": sector,
-                        "amount_2_years": amount_2_years,
-                        "positive_percent_y2": positive_percent_y2,
-                        "mean_performance_y2": mean_performance_y2,
-                        "amount_5_years": amount_5_years,
-                        "positive_percent_y5": positive_percent_y5,
-                        "amount_all_years": amount_all_years,
-                        "positive_all_percent": positive_all_percent,
-                        "mean_all_performance_": mean_all_performance_,
-                    }
-                )
+        query = "SELECT * FROM sector_trades_archive"
+        result = conn.execute(query)
 
-            conn.close()
+        trade_stats = []
+        for row in result:
+            (
+                sector,
+                amount_2_years,
+                positive_percent_y2,
+                mean_performance_y2,
+                amount_5_years,
+                positive_percent_y5,
+                amount_all_years,
+                positive_all_percent,
+                mean_all_performance_,
+            ) = row
+            trade_stats.append(
+                {
+                    "sector": sector,
+                    "amount_2_years": amount_2_years,
+                    "positive_percent_y2": positive_percent_y2,
+                    "mean_performance_y2": mean_performance_y2,
+                    "amount_5_years": amount_5_years,
+                    "positive_percent_y5": positive_percent_y5,
+                    "amount_all_years": amount_all_years,
+                    "positive_all_percent": positive_all_percent,
+                    "mean_all_performance_": mean_all_performance_,
+                }
+            )
 
-            return json.dumps(trade_stats)
+        conn.close()
+
+        return json.dumps(trade_stats)
 
     def get_sector_trends():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            sector_trends = session.query(Sector_Trend).all()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            result = []
-            for sector_trend in sector_trends:
-                data = {
-                    "id": sector_trend.id,
-                    "trend": sector_trend.trend,
-                    "profile_std": sector_trend.profile_std,
-                    "trend_profile": sector_trend.trend_profile,
-                    "std_profile": sector_trend.std_profile,
-                    "side": sector_trend.side,
-                    "stats": sector_trend.stats,
-                    "updatedAt": sector_trend.updatedAt,
-                }
-                result.append(data)
+        sector_trends = session.query(Sector_Trend).all()
 
-            session.close()
+        result = []
+        for sector_trend in sector_trends:
+            data = {
+                "id": sector_trend.id,
+                "trend": sector_trend.trend,
+                "profile_std": sector_trend.profile_std,
+                "trend_profile": sector_trend.trend_profile,
+                "std_profile": sector_trend.std_profile,
+                "side": sector_trend.side,
+                "stats": sector_trend.stats,
+                "updatedAt": sector_trend.updatedAt,
+            }
+            result.append(data)
 
-            return json.dumps(result)
+        session.close()
+
+        return json.dumps(result)
 
     def add_sector_trends(data: dict):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            try:
-                # Check if data already exists in the table
-                existing_data = (
-                    session.query(Sector_Trend)
-                    .filter_by(id=data["sector"])
-                    .first()
-                )
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-                if existing_data:
-                    # Update existing data if it exists
-                    existing_data.trend = data["trend"]
-                    existing_data.profile_std = data["profile_std"]
-                    existing_data.trend_profile = data["trend_profile"]
-                    existing_data.std_profile = data["std_profile"]
-                    existing_data.side = data["side"]
-                    existing_data.stats = data["stats"]
-                    existing_data.updatedAt = datetime.utcnow().strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
-                    session.commit()
-                    return "Data updated"
-                else:
-                    # Add new data if it doesn't exist
-                    new_data = Sector_Trend(
-                        id=data["sector"],
-                        trend=data["trend"],
-                        profile_std=data["profile_std"],
-                        trend_profile=data["trend_profile"],
-                        std_profile=data["std_profile"],
-                        side=data["side"],
-                        stats=data["stats"],
-                        updatedAt=datetime.utcnow().strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        ),
-                    )
-                    session.add(new_data)
-                    session.commit()
-                    return "Data added"
-
-            except IntegrityError as e:
-                session.rollback()
-                return f"IntegrityError: {str(e)}"
-            except Exception as e:
-                session.rollback()
-                return f"Error: {str(e)}"
-            finally:
-                session.close
-
-    def add_sector_trade_stats(trade_stats_dict: dict):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
-
-            sector = trade_stats_dict["sector"]
-            amount_2_years = trade_stats_dict["amount_2_years"]
-            positive_percent_y2 = trade_stats_dict["positive_percent_y2"]
-            mean_performance_y2 = trade_stats_dict["mean_performance_y2"]
-            amount_5_years = trade_stats_dict["amount_5_years"]
-            positive_percent_y5 = trade_stats_dict["positive_percent_y5"]
-            amount_all_years = trade_stats_dict["amount_all_years"]
-            positive_all_percent = trade_stats_dict["positive_all_percent"]
-            mean_all_performance_ = trade_stats_dict["mean_all_performance_"]
-
-            # Check if sector already exists in the table
-            trade_stats = (
-                session.query(Sector_Trade_Archive)
-                .filter(Sector_Trade_Archive.id == sector)
+        try:
+            # Check if data already exists in the table
+            existing_data = (
+                session.query(Sector_Trend)
+                .filter_by(id=data["sector"])
                 .first()
             )
 
-            if trade_stats is None:
-                # Add new row to table
-                trade_stats = Sector_Trade_Archive(
-                    id=sector,
-                    amount_2_years=amount_2_years,
-                    positive_percent_y2=positive_percent_y2,
-                    mean_performance_y2=mean_performance_y2,
-                    amount_5_years=amount_5_years,
-                    positive_percent_y5=positive_percent_y5,
-                    amount_all_years=amount_all_years,
-                    positive_all_percent=positive_all_percent,
-                    mean_all_performance_=mean_all_performance_,
+            if existing_data:
+                # Update existing data if it exists
+                existing_data.trend = data["trend"]
+                existing_data.profile_std = data["profile_std"]
+                existing_data.trend_profile = data["trend_profile"]
+                existing_data.std_profile = data["std_profile"]
+                existing_data.side = data["side"]
+                existing_data.stats = data["stats"]
+                existing_data.updatedAt = datetime.utcnow().strftime(
+                    "%Y-%m-%d %H:%M:%S"
                 )
-                session.add(trade_stats)
+                session.commit()
+                return "Data updated"
             else:
-                # Update existing row in table
-                trade_stats.amount_2_years = amount_2_years
-                trade_stats.positive_percent_y2 = positive_percent_y2
-                trade_stats.mean_performance_y2 = mean_performance_y2
-                trade_stats.amount_5_years = amount_5_years
-                trade_stats.positive_percent_y5 = positive_percent_y5
-                trade_stats.amount_all_years = amount_all_years
-                trade_stats.positive_all_percent = positive_all_percent
-                trade_stats.mean_all_performance_ = mean_all_performance_
+                # Add new data if it doesn't exist
+                new_data = Sector_Trend(
+                    id=data["sector"],
+                    trend=data["trend"],
+                    profile_std=data["profile_std"],
+                    trend_profile=data["trend_profile"],
+                    std_profile=data["std_profile"],
+                    side=data["side"],
+                    stats=data["stats"],
+                    updatedAt=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                )
+                session.add(new_data)
+                session.commit()
+                return "Data added"
 
-            session.commit()
+        except IntegrityError as e:
+            session.rollback()
+            return f"IntegrityError: {str(e)}"
+        except Exception as e:
+            session.rollback()
+            return f"Error: {str(e)}"
+        finally:
+            session.close
+
+    def add_sector_trade_stats(trade_stats_dict: dict):
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        sector = trade_stats_dict["sector"]
+        amount_2_years = trade_stats_dict["amount_2_years"]
+        positive_percent_y2 = trade_stats_dict["positive_percent_y2"]
+        mean_performance_y2 = trade_stats_dict["mean_performance_y2"]
+        amount_5_years = trade_stats_dict["amount_5_years"]
+        positive_percent_y5 = trade_stats_dict["positive_percent_y5"]
+        amount_all_years = trade_stats_dict["amount_all_years"]
+        positive_all_percent = trade_stats_dict["positive_all_percent"]
+        mean_all_performance_ = trade_stats_dict["mean_all_performance_"]
+
+        # Check if sector already exists in the table
+        trade_stats = (
+            session.query(Sector_Trade_Archive)
+            .filter(Sector_Trade_Archive.id == sector)
+            .first()
+        )
+
+        if trade_stats is None:
+            # Add new row to table
+            trade_stats = Sector_Trade_Archive(
+                id=sector,
+                amount_2_years=amount_2_years,
+                positive_percent_y2=positive_percent_y2,
+                mean_performance_y2=mean_performance_y2,
+                amount_5_years=amount_5_years,
+                positive_percent_y5=positive_percent_y5,
+                amount_all_years=amount_all_years,
+                positive_all_percent=positive_all_percent,
+                mean_all_performance_=mean_all_performance_,
+            )
+            session.add(trade_stats)
+        else:
+            # Update existing row in table
+            trade_stats.amount_2_years = amount_2_years
+            trade_stats.positive_percent_y2 = positive_percent_y2
+            trade_stats.mean_performance_y2 = mean_performance_y2
+            trade_stats.amount_5_years = amount_5_years
+            trade_stats.positive_percent_y5 = positive_percent_y5
+            trade_stats.amount_all_years = amount_all_years
+            trade_stats.positive_all_percent = positive_all_percent
+            trade_stats.mean_all_performance_ = mean_all_performance_
+
+        session.commit()
 
     def add_trend_timeserie(df):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=True)
-            Session = sessionmaker(bind=engine)
-            session = Session()
-            for row in df.itertuples():
-                try:
-                    new_data = Trend_Analysis_Time_series(
-                        date=row.Index,
-                        name=row.name,
-                        trend=row.trend,
-                        duration=row.duration,
-                        profile=row.profile,
-                        profile_std=row.profile_std,
-                        volatility=row.volatility,
-                        current_yield=row.current_yield,
-                        max_drawdown=row.max_drawdown,
-                        exp_return=row.exp_return,
-                        max_yield=row.max_yield,
-                        longs=row.longs,
-                        shorts=row.shorts,
-                        total=row.total,
-                    )
 
-                    session.add(new_data)
-                    session.commit()
-                except IntegrityError:
-                    session.rollback()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        for row in df.itertuples():
+            try:
+                new_data = Trend_Analysis_Time_series(
+                    date=row.Index,
+                    name=row.name,
+                    trend=row.trend,
+                    duration=row.duration,
+                    profile=row.profile,
+                    profile_std=row.profile_std,
+                    volatility=row.volatility,
+                    current_yield=row.current_yield,
+                    max_drawdown=row.max_drawdown,
+                    exp_return=row.exp_return,
+                    max_yield=row.max_yield,
+                    longs=row.longs,
+                    shorts=row.shorts,
+                    total=row.total,
+                )
 
-            session.close()
+                session.add(new_data)
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+
+        session.close()
 
     def add_log_to_logbook(text: str = ""):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False  # , check_same_thread=True
-            )
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            log = Logbook(message=str(text))
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            session.add(log)
-            session.commit()
-            session.close()
+        log = Logbook(message=str(text))
+
+        session.add(log)
+        session.commit()
+        session.close()
 
     def add_portfolio_to_archive(id_portfolio: str):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False
-            )  # , check_same_thread=True
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            archive = PortfolioArchive(portfolio_id=id_portfolio)
-            session.add(archive)
-            session.commit()
-            session.close()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        archive = PortfolioArchive(portfolio_id=id_portfolio)
+        session.add(archive)
+        session.commit()
+        session.close()
 
     def add_user_trade(user_id: str, user_ticker):
 
@@ -1652,67 +1611,59 @@ class database_querys:
         return df
 
     def add_or_update_archive_of_trend_archive(ticker_id: str):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False
-            )  # , check_same_thread=True
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            query_string: str
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            x = (
-                session.query(TrendArchiveArchive)
-                .filter(TrendArchiveArchive.archive_id == ticker_id)
-                .first()
+        query_string: str
+
+        x = (
+            session.query(TrendArchiveArchive)
+            .filter(TrendArchiveArchive.archive_id == ticker_id)
+            .first()
+        )
+
+        if x == None:
+
+            today = date.today()
+
+            archive = TrendArchiveArchive(
+                archive_id=str(ticker_id), updated_at=datetime.now()
             )
 
-            if x == None:
+            session.add(archive)
+            session.commit()
+            session.close()
 
-                today = date.today()
+            return
+        else:
 
-                archive = TrendArchiveArchive(
-                    archive_id=str(ticker_id), updated_at=datetime.now()
-                )
+            x.updated_at = datetime.now()
+            session.commit()
+            session.close()
 
-                session.add(archive)
-                session.commit()
-                session.close()
+            session.close()
 
-                return
-            else:
-
-                x.updated_at = datetime.now()
-                session.commit()
-                session.close()
-
-                session.close()
-
-                return
+            return
 
     def get_archive_of_trend_archive():
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False
-            )  # , check_same_thread=True
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            query_string = session.query(
-                TrendArchiveArchive
-            ).statement.compile()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            df = pd.read_sql_query(query_string, session.bind)
+        query_string = session.query(TrendArchiveArchive).statement.compile()
 
-            df = df.sort_values("updated_at", ascending=True)
+        df = pd.read_sql_query(query_string, session.bind)
 
-            data = df.archive_id.to_list()
+        df = df.sort_values("updated_at", ascending=True)
 
-            return data
+        data = df.archive_id.to_list()
+
+        return data
 
     def delete_user_trade(user_id: str, user_ticker):
 
@@ -1744,88 +1695,82 @@ class database_querys:
         session.close()
 
     def get_portfolio(id_: str = "", strategy: str = ""):
-        
-        
 
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False  # , check_same_thread=True
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = (
+            session.query(Portfolio)
+            .filter(
+                Portfolio.portfolio_id == id_,
             )
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            .first()
+        )
 
-            x = (
+        query_string: str
+
+        if id_:
+
+            query_string = (
                 session.query(Portfolio)
                 .filter(
                     Portfolio.portfolio_id == id_,
                 )
-                .first()
+                .statement.compile()
             )
 
-            query_string: str
+        elif strategy:
 
-            if id_:
+            query_string = (
+                session.query(Portfolio)
+                .filter(Portfolio.portfolio_strategy == strategy)
+                .statement.compile()
+            )
 
-                query_string = (
-                    session.query(Portfolio)
-                    .filter(
-                        Portfolio.portfolio_id == id_,
-                    )
-                    .statement.compile()
+        elif id_ and strategy:
+            query_string = (
+                session.query(Portfolio)
+                .filter(
+                    Portfolio.portfolio_strategy == strategy,
+                    Portfolio.portfolio_id == id_,
                 )
+                .statement.compile()
+            )
 
-            elif strategy:
+        else:
 
-                query_string = (
-                    session.query(Portfolio)
-                    .filter(Portfolio.portfolio_strategy == strategy)
-                    .statement.compile()
-                )
+            query_string = session.query(Portfolio).statement.compile()
 
-            elif id_ and strategy:
-                query_string = (
-                    session.query(Portfolio)
-                    .filter(
-                        Portfolio.portfolio_strategy == strategy,
-                        Portfolio.portfolio_id == id_,
-                    )
-                    .statement.compile()
-                )
+        df = pd.read_sql_query(query_string, session.bind)
 
-            else:
+        # close session
+        session.close()
 
-                query_string = session.query(Portfolio).statement.compile()
-
-            df = pd.read_sql_query(query_string, session.bind)
-
-            # close session
-            session.close()
-
-            # return frame.
-            return df
+        # return frame.
+        return df
 
     def get_portfolio_archive():
 
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(db_path, echo=False)
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            query_string = session.query(
-                PortfolioArchive
-            ).statement.compile()  # .all()
+        query_string = session.query(
+            PortfolioArchive
+        ).statement.compile()  # .all()
 
-            df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(query_string, session.bind)
 
-            session.close()
+        session.close()
 
-            data = df[df.active == True]
+        data = df[df.active == True]
 
-            data = data.id.to_list()
+        data = data.id.to_list()
 
-            return data
+        return data
 
     def update_portfolio(model):
 
@@ -1902,301 +1847,285 @@ class database_querys:
 
     def delete_portfolio_archive(id_portfolio: str):
 
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False
-            )  # , check_same_thread=True
-            Session = sessionmaker(bind=engine)
-            session = Session()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            x = (
-                session.query(Portfolio)
-                .filter(
-                    PortfolioArchive.portfolio_id == id_portfolio,
-                )
-                .first()
+        x = (
+            session.query(Portfolio)
+            .filter(
+                PortfolioArchive.portfolio_id == id_portfolio,
             )
+            .first()
+        )
 
-            # check if ticker exsists
-            if x == None:
+        # check if ticker exsists
+        if x == None:
 
-                return False
+            return False
 
-            # else work with it.
-            else:
+        # else work with it.
+        else:
 
-                session.delete(x)
-                session.commit()
+            session.delete(x)
+            session.commit()
 
-            session.close()
+        session.close()
 
     def delete_portfolio(portfio_id: str = ""):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False
-            )  # , check_same_thread=True
-            Session = sessionmaker(bind=engine)
-            session = Session()
 
-            x = (
-                session.query(Portfolio)
-                .filter(
-                    Portfolio.portfolio_id == portfio_id,
-                )
-                .first()
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = (
+            session.query(Portfolio)
+            .filter(
+                Portfolio.portfolio_id == portfio_id,
             )
+            .first()
+        )
 
-            # check if ticker exsists
-            if x == None:
+        # check if ticker exsists
+        if x == None:
 
-                return False
+            return False
 
-            # else work with it.
-            else:
+        # else work with it.
+        else:
 
-                session.delete(x)
-                session.commit()
+            session.delete(x)
+            session.commit()
 
-            session.close()
+        session.close()
 
     def update_analyses_trend_kamal(model):
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False  # , check_same_thread=True
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = (
+            session.query(Analyses_trend_kamal)
+            .filter(
+                Analyses_trend_kamal.id == model.ticker,
+                Analyses_trend_kamal.periode == model.periode,
             )
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            .first()
+        )
 
-            x = (
-                session.query(Analyses_trend_kamal)
-                .filter(
-                    Analyses_trend_kamal.id == model.ticker,
-                    Analyses_trend_kamal.periode == model.periode,
-                )
-                .first()
+        now = datetime.now()  # current date and time
+
+        date_time = now.strftime("%d-%m-%Y, %H:%M:%S")
+
+        # check if ticker exsists
+        if x == None:
+
+            Analyses = Analyses_trend_kamal(
+                # id = 1,
+                id=model.ticker,
+                periode=model.periode,
+                trend=model.trend,
+                duration=model.duration,
+                profile=model.profile,
+                profile_std=model.profile_std,
+                volatility=model.volatility,
+                current_yield=model.current_yield,
+                max_drawdown=model.max_drawdown,
+                exp_return=model.exp_return,
+                max_yield=float(model.max_yield),
+                last_update=now,
             )
 
-            now = datetime.now()  # current date and time
-
-            date_time = now.strftime("%d-%m-%Y, %H:%M:%S")
-
-            # check if ticker exsists
-            if x == None:
-
-                Analyses = Analyses_trend_kamal(
-                    # id = 1,
-                    id=model.ticker,
-                    periode=model.periode,
-                    trend=model.trend,
-                    duration=model.duration,
-                    profile=model.profile,
-                    profile_std=model.profile_std,
-                    volatility=model.volatility,
-                    current_yield=model.current_yield,
-                    max_drawdown=model.max_drawdown,
-                    exp_return=model.exp_return,
-                    max_yield=float(model.max_yield),
-                    last_update=now,
-                )
-
-                session.add(Analyses)
-                #   session.flush()
-                session.commit()
-                session.close()
-
-            # else work with it.
-            else:
-
-                if x.trend != model.trend:
-                    x.trend = model.trend
-
-                if x.duration != model.duration:
-
-                    x.duration = model.duration
-
-                if x.profile != model.profile:
-
-                    x.profile = model.profile
-
-                if x.profile_std != model.profile_std:
-
-                    x.profile_std = model.profile_std
-
-                if x.volatility != model.volatility:
-
-                    x.volatility = model.volatility
-
-                if x.current_yield != model.current_yield:
-
-                    x.current_yield = model.current_yield
-
-                if x.max_drawdown != model.max_drawdown:
-
-                    x.max_drawdown = model.max_drawdown
-
-                if x.exp_return != model.exp_return:
-
-                    x.exp_return = model.exp_return
-
-                if x.max_yield != model.max_yield:
-
-                    x.max_yield = model.max_yield
-
-                x.last_update = now
-
-                session.commit()
-                session.close()
-
+            session.add(Analyses)
+            #   session.flush()
+            session.commit()
             session.close()
+
+        # else work with it.
+        else:
+
+            if x.trend != model.trend:
+                x.trend = model.trend
+
+            if x.duration != model.duration:
+
+                x.duration = model.duration
+
+            if x.profile != model.profile:
+
+                x.profile = model.profile
+
+            if x.profile_std != model.profile_std:
+
+                x.profile_std = model.profile_std
+
+            if x.volatility != model.volatility:
+
+                x.volatility = model.volatility
+
+            if x.current_yield != model.current_yield:
+
+                x.current_yield = model.current_yield
+
+            if x.max_drawdown != model.max_drawdown:
+
+                x.max_drawdown = model.max_drawdown
+
+            if x.exp_return != model.exp_return:
+
+                x.exp_return = model.exp_return
+
+            if x.max_yield != model.max_yield:
+
+                x.max_yield = model.max_yield
+
+            x.last_update = now
+
+            session.commit()
+            session.close()
+
+        session.close()
         return
 
     def update_analyses_trend_kamal_archive(
         model, check_if_exsits: bool = False
     ):
 
-        
+        add_report = {}
 
-        
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-            add_report = {}
-
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False  # , check_same_thread=True
+        x = (
+            session.query(Analyses_archive_kamal)
+            .filter(
+                Analyses_archive_kamal.ticker == model.ticker,
+                Analyses_archive_kamal.year_start == model.year_start,
+                Analyses_archive_kamal.month_start == model.month_start,
+                Analyses_archive_kamal.date_start == model.date_start,
+                Analyses_archive_kamal.periode == model.periode,
             )
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            .first()
+        )
 
-            x = (
-                session.query(Analyses_archive_kamal)
-                .filter(
-                    Analyses_archive_kamal.ticker == model.ticker,
-                    Analyses_archive_kamal.year_start == model.year_start,
-                    Analyses_archive_kamal.month_start == model.month_start,
-                    Analyses_archive_kamal.date_start == model.date_start,
-                    Analyses_archive_kamal.periode == model.periode,
-                )
-                .first()
+        # check if ticker exsists
+        if x == None:
+
+            add_report["status"] = "NEW"
+
+            Analyses = Analyses_archive_kamal(
+                # id = 1,
+                # id = model.ticker,
+                ticker=model.ticker,
+                start_date=model.start_date,
+                end_date=model.end_date,
+                year_start=model.year_start,
+                month_start=model.month_start,
+                date_start=model.date_start,
+                weeknr_start=model.weeknr_start,
+                year_end=model.year_end,
+                month_end=model.month_end,
+                date_end=model.date_end,
+                weeknr_end=model.weeknr_end,
+                periode=model.periode,
+                trend=model.trend,
+                duration=model.duration,
+                profile=model.profile,
+                profile_std=model.profile_std,
+                volatility=model.volatility,
+                current_yield=model.current_yield,
+                max_drawdown=model.max_drawdown,
+                exp_return=model.exp_return,
+                max_yield=float(model.max_yield),
             )
 
-            # check if ticker exsists
-            if x == None:
-
-                add_report["status"] = "NEW"
-
-                Analyses = Analyses_archive_kamal(
-                    # id = 1,
-                    # id = model.ticker,
-                    ticker=model.ticker,
-                    start_date=model.start_date,
-                    end_date=model.end_date,
-                    year_start=model.year_start,
-                    month_start=model.month_start,
-                    date_start=model.date_start,
-                    weeknr_start=model.weeknr_start,
-                    year_end=model.year_end,
-                    month_end=model.month_end,
-                    date_end=model.date_end,
-                    weeknr_end=model.weeknr_end,
-                    periode=model.periode,
-                    trend=model.trend,
-                    duration=model.duration,
-                    profile=model.profile,
-                    profile_std=model.profile_std,
-                    volatility=model.volatility,
-                    current_yield=model.current_yield,
-                    max_drawdown=model.max_drawdown,
-                    exp_return=model.exp_return,
-                    max_yield=float(model.max_yield),
-                )
-
-                session.add(Analyses)
-                #   session.flush()
-                session.commit()
-                session.close()
-
-            # else work with it.
-            else:
-
-                add_report["status"] = "EXISTS"
-
-                if x.end_date != model.end_date:
-                    add_report["status"] = "MODIFIED"
-                    x.end_date = model.end_date
-
-                if x.start_date != model.start_date:
-                    add_report["status"] = "MODIFIED"
-                    x.start_date = model.start_date
-
-                if x.year_end != model.year_end:
-                    add_report["status"] = "MODIFIED"
-                    x.year_end = int(model.year_end)
-
-                if x.month_end != model.month_end:
-                    add_report["status"] = "MODIFIED"
-                    x.month_end = int(model.month_end)
-
-                if x.date_end != model.date_end:
-                    add_report["status"] = "MODIFIED"
-
-                    x.date_end = int(model.date_end)
-
-                if x.trend != model.trend:
-                    add_report["status"] = "MODIFIED"
-                    x.trend = int(model.trend)
-
-                if x.duration != model.duration:
-                    add_report["status"] = "MODIFIED"
-
-                    x.duration = int(model.duration)
-
-                if x.profile != model.profile:
-                    add_report["status"] = "MODIFIED"
-
-                    x.profile = int(model.profile)
-
-                if x.profile_std != model.profile_std:
-                    add_report["status"] = "MODIFIED"
-
-                    x.profile_std = int(model.profile_std)
-
-                if x.volatility != model.volatility:
-                    add_report["status"] = "MODIFIED"
-
-                    x.volatility = model.volatility
-
-                if x.current_yield != model.current_yield:
-                    add_report["status"] = "MODIFIED"
-
-                    x.current_yield = model.current_yield
-
-                if x.max_drawdown != model.max_drawdown:
-                    add_report["status"] = "MODIFIED"
-
-                    x.max_drawdown = model.max_drawdown
-
-                if x.exp_return != model.exp_return:
-                    add_report["status"] = "MODIFIED"
-
-                    x.exp_return = model.exp_return
-
-                if x.max_yield != model.max_yield:
-                    add_report["status"] = "MODIFIED"
-
-                    x.max_yield = model.max_yield
-
-                session.commit()
-                session.close()
-
+            session.add(Analyses)
+            #   session.flush()
+            session.commit()
             session.close()
 
-            return add_report
+        # else work with it.
+        else:
+
+            add_report["status"] = "EXISTS"
+
+            if x.end_date != model.end_date:
+                add_report["status"] = "MODIFIED"
+                x.end_date = model.end_date
+
+            if x.start_date != model.start_date:
+                add_report["status"] = "MODIFIED"
+                x.start_date = model.start_date
+
+            if x.year_end != model.year_end:
+                add_report["status"] = "MODIFIED"
+                x.year_end = int(model.year_end)
+
+            if x.month_end != model.month_end:
+                add_report["status"] = "MODIFIED"
+                x.month_end = int(model.month_end)
+
+            if x.date_end != model.date_end:
+                add_report["status"] = "MODIFIED"
+
+                x.date_end = int(model.date_end)
+
+            if x.trend != model.trend:
+                add_report["status"] = "MODIFIED"
+                x.trend = int(model.trend)
+
+            if x.duration != model.duration:
+                add_report["status"] = "MODIFIED"
+
+                x.duration = int(model.duration)
+
+            if x.profile != model.profile:
+                add_report["status"] = "MODIFIED"
+
+                x.profile = int(model.profile)
+
+            if x.profile_std != model.profile_std:
+                add_report["status"] = "MODIFIED"
+
+                x.profile_std = int(model.profile_std)
+
+            if x.volatility != model.volatility:
+                add_report["status"] = "MODIFIED"
+
+                x.volatility = model.volatility
+
+            if x.current_yield != model.current_yield:
+                add_report["status"] = "MODIFIED"
+
+                x.current_yield = model.current_yield
+
+            if x.max_drawdown != model.max_drawdown:
+                add_report["status"] = "MODIFIED"
+
+                x.max_drawdown = model.max_drawdown
+
+            if x.exp_return != model.exp_return:
+                add_report["status"] = "MODIFIED"
+
+                x.exp_return = model.exp_return
+
+            if x.max_yield != model.max_yield:
+                add_report["status"] = "MODIFIED"
+
+                x.max_yield = model.max_yield
+
+            session.commit()
+            session.close()
+
+        session.close()
+
+        return add_report
 
     def update_analyses_trend_kamal_performance(model):
 
@@ -2391,41 +2320,38 @@ class database_querys:
             DESCRIPTION.
 
         """
-        
-        
-            db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-            engine = create_engine(
-                db_path, echo=False  # , check_same_thread=True
+
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=False)  # , check_same_thread=True
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        x = (
+            session.query(Analyses_archive_kamal)
+            .filter(
+                Analyses_archive_kamal.ticker == model.ticker,
+                Analyses_archive_kamal.year_start == model.year_start,
+                Analyses_archive_kamal.month_start == model.month_start,
+                Analyses_archive_kamal.date_start == model.date_start,
+                Analyses_archive_kamal.periode == model.periode,
             )
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            .first()
+        )
 
-            x = (
-                session.query(Analyses_archive_kamal)
-                .filter(
-                    Analyses_archive_kamal.ticker == model.ticker,
-                    Analyses_archive_kamal.year_start == model.year_start,
-                    Analyses_archive_kamal.month_start == model.month_start,
-                    Analyses_archive_kamal.date_start == model.date_start,
-                    Analyses_archive_kamal.periode == model.periode,
-                )
-                .first()
-            )
+        # check if ticker exsists
+        if x == None:
 
-            # check if ticker exsists
-            if x == None:
+            return False
 
-                return False
+        # else work with it.
+        else:
 
-            # else work with it.
-            else:
+            session.delete(x)
+            session.commit()
 
-                session.delete(x)
-                session.commit()
+        session.close()
 
-            session.close()
-
-            return True
+        return True
 
     def return_portoflolios():
         pass
