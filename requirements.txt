@@ -19,3 +19,6 @@ pandas-datareader
 yfinance
 yahooquery
 pytz
+psycopg2
+finnhub-python
+jwt
