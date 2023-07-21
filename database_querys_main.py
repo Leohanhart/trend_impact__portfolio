@@ -1404,8 +1404,6 @@ class database_querys:
                 }
             )
 
-        conn.close()
-
         return json.dumps(trade_stats)
 
     def get_sector_trends():
