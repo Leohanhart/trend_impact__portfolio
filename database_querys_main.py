@@ -104,15 +104,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = session.query(
-            Analyses_trend_kamal_performance
-        ).statement.compile()
-
-        try:
-            df = pd.read_sql_query(query_string, session.bind)
-        except Exception as e:
-            print("rerror")
-            print(e)
+        query = session.query(Analyses_trend_kamal_performance)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -584,12 +582,15 @@ class database_querys:
 
             return
 
-        query_string = (
-            session.query(PortfolioArchive)
-            .filter(PortfolioArchive.created <= cutoff_date)
-            .statement.compile()
+        query = session.query(PortfolioArchive).filter(
+            PortfolioArchive.created <= cutoff_date
         )
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         session.close()
 
@@ -628,7 +629,9 @@ class database_querys:
         query = session.query(Ticker).filter(and_(Ticker.active == True))
 
         df = pd.read_sql_query(
-            query.statement.compile(compile_kwargs={"literal_binds": True}),
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
             session.bind,
         )
 
@@ -850,15 +853,15 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = (
-            session.query(Analyses_trend_kamal)
-            .filter(
-                Analyses_trend_kamal.id == ticker,
-            )
-            .statement.compile()
+        query = session.query(Analyses_trend_kamal).filter(
+            Analyses_trend_kamal.id == ticker
         )
-
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -873,9 +876,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = session.query(Analyses_trend_kamal).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
+        query = session.query(Analyses_trend_kamal)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -907,16 +914,16 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = (
-            session.query(Analyses_archive_kamal)
-            .filter(
-                Analyses_archive_kamal.ticker == ticker,
-                Analyses_archive_kamal.periode == periode,
-            )
-            .statement.compile()
+        query = session.query(Analyses_archive_kamal).filter(
+            Analyses_archive_kamal.ticker == ticker,
+            Analyses_archive_kamal.periode == periode,
         )
-
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -931,17 +938,19 @@ class database_querys:
 
                 if periode == "D" or periode == "W":
 
-                    query_string = (
-                        session.query(Analyses_archive_kamal)
-                        .filter(
-                            Analyses_archive_kamal.ticker == ticker,
-                            Analyses_archive_kamal.periode == periode,
-                        )
-                        .statement.compile()
-                    )  # .all()
-                    # load dataframe with query
-
-                    df = pd.read_sql_query(query_string, session.bind)
+                    query = session.query(Analyses_archive_kamal).filter(
+                        Analyses_archive_kamal.ticker == ticker,
+                        Analyses_archive_kamal.periode == periode,
+                    )
+                    df = pd.read_sql_query(
+                        query.statement.compile(
+                            compile_kwargs={
+                                "literal_binds": True,
+                                "dialect": "postgresql",
+                            }
+                        ),
+                        session.bind,
+                    )
 
                     # close session
                     session.close()
@@ -951,20 +960,22 @@ class database_querys:
 
                 elif periode != None:
 
-                    # generate query
-                    query_string = (
-                        session.query(Analyses_archive_kamal)
-                        .filter(
-                            Analyses_archive_kamal.ticker == ticker,
-                            Analyses_archive_kamal.periode == "D",
-                        )
-                        .statement.compile()
-                    )  # .all()
-                    # load dataframe with query
+                    query = session.query(Analyses_archive_kamal).filter(
+                        Analyses_archive_kamal.ticker == ticker,
+                        Analyses_archive_kamal.periode == "D",
+                    )
 
-                    df = pd.read_sql_query(query_string, session.bind)
+                    # Load dataframe with query
+                    df = pd.read_sql_query(
+                        query.statement.compile(
+                            compile_kwargs={
+                                "literal_binds": True,
+                                "dialect": "postgresql",
+                            }
+                        ),
+                        session.bind,
+                    )
 
-                    # close session
                     session.close()
 
                     # return frame.
@@ -979,22 +990,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-        engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        print("BINRGO")
-        query_string = session.query(
-            Analyses_trend_kamal_performance
-        ).statement.compile()
-        print("HIIIIIII")
-        try:
-            df = pd.read_sql_query(query_string, session.bind)
-        except Exception as e:
-            print("rerror")
-            print(e)
-        print("HAAAAAAAAA")
+        query = session.query(Analyses_trend_kamal_performance)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
         # close session
         session.close()
 
@@ -1012,20 +1014,20 @@ class database_querys:
 
         if periode == "D" and ticker != "":
 
-            print(8.1)
-            query_string = (
-                session.query(Analyses_trend_kamal_performance)
-                .filter(
-                    Analyses_trend_kamal_performance.id == ticker,
-                    Analyses_trend_kamal_performance.periode == periode,
-                )
-                .statement.compile()
-            )  # .all()
-            # load dataframe with query
-            print(8.2)
-            df = pd.read_sql_query(query_string, session.bind)
+            query = session.query(Analyses_trend_kamal_performance).filter(
+                Analyses_trend_kamal_performance.id == ticker,
+                Analyses_trend_kamal_performance.periode == periode,
+            )
+            df = pd.read_sql_query(
+                query.statement.compile(
+                    compile_kwargs={
+                        "literal_binds": True,
+                        "dialect": "postgresql",
+                    }
+                ),
+                session.bind,
+            )
 
-            print(8.3)
             # close session
             session.close()
 
@@ -1033,37 +1035,40 @@ class database_querys:
             return df
 
         elif periode == "D" and ticker == "":
-            print(9.3)
 
             db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
             engine = create_engine(db_path, echo=False)
             Session = sessionmaker(bind=engine)
             session = Session()
 
-            query_string = session.query(
-                Analyses_trend_kamal_performance
-            ).statement.compile()  # .all()
-            # load dataframe with query
-            print(9.4)
-            df = pd.read_sql_query(query_string, session.bind)
-            print(9.5)
-            # close session
+            query = session.query(Analyses_trend_kamal_performance)
+            df = pd.read_sql_query(
+                query.statement.compile(
+                    compile_kwargs={
+                        "literal_binds": True,
+                        "dialect": "postgresql",
+                    }
+                ),
+                session.bind,
+            )
+
             session.close()
-            print(9.6)
+
             # return frame.
             return df
 
         elif periode != None:
 
-            print(10.1)
-            # generate query
-            query_string = session.query(
-                Analyses_trend_kamal_performance
-            ).statement.compile()  # .all()
-            # load dataframe with query
-            print(10.2)
-            df = pd.read_sql_query(query_string, session.bind)
-            print(10.3)
+            query = session.query(Analyses_trend_kamal_performance)
+            df = pd.read_sql_query(
+                query.statement.compile(
+                    compile_kwargs={
+                        "literal_binds": True,
+                        "dialect": "postgresql",
+                    }
+                ),
+                session.bind,
+            )
             # close session
             session.close()
 
@@ -1077,17 +1082,17 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = (
-            session.query(
-                Analyses_trend_kamal, Analyses_trend_kamal_performance
-            )
-            .filter(
-                Analyses_trend_kamal.id == Analyses_trend_kamal_performance.id
-            )
-            .statement.compile()
+        query = session.query(
+            Analyses_trend_kamal, Analyses_trend_kamal_performance
+        ).filter(
+            Analyses_trend_kamal.id == Analyses_trend_kamal_performance.id
         )
-
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -1102,13 +1107,16 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = (
-            session.query(Analyses_trend_kamal, Ticker)
-            .filter(Analyses_trend_kamal.id == Ticker.id)
-            .statement.compile()
+        query = session.query(Analyses_trend_kamal, Ticker).filter(
+            Analyses_trend_kamal.id == Ticker.id
         )
 
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -1180,19 +1188,18 @@ class database_querys:
         query_string: str
 
         if id_:
-
-            query_string = (
-                session.query(TradingPortfolio)
-                .filter(
-                    TradingPortfolio.portfolio_id == id_,
-                )
-                .statement.compile()
+            query = session.query(TradingPortfolio).filter(
+                TradingPortfolio.portfolio_id == id_
             )
+        else:
+            query = session.query(TradingPortfolio)
 
-        elif not id_:
-            query_string = session.query(TradingPortfolio).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -1308,9 +1315,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = session.query(Logbook).statement.compile()  # .all()
-
-        df = pd.read_sql_query(query_string, session.bind)
+        query = session.query(Logbook)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -1325,8 +1336,15 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query = f"SELECT * FROM trend_analyses_timeseries WHERE name='{name_of_timeserie}'"
-        df = pd.read_sql(query, con=engine)
+        query = session.query(Trend_Analysis_Time_series).filter(
+            Trend_Analysis_Time_series.name == name_of_timeserie
+        )
+        df = pd.read_sql(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         return df
 
@@ -1336,7 +1354,13 @@ class database_querys:
         engine = create_engine(db_path, echo=False)
         conn = engine.connect()
 
-        query = "SELECT * FROM sector_trades_archive"
+        query = conn.query(Sector_Trade_Archive)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            conn,
+        )
         result = conn.execute(query)
 
         trade_stats = []
@@ -1593,13 +1617,15 @@ class database_querys:
 
         query_string: str
 
-        query_string = (
-            session.query(User_trades)
-            .filter(User_trades.user_id == user_id)
-            .statement.compile()
+        query = session.query(User_trades).filter(
+            User_trades.user_id == user_id
         )
-
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -1652,9 +1678,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = session.query(TrendArchiveArchive).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
+        query = session.query(TrendArchiveArchive)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         df = df.sort_values("updated_at", ascending=True)
 
@@ -1708,39 +1738,28 @@ class database_querys:
 
         query_string: str
 
-        if id_:
-
-            query_string = (
-                session.query(Portfolio)
-                .filter(
-                    Portfolio.portfolio_id == id_,
-                )
-                .statement.compile()
+        if id_ is not None:
+            query = session.query(Portfolio).filter(
+                Portfolio.portfolio_id == id_
             )
-
-        elif strategy:
-
-            query_string = (
-                session.query(Portfolio)
-                .filter(Portfolio.portfolio_strategy == strategy)
-                .statement.compile()
+        elif strategy is not None:
+            query = session.query(Portfolio).filter(
+                Portfolio.portfolio_strategy == strategy
             )
-
-        elif id_ and strategy:
-            query_string = (
-                session.query(Portfolio)
-                .filter(
-                    Portfolio.portfolio_strategy == strategy,
-                    Portfolio.portfolio_id == id_,
-                )
-                .statement.compile()
+        elif id_ is not None and strategy is not None:
+            query = session.query(Portfolio).filter(
+                Portfolio.portfolio_strategy == strategy,
+                Portfolio.portfolio_id == id_,
             )
-
         else:
+            query = session.query(Portfolio)
 
-            query_string = session.query(Portfolio).statement.compile()
-
-        df = pd.read_sql_query(query_string, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         # close session
         session.close()
@@ -1755,11 +1774,13 @@ class database_querys:
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        query_string = session.query(
-            PortfolioArchive
-        ).statement.compile()  # .all()
-
-        df = pd.read_sql_query(query_string, session.bind)
+        query = session.query(PortfolioArchive)
+        df = pd.read_sql_query(
+            query.statement.compile(
+                compile_kwargs={"literal_binds": True, "dialect": "postgresql"}
+            ),
+            session.bind,
+        )
 
         session.close()
 
@@ -2603,7 +2624,11 @@ if __name__ == "__main__":
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
         #### test
-        x = database_querys.get_all_active_tickers()
+        print("test get time series")
+        x = database_querys.get_trend_timeseries_data("ALL")
+
+        print("test get trade sector stats")
+        x = database_querys.get_sector_trade_stats()
 
         print(x)
         print("END")
