@@ -33,7 +33,6 @@ from collections import ChainMap
 import uuid
 
 pd.options.mode.chained_assignment = None
-multiprocessing.set_start_method("spawn")
 
 # ignore error
 np.seterr(divide="ignore", invalid="ignore")
