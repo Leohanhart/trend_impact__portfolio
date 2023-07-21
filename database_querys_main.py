@@ -628,7 +628,11 @@ class database_querys:
 
         query = session.query(Ticker).filter(and_(Ticker.active == True))
 
-        df = pd.read_sql_query(query.statement, session.bind)
+        df = pd.read_sql_query(
+            query.statement.compile(compile_kwargs={"literal_binds": True}),
+            session.bind,
+        )
+
         session.close()
 
         data = df[df.active == True]
