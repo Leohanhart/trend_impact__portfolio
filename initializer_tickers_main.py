@@ -96,87 +96,91 @@ class InitializeTickers:
         db_connection = database_connection.get_db_connection()
         with db_connection as session:
             for ticker in tickers:
-
-                sleep(1)
-
-                data = finnhub_client.company_profile2(symbol=ticker)
-
-                stocks_object = power_stock_object.power_stock_object(
-                    stock_ticker=ticker
-                )
-
-                if data == {} or not data:
-
-                    if stocks_object.stock_data.empty:
-                        # Get the ticker with id "AAPL" from the database
-                        ticker_aapl = (
-                            session.query(Ticker).filter_by(id=ticker).first()
-                        )
-
-                        # Check if the ticker exists and update its active status
-                        if ticker_aapl:
-
-                            ticker_aapl.active = False  # Set active to False for the specified ticker
-
-                            # Commit the changes to the database
-                            session.commit()
-
-                            database_querys_main.database_querys.delete_trend_kamal()
-
-                    else:
-                        database_querys_main.database_querys.add_log_to_logbook(
-                            f"MaketData API mallfunctioned on ticker {ticker}"
-                        )
-
-                print(data)
-                if "shareOutstanding" not in data.keys():
-                    # Check if a row with the matching index_column exists
-                    existing_row = (
-                        session.query(MarketData)
-                        .filter_by(index_column=ticker)
-                        .first()
-                    )
-
-                    if existing_row:
-                        session.delete(existing_row)
                 try:
-                    market_cap = data["shareOutstanding"]
-                except:
-                    continue
-                try:
-                    real_market_shares_out = round(market_cap * 1000000, 0)
-                    real_market_cap = (
-                        stocks_object.stock_data.Close.tail(1).mean().round()
-                        * real_market_shares_out
+                    sleep(1)
+
+                    data = finnhub_client.company_profile2(symbol=ticker)
+
+                    stocks_object = power_stock_object.power_stock_object(
+                        stock_ticker=ticker
                     )
 
-                    average_volume = (
-                        stocks_object.stock_data.Volume.tail(10).mean()
-                        * stocks_object.stock_data.Close.tail(1).mean()
-                    )
+                    if data == {} or not data:
 
-                    # Check if a row with the matching index_column exists
-                    existing_row = (
-                        session.query(MarketData)
-                        .filter_by(index_column=ticker)
-                        .first()
-                    )
+                        if stocks_object.stock_data.empty:
+                            # Get the ticker with id "AAPL" from the database
+                            ticker_aapl = (
+                                session.query(Ticker)
+                                .filter_by(id=ticker)
+                                .first()
+                            )
 
-                    if existing_row:
-                        # Row exists, update its data
-                        existing_row.regularMarketVolume = round(
-                            real_market_cap
+                            # Check if the ticker exists and update its active status
+                            if ticker_aapl:
+
+                                ticker_aapl.active = False  # Set active to False for the specified ticker
+
+                                # Commit the changes to the database
+                                session.commit()
+
+                                database_querys_main.database_querys.delete_trend_kamal()
+
+                        else:
+                            database_querys_main.database_querys.add_log_to_logbook(
+                                f"MaketData API mallfunctioned on ticker {ticker}"
+                            )
+
+                    print(data)
+                    if "shareOutstanding" not in data.keys():
+                        # Check if a row with the matching index_column exists
+                        existing_row = (
+                            session.query(MarketData)
+                            .filter_by(index_column=ticker)
+                            .first()
                         )
-                        existing_row.marketCap = round(average_volume)
 
-                    else:
-                        # Row doesn't exist, create a new one
-                        new_market_data = MarketData(
-                            index_column=ticker,
-                            regularMarketVolume=round(real_market_cap),
-                            marketCap=round(average_volume),
+                        if existing_row:
+                            session.delete(existing_row)
+                    try:
+                        market_cap = data["shareOutstanding"]
+                    except:
+                        continue
+
+                        real_market_shares_out = round(market_cap * 1000000, 0)
+                        real_market_cap = (
+                            stocks_object.stock_data.Close.tail(1)
+                            .mean()
+                            .round()
+                            * real_market_shares_out
                         )
-                        session.add(new_market_data)
+
+                        average_volume = (
+                            stocks_object.stock_data.Volume.tail(10).mean()
+                            * stocks_object.stock_data.Close.tail(1).mean()
+                        )
+
+                        # Check if a row with the matching index_column exists
+                        existing_row = (
+                            session.query(MarketData)
+                            .filter_by(index_column=ticker)
+                            .first()
+                        )
+
+                        if existing_row:
+                            # Row exists, update its data
+                            existing_row.regularMarketVolume = round(
+                                real_market_cap
+                            )
+                            existing_row.marketCap = round(average_volume)
+
+                        else:
+                            # Row doesn't exist, create a new one
+                            new_market_data = MarketData(
+                                index_column=ticker,
+                                regularMarketVolume=round(real_market_cap),
+                                marketCap=round(average_volume),
+                            )
+                            session.add(new_market_data)
                 except:
                     continue
 
