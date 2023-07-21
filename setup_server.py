@@ -103,19 +103,31 @@ def initialize_server():
     check_connection()
     if not check_if_tables_exsist():
         # init db
+        logger.info("Starting full initalization")
+        logger.info("Starting initalizing DB")
         initializer_db.initialization()
+
+        logger.info("Setting up basic users.")
+        # setup account
+        setup_users()
 
         database_querys_main.database_querys.add_log_to_logbook(
             "Server DB initalized"
         )
+
+        logger.info("Starting initalizing tickers")
         # init tickers
         InitializeTickers.initialize_all_tickers()
+
+        #
+        logger.info("Starting updating tickers")
+
+        # init tickers
+        InitializeTickers.initialize_all_market_data()
 
         database_querys_main.database_querys.add_log_to_logbook(
             "Tickers initalized"
         )
-        # setup account
-        setup_users()
 
 
 if __name__ == "__main__":
