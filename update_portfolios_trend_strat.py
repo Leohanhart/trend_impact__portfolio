@@ -3000,6 +3000,9 @@ class kko_portfolio_update_manager:
         status = database_querys.database_querys.add_list_portfolio_strategys(
             "BASIC_85PCT_BEST"
         )
+        database_querys.database_querys.add_log_to_logbook(
+            "Creating list : Buzzy with BASIC_85"
+        )
         # if list is just created,
         if status == 200:
             for ticker in tickers_selected:
@@ -3025,7 +3028,10 @@ class kko_portfolio_update_manager:
         tickers_selected = selection.selected_tickers
 
         status = database_querys.database_querys.add_list_portfolio_strategys(
-            "WINRATE_OVER_85PCT"
+            "WINRATE_OVER_95PCT"
+        )
+        database_querys.database_querys.add_log_to_logbook(
+            "Creating list : Buzzy with WINTRATE_OVER95"
         )
         # if list is just created,
         if status == 200:
@@ -3061,6 +3067,9 @@ class kko_portfolio_update_manager:
         status = database_querys.database_querys.add_list_portfolio_strategys(
             "MIDCAP_AND_LARGECAP"
         )
+        database_querys.database_querys.add_log_to_logbook(
+            "Creating list : Buzzy with MID_AND_LARGE_CAP"
+        )
         # if list is just created,
         if status == 200:
             for ticker in tickers_selected:
@@ -3092,6 +3101,9 @@ class kko_portfolio_update_manager:
         # select mid and small caps.
         status = database_querys.database_querys.add_list_portfolio_strategys(
             "HIGH_LIQUID"
+        )
+        database_querys.database_querys.add_log_to_logbook(
+            "Creating list : Buzzy with higH liquid"
         )
         # if list is just created,
         if status == 200:
