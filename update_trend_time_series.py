@@ -987,6 +987,8 @@ class extent_trend_analsyes:
 
         df = df.round(2)
 
+        df = df.fillna(0)
+
         self.drop_columns(
             df=df,
             columns_to_drop=[
