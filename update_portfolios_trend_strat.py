@@ -1437,6 +1437,9 @@ class kko_portfolio_update_manager:
         None.
 
         """
+        database_querys.database_querys.add_log_to_logbook(
+            "Iniatlizing protfolio update"
+        )
         # create list for threads
         self.procs = []
 
@@ -1615,6 +1618,9 @@ class kko_portfolio_update_manager:
 
         """
 
+        database_querys.database_querys.add_log_to_logbook(
+            "Booted portfolio update system"
+        )
         delete_old_portfolios: bool = False
 
         min_amount_tickers: int = 5
@@ -1632,7 +1638,9 @@ class kko_portfolio_update_manager:
         old_portfolios = []
 
         # delete old portfolios.
-
+        database_querys.database_querys.add_log_to_logbook(
+            "removing old portfolios"
+        )
         portfolio_ids = (
             database_querys.database_querys.get_expired_portfolio_archives(31)
         )
@@ -1734,12 +1742,21 @@ class kko_portfolio_update_manager:
 
     def start_multi_thread(self, name_list_ticker):
 
+        database_querys.database_querys.add_log_to_logbook(
+            f"Generating portfolios for {name_list_ticker}"
+        )
         tickers_list_name = name_list_ticker
-
+        database_querys.database_querys.add_log_to_logbook(
+            f"Generating data for {name_list_ticker}"
+        )
         data_list_ = (
             database_querys.database_querys.return_list_portfolio_strategys(
                 name_list=tickers_list_name
             )
+        )
+
+        database_querys.database_querys.add_log_to_logbook(
+            f"initalized portfolios for {name_list_ticker}"
         )
 
         # Parse the string into a list of dictionaries
