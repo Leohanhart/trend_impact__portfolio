@@ -33,6 +33,7 @@ from contextlib import contextmanager
 import constants
 import json
 from core_utils.database_tables.tabels import User, UserActivity
+from jwt import encode
 
 app = FastAPI()
 
