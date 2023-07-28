@@ -139,19 +139,22 @@ class update_data:
         # update_stats_trend_analyses.update_kaufman_support.update_all_tickers()
 
         database_querys.database_querys.add_log_to_logbook(
-            "update-cycle: Update update anlyses"
+            "update-cycle: Update trend anlyses"
         )
 
         # update archive
         update_stats_trend_analyses.update_kaufman_support.update_all_analyse_multi()
 
         database_querys.database_querys.add_log_to_logbook(
-            "update-cycle: Update analyses"
+            "update-cycle: Update timeserie analyses analyses"
         )
 
         # refresh timeseries.
         timeseries.update_trend_timeseries.update()
 
+        database_querys.database_querys.add_log_to_logbook(
+            f"Generating profiles for sector"
+        )
         # refresh timeserie stats.
         sector_extended_analyses = timeseries.extent_trend_analsyes()
 
@@ -160,9 +163,17 @@ class update_data:
         )
 
         # update trading portfolio
+
+        database_querys.database_querys.add_log_to_logbook(
+            "Refreshing trading portfoios"
+        )
         portfolio_synch.update_trading_portfolios.startup_update()
 
         database_querys.database_querys.update_last_update()
+
+        database_querys.database_querys.add_log_to_logbook(
+            "Initalizing ticker"
+        )
 
         InitializeTickers.initialize_all_market_data()
 
