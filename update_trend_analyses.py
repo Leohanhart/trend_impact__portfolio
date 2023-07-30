@@ -761,8 +761,8 @@ class update_kaufman_support(object):
 
             # Check if it's 17:00:00
             if (
-                current_time.hour == 17
-                and current_time.minute == 55
+                current_time.hour == 18
+                and current_time.minute == 12
                 and current_time.second == 0
             ):
                 break
