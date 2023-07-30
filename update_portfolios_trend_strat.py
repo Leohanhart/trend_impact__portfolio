@@ -1651,8 +1651,12 @@ class kko_portfolio_update_manager:
             "Generating own lists"
         )
         # create a standard list
-        self.create_basic_list()
-
+        try:
+            self.create_basic_list()
+        except Exception as e:
+            database_querys.database_querys.add_log_to_logbook(
+                f"Error in Creating lists (multi portfolio) {e}"
+            )
         # get tickers.
         self.threads = []
 
