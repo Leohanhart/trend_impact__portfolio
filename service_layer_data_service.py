@@ -265,7 +265,7 @@ class return_trend_analyses(object):
 
         return json_data
 
-    def get_trend_analyses(name: str = "ALL"):
+    def get_trend_analyses_sector(name: str = "ALL"):
 
         items = [
             "ALL",
