@@ -291,6 +291,33 @@ class return_trend_analyses(object):
 
         return data
 
+    def get_trend_timeseries_cached(name: str):
+        items = [
+            "ALL",
+            "Technology",
+            "Healthcare",
+            "Consumer Cyclical",
+            "Consumer Defensive",
+            "Energy",
+            "Financial Services",
+            "Industrials",
+            "Basic Materials",
+            "Real Estate",
+            "Utilities",
+            "Communication Services",
+        ]
+
+        if name not in items:
+            return 404
+
+        data = database_querys_main.database_querys.get_trend_timeseries_data(
+            name
+        )
+        # Convert the DataFrame to JSON with orient='index'
+        json_data = data.to_json(orient="index", date_format="iso")
+
+        return json_data
+
     def save_all_trend_analyses():
 
         items = [
