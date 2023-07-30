@@ -128,8 +128,6 @@ class database_querys:
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         # Query to select all rows from the table
         query = "SELECT * FROM market_data"
@@ -151,11 +149,9 @@ class database_querys:
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         # Query to select all rows from the table
-        query = "SELECT * FROM stock_market_data"
+        query = "SELECT * FROM market_data"
 
         # Load the table into a DataFrame
         df = pd.read_sql(query, engine)
@@ -173,11 +169,9 @@ class database_querys:
 
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
         engine = create_engine(db_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         # Query to select all rows from the table
-        query = "SELECT * FROM stock_market_data"
+        query = "SELECT * FROM market_data"
 
         # Load the table into a DataFrame
         df = pd.read_sql(query, engine)
@@ -2636,14 +2630,19 @@ if __name__ == "__main__":
         # x = database_querys.get_trends_and_sector()
         # x = database_querys.get_sector_trends()
         #### test
-        print("test get time series")
-        x = database_querys.get_trend_timeseries_data("ALL")
+        print("test get liquidt tickers")
+        x = database_querys.get_liquid_tickers()
 
         print(x)
-        print("test get trade sector stats")
-        x = database_querys.get_sector_trade_stats()
+        print("test darwin tickers")
+        x = database_querys.get_darwin()
 
         print(x)
+
+        print(x)
+        print("test get MID and large cap")
+        x = database_querys.get_mid_and_large_cap_tickers()
+
         print("END")
 
     except Exception as e:
