@@ -153,7 +153,7 @@ class update_data:
         # refresh timeseries.
         timeseries.update_trend_timeseries.update()
 
-        # Save trend analyses.
+        # Save trend analyses. #
         service.return_trend_analyses.save_all_trend_analyses()
 
         database_querys.database_querys.add_log_to_logbook(
