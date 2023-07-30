@@ -2631,17 +2631,7 @@ if __name__ == "__main__":
         # x = database_querys.get_sector_trends()
         #### test
         print("test get liquidt tickers")
-        x = database_querys.get_liquid_tickers()
-
-        print(x)
-        print("test darwin tickers")
-        x = database_querys.get_darwin()
-
-        print(x)
-
-        print(x)
-        print("test get MID and large cap")
-        x = database_querys.get_mid_and_large_cap_tickers()
+        x = database_querys.get_trend_timeseries_data("Financial Services")
 
         print("END")
 
