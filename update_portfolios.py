@@ -48,6 +48,7 @@ import update_trend_analyses as update_stats_trend_analyses
 import database_querys_main as database_querys
 import portfolio_synchronization as portfolio_synch
 import update_trend_time_series as timeseries
+import service_layer_data_service as service
 
 # system
 from time import sleep
@@ -151,6 +152,9 @@ class update_data:
 
         # refresh timeseries.
         timeseries.update_trend_timeseries.update()
+
+        # Save trend analyses.
+        service.return_trend_analyses.save_all_trend_analyses()
 
         database_querys.database_querys.add_log_to_logbook(
             f"Generating profiles for sector"

@@ -24,6 +24,7 @@ import pandas as pd
 import initializer_tickers_main
 from multiprocessing import Process
 import update_trend_time_series
+import database_connection
 
 
 class return_trend_analyses(object):
@@ -238,6 +239,131 @@ class return_trend_analyses(object):
         data = data_store.data
 
         # Convert DataFrame to JSON with date index
+        json_data = data.to_json(orient="index", date_format="iso")
+
+        return json_data
+
+    def get_all_types_of_trend_timeseries():
+
+        items = [
+            "ALL",
+            "Technology",
+            "Healthcare",
+            "Consumer Cyclical",
+            "Consumer Defensive",
+            "Energy",
+            "Financial Services",
+            "Industrials",
+            "Basic Materials",
+            "Real Estate",
+            "Utilities",
+            "Communication Services",
+        ]
+
+        # Package the list into JSON
+        json_data = json.dumps(items)
+
+        return json_data
+
+    def get_trend_analyses(name: str = "ALL"):
+
+        items = [
+            "ALL",
+            "Technology",
+            "Healthcare",
+            "Consumer Cyclical",
+            "Consumer Defensive",
+            "Energy",
+            "Financial Services",
+            "Industrials",
+            "Basic Materials",
+            "Real Estate",
+            "Utilities",
+            "Communication Services",
+        ]
+
+        if name not in items:
+            return 404
+
+        data = database_querys_main.database_querys.get_trend_timeseries_data(
+            name
+        )
+
+        return data
+
+    def save_all_trend_analyses():
+
+        items = [
+            "Technology",
+            "Healthcare",
+            "Consumer Cyclical",
+            "Consumer Defensive",
+            "Energy",
+            "Financial Services",
+            "Industrials",
+            "Basic Materials",
+            "Real Estate",
+            "Utilities",
+            "Communication Services",
+        ]
+        frame = None
+
+        ts_all = return_trend_analyses.get_trend_analyses("ALL")
+
+        ts_all.set_index("date", inplace=True)
+
+        ts_all.rename(columns={"trend": "ALL"}, inplace=True)
+
+        ts_data = ts_all[["ALL"]]
+
+        main_frame = ts_data
+
+        for i in items:
+
+            ts_all = return_trend_analyses.get_trend_analyses(i)
+
+            ts_all.set_index("date", inplace=True)
+
+            ts_all.rename(columns={"trend": i}, inplace=True)
+
+            ts_data = ts_all[[i]]
+
+            main_frame = pd.merge(
+                main_frame, ts_data, left_index=True, right_index=True
+            )
+
+        df = main_frame
+
+        # final preperation, data needs to be filterd, if there is data proces this data will destroy the order.
+        # so always fileter it assending.
+        df_sorted = df.sort_index()
+
+        engine = database_connection.get_db_engine()
+
+        df_sorted.to_sql(
+            "all_trend_timeseries", engine, index=True, if_exists="replace"
+        )
+
+        return df_sorted
+
+    def load_all_trend_timeseries():
+        # Table name where data is stored
+        table_name = "all_trend_timeseries"
+
+        # Create a connection to the SQLite database
+        engine = engine = database_connection.get_db_engine()
+
+        # Load all data from the specified table into a DataFrame
+        loaded_df = pd.read_sql_table("all_trend_timeseries", engine)
+
+        return loaded_df
+
+    def get_all_trend_analyses_cache():
+
+        # Get the data
+        data = return_trend_analyses.load_all_trend_timeseries()
+
+        # Convert the DataFrame to JSON with orient='index'
         json_data = data.to_json(orient="index", date_format="iso")
 
         return json_data
@@ -1037,8 +1163,9 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_analyses.get_full_trend_analyses()
+        x = return_trend_analyses.save_all_trend_analyses()
         print(x)
+
     except Exception as e:
 
         print(e)

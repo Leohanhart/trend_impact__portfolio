@@ -558,7 +558,41 @@ def return_all_sector_analyses_data_ai(
         values="KWEE",
     )
 
-    data = services.return_trend_analyses.get_full_trend_analyses()
+    data = services.return_trend_analyses.get_all_trend_analyses_cache()
+
+    return data
+
+
+@app.get("/return_sector_trend_options")
+def return_all_sector_analyses_data_ai(
+    token: str,
+):
+
+    verify_token(
+        token,
+        ["SIENTIST", "USER", "ADMIN"],
+        endpoint="return_all_sector_trend_analyses_data",
+        values="KWEE",
+    )
+
+    data = services.return_trend_analyses.get_all_types_of_trend_timeseries()
+
+    return data
+
+
+@app.get("/return_sector_trend_options")
+def return_all_sector_analyses_data_ai(token: str, name_analyses: str):
+
+    verify_token(
+        token,
+        ["SIENTIST", "USER", "ADMIN"],
+        endpoint="return_all_sector_trend_analyses_data",
+        values="KWEE",
+    )
+
+    data = services.return_trend_analyses.get_trend_timeseries_cached(
+        name=name_analyses
+    )
 
     return data
 
@@ -571,8 +605,8 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
-        debug=True,
+        reload=False,
+        debug=False,
         workers=4,
         limit_concurrency=1000,
     )
