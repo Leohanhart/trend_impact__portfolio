@@ -726,6 +726,12 @@ class update_kaufman_support(object):
             datetime.date.today(), target_time
         )
 
+        # Check if the current time is already one minute later than the target time
+        # if current_datetime > target_datetime:
+        #    target_datetime += datetime.timedelta(
+        #        days=1
+        #    )  # Add one day to the target time
+
         # Convert both current and target datetimes to UTC
         current_datetime_utc = newyork_tz.localize(
             current_datetime
