@@ -584,13 +584,13 @@ class return_logs(object):
 
         data[["created"]] = data[["created"]].astype(str)
 
-        data = analyses_support.apply_pagination(
-            data=data, page_amount=20, page_number=page_number
+        data_filterd = analyses_support.apply_pagination(
+            data=data, page_amount=50, page_number=page_number
         )
 
-        data = trend_analyse_support.package_data(data)
+        data_out = trend_analyse_support.package_data(data_filterd)
 
-        return data
+        return data_out
 
 
 class crud_user_trades(object):

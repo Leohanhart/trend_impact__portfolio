@@ -325,16 +325,16 @@ def return_portfolio_performance(token: str, portfolio_id: str):
 
 
 @app.get("/show_logs")
-def return_logs(token: str, page_number: int = 1):
+def return_logs(token: str, page_number_in: int = 1):
 
     verify_token(
         token=token,
         expected_roles=["ADMIN", "USER"],
         endpoint="show_logs",
-        values=f"page_number = {page_number}",
+        values=f"page_number = {page_number_in}",
     )
 
-    data = services.return_logs.return_logs_page(page_number=page_number)
+    data = services.return_logs.return_logs_page(page_number=page_number_in)
 
     return data
 
