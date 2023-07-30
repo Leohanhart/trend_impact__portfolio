@@ -124,7 +124,7 @@ class update_data:
         logger.info("starting daily update cycle")
 
         update_stats_trend_analyses.update_kaufman_support.sleep_until(
-            15, 0, 11
+            16, 0, 15
         )
 
         # started
