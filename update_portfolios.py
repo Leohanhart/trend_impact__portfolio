@@ -221,7 +221,9 @@ class update_data:
     def startup_data_transformation(self):
         """ """
         # function with different parameters
-
+        database_querys.database_querys.add_log_to_logbook(
+            "System that initalizes CORE threads, task_1 and task_2 is started"
+        )
         logger.info("starting trend update")
 
         # start regular trendupdate
@@ -244,7 +246,9 @@ class update_data:
         logger.info("threads started.")
         threads.append(thread1)
         threads.append(thread2)
-
+        database_querys.database_querys.add_log_to_logbook(
+            "Starting process threads Executed"
+        )
         # Join the threads before
         loop: bool = True
         while loop:
@@ -255,6 +259,9 @@ class update_data:
                     thread.join()
                     self.kill_switch = True
                     loop = False
+                    database_querys.database_querys.add_log_to_logbook(
+                        "Large Error in Threads, ALL THREADS ARE KILLED"
+                    )
                     break
 
         # moving further
@@ -262,34 +269,6 @@ class update_data:
         thread2.join()
 
         self.startup_data_transformation()
-
-    """
-    def start_update_scedule(self):
-
-        database_querys.database_querys.add_log_to_logbook(
-            "Starting normal cycle."
-        )
-
-        print(0.1)
-
-        database_querys.database_querys.add_log_to_logbook(
-            "Started update data_transformation."
-        )
-
-        # proces_background = subprocess.Popen(self.startup_data_transformation)
-        detached_process = subprocess.Popen(
-            [
-                "python",
-                "-c",
-                "from update_portfolios import update_data; update_data().startup_data_transformation()",
-            ]
-        )
-        # proces_background.setDaemon(True)
-        # proces_background.daemon = True
-        # proces_background.detach()
-        # proces_background.start()
-        # proces_background.join()
-    """
 
     def start_update_schedule(self):
 
