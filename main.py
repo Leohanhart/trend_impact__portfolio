@@ -16,6 +16,7 @@ Idea's correlation / cointegration table. Use for prediction.
 from typing import Optional
 from fastapi import BackgroundTasks, FastAPI, Response, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse  # Import the JSONResponse class
 from database_querys_main import database_querys
 import startup_support
 import update_portfolios
@@ -69,6 +70,20 @@ def onstart_function():
 @app.on_event("startup")
 async def startup_event():
     onstart_function()
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code, content={"detail": exc.detail}
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500, content={"detail": "Internal Server Error"}
+    )
 
 
 @app.get("/")
@@ -605,7 +620,7 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=False,
+        reload=True,
         debug=True,
         workers=4,
         limit_concurrency=1000,
