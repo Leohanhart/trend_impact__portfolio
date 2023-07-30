@@ -1670,7 +1670,7 @@ class kko_portfolio_update_manager:
             "Startingup portfolio creation threads"
         )
 
-        max_processes = 10  # Define the maximum number of processes
+        max_processes = 100  # Define the maximum number of processes
 
         # Create a Pool with the specified maximum processes
         pool = multiprocessing.Pool(processes=max_processes)
