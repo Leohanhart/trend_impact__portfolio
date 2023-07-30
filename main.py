@@ -155,7 +155,7 @@ def return_trend_analyses(token: str, ticker: str, request: Request):
         values=f"ticker = {ticker}, host = {request.client.host}",
     )
 
-    data = services.return_trend_analyses.get_trend_analyses(ticker)
+    data = services.return_trend_analyses.get_trend_analyses_sector(ticker)
 
     return Response(data)
 

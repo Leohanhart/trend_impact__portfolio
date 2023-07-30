@@ -31,3 +31,4 @@ def wait_until_1700():
 
 # Call the function to wait until 17:00 New York time
 wait_until_1700()
+wait_until_1700()
