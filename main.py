@@ -547,7 +547,7 @@ def return_portofolio_strategys(
 
 
 @app.get("/return_all_sector_trend_analyses_data")
-def return_all_sector_analyses_data_ai(
+def return_all_sector_trend_analyses_data(
     token: str,
 ):
 
@@ -564,7 +564,7 @@ def return_all_sector_analyses_data_ai(
 
 
 @app.get("/return_sector_trend_options")
-def return_all_sector_analyses_data_ai(
+def return_sector_trend_options(
     token: str,
 ):
 
@@ -580,8 +580,8 @@ def return_all_sector_analyses_data_ai(
     return data
 
 
-@app.get("/return_sector_trend_options")
-def return_all_sector_analyses_data_ai(token: str, name_analyses: str):
+@app.post("/return_sector_trend_analyses")
+def return_sector_trend_analyses(token: str, name_analyses: str):
 
     verify_token(
         token,
