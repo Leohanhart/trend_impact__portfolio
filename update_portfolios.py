@@ -127,7 +127,7 @@ class update_data:
             17, 0, 35
         )
 
-        # started
+        # started #
         database_querys.database_querys.add_log_to_logbook(
             "daily update cycle started"
         )
