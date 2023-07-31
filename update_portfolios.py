@@ -70,7 +70,6 @@ import atexit
 
 
 class update_data:
-
     test_module: bool = False
 
     kill_switch: bool = False
@@ -78,7 +77,6 @@ class update_data:
     update_allowd: bool = False
 
     def __init__(self, no_action: bool = False):
-
         if no_action:
             return
 
@@ -96,7 +94,6 @@ class update_data:
         self.start_update_schedule()
 
     def pre_startup(self):
-
         database_querys.database_querys.add_log_to_logbook(
             "Started initalizing old archive dta data"
         )
@@ -120,8 +117,10 @@ class update_data:
         return
 
     def afterhour_update_cycle(self):
-
         logger.info("starting daily update cycle")
+        database_querys.database_querys.add_log_to_logbook(
+            "daily update: cycle started init"
+        )
 
         update_stats_trend_analyses.update_kaufman_support.wait_until_1700()
 
@@ -180,17 +179,14 @@ class update_data:
         InitializeTickers.initialize_all_market_data()
 
     def task_1(self):
-
         database_querys.database_querys.add_log_to_logbook("Started task_1")
 
         logger.info("starting portfolio update system")
         i = 0
         # block for a moment
         while True:
-
             # report a message
             try:
-
                 update = update_portfolio_trends.kko_portfolio_update_manager()
             except Exception as e:
                 print("Error in thread = ", e)
@@ -200,17 +196,14 @@ class update_data:
                 sleep(60)
 
     def task_2(self):
-
         database_querys.database_querys.add_log_to_logbook("Started task_2")
 
         i = 0
         # block for a moment
         while True:
-
             # report a message
 
             try:
-
                 self.afterhour_update_cycle()
 
             except Exception as e:
@@ -256,7 +249,6 @@ class update_data:
         while loop:
             for thread in threads:
                 if not thread.is_alive():
-
                     logger.error("Thread of update cycle faild. ")
                     thread.join()
                     self.kill_switch = True
@@ -273,7 +265,6 @@ class update_data:
         self.startup_data_transformation()
 
     def start_update_schedule(self):
-
         database_querys.database_querys.add_log_to_logbook(
             "System passed: Startup scedual"
         )
@@ -315,7 +306,6 @@ class update_data:
 
 
 if __name__ == "__main__":
-
     # archive
     try:
         x = update_data(no_action=True)
@@ -325,5 +315,4 @@ if __name__ == "__main__":
         sleep(432000)
         # x.pre_startup()
     except Exception as e:
-
         raise Exception("Error with tickers", e)

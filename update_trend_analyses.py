@@ -82,7 +82,6 @@ class update_kaufman_kalman_analyses(object):
 
         # load tickers
         if last_update_first:
-
             tickers = database_querys.database_querys.get_all_trend_kalman()
 
             tickers_ = tickers.sort_values(by=["last_update"])
@@ -90,7 +89,6 @@ class update_kaufman_kalman_analyses(object):
             tickers = tickers_.id.to_list()
 
         else:
-
             logger.info("starting up query fort tickers.")
             tickers = database_querys.database_querys.get_all_active_tickers()
 
@@ -103,19 +101,16 @@ class update_kaufman_kalman_analyses(object):
         )
 
         for ticker in tickers:
-
             if last_update_first:
                 logger.info(
                     f"update trend-analyses for ticker = {ticker}",
                 )
             else:
-
                 logger.info(
                     f"update trend-analyses for ticker = {ticker}",
                 )
 
             try:
-
                 # add ticker
                 initalizer_ticker = initiaze_singel_ticker(ticker)
 
@@ -208,7 +203,6 @@ class update_kaufman_kalman_analyses(object):
         trade_data = None
 
         for ticker in tickers:
-
             try:
                 logger.info(f"updateing archive {ticker}")
                 initalizer_ticker = initiaze_singel_ticker(ticker)
@@ -236,11 +230,9 @@ class update_kaufman_kalman_analyses(object):
                 print("finish update archive of ", ticker)
 
             except Exception as e:
-
                 print(e)
 
             finally:
-
                 database_querys.database_querys.add_or_update_archive_of_trend_archive(
                     ticker_id=ticker
                 )
@@ -248,7 +240,6 @@ class update_kaufman_kalman_analyses(object):
 
 class update_kaufman_support(object):
     def update_all_trends_with_ticker(ticker: str):
-
         # add ticker
         initalizer_ticker = initiaze_singel_ticker(ticker)
 
@@ -376,7 +367,6 @@ class update_kaufman_support(object):
         """
         tickers = database_querys.database_querys.get_all_active_tickers()
         for ticker in tickers:
-
             try:
                 logger.info(f"updateing archive {ticker}")
                 initalizer_ticker = initiaze_singel_ticker(ticker)
@@ -498,7 +488,6 @@ class update_kaufman_support(object):
 
         class Dict2Class(object):
             def __init__(self, my_dict):
-
                 for key in my_dict:
                     setattr(self, key, my_dict[key])
 
@@ -672,7 +661,6 @@ class update_kaufman_support(object):
         window = len(stock__data__frame)
 
         if position_side == 1:
-
             # Calculate the max drawdown in the past window days for each day in the series.
             # Use min_periods=1 if you want to let the first 252 days data have an expanding window
             Roll_Max = (
@@ -760,15 +748,10 @@ class update_kaufman_support(object):
             current_time = datetime.datetime.now(newyork_tz).time()
 
             # Check if it's 17:00:00
-            if (
-                current_time.hour == 17
-                and current_time.minute == 0
-                and current_time.second == 0
-            ):
+            if current_time.hour == 17 and 0 <= current_time.minute <= 30:
                 break
-
-            # Sleep for 1 second
-            time.sleep(1)
+            time.sleep(60)
+            print("Standby for update")
 
         print("It's 17:00 New York time now!")
 
@@ -819,7 +802,6 @@ class update_kaufman_support(object):
         # detirmen trend level.
         # if positive (long)
         if last_dp > 0:
-
             # sets to the max
             max_dp = y.max()
             # Extracts levels
@@ -839,7 +821,6 @@ class update_kaufman_support(object):
             )
 
         else:
-
             # same as above
             max_dp = y.min()
             levels = max_dp / max_levels
@@ -885,7 +866,6 @@ class update_kaufman_support(object):
 
         # positive signal, extract high
         if last_dp_trend > 0:
-
             # sets prices, max = max price, cur_price = currentprice
             max_price = round(data_total.High.max(), 2)
             startprice = round(float(data_total.Open.head(1)), 2)
@@ -1006,7 +986,6 @@ class update_archive_kaufmal:
         min_range: int = 30,
         ticker: str = "",
     ):
-
         stock_data = stock_data
 
         # fix lengt, used for loop true right data.
@@ -1014,7 +993,6 @@ class update_archive_kaufmal:
 
         # if lenght is not good, return.
         if len(stock_data) < 30:
-
             raise Exception("DATA_ERROR", "Data is not long enough ", ticker)
 
         # set vars
@@ -1022,7 +1000,6 @@ class update_archive_kaufmal:
 
         # loops true archive manager
         while True:
-
             # add data
             work_data = stock_data.head(i)
 
@@ -1039,7 +1016,6 @@ class update_archive_kaufmal:
 
             # check error.
             try:
-
                 self.process_errors(model)
 
             except:
@@ -1066,11 +1042,9 @@ class update_archive_kaufmal:
             
             """
             try:
-
                 old_model = self.get_last_model(ticker=ticker, periode=periode)
 
                 if self.check_if_need_overwrite(old_model, model):
-
                     # delete old model.
                     database_querys.database_querys.update_analyses_trend_kamal_archive(
                         model
@@ -1089,7 +1063,6 @@ class update_archive_kaufmal:
 
             # here
             if report["status"] == "EXISTS":
-
                 break
 
             # print(self.__dict__)
@@ -1122,7 +1095,6 @@ class update_archive_kaufmal:
             return False
 
     def check_if_profiles_are_equal(self, model_old, model_new):
-
         if model_old.profile_std == model_new.profile_std:
             return True
         else:
@@ -1160,7 +1132,6 @@ class update_archive_kaufmal:
             return False
 
     def process_errors(self, model):
-
         # set duration or add error
         self.process_durration_error(model)
 
@@ -1184,7 +1155,6 @@ class update_archive_kaufmal:
         return
 
     def get_last_model(self, ticker: str, periode: str):
-
         # get data.
         report = database_querys.database_querys.get_trend_kalman_data(
             ticker=ticker, periode=periode
@@ -1233,7 +1203,6 @@ class update_archive_std:
         ticker: str = "",
         rows_per_time: int = 10,
     ):
-
         # if problems, delete all data.
         #
 
@@ -1244,7 +1213,6 @@ class update_archive_std:
 
         # if lenght is not good, return.
         if len(stock_data) < 250:
-
             raise Exception("DATA_ERROR", "Data is not long enough ", ticker)
 
         # set vars
@@ -1266,7 +1234,6 @@ class update_archive_std:
         for i in range(
             len(stock_data) - adjustment, len(stock_data) - previus_amounts
         ):
-
             # add data
             work_data = stock_data.head(i)
 
@@ -1284,7 +1251,6 @@ class update_archive_std:
                 self.check_if_trend_is_same(old_model, model) == True
                 and self.check_if_duration_is_same(old_model, model) == False
             ):
-
                 if not self.check_if_std_profile_is_same(old_model, model):
                     model.date_start = old_model.end_date
                     model.weeknr_start = old_model.weeknr_end
@@ -1294,7 +1260,6 @@ class update_archive_std:
 
                     self.data_slides.append(model.__dict__)
                 else:
-
                     self.data_slides.append(model.__dict__)
 
                 # put the data in the basket
@@ -1339,7 +1304,6 @@ class update_archive_std:
             return False
 
     def check_if_profiles_are_equal(self, model_old, model_new):
-
         if model_old.profile_std == model_new.profile_std:
             return True
         else:
@@ -1377,7 +1341,6 @@ class update_archive_std:
             return False
 
     def process_errors(self, model):
-
         # set duration or add error
         self.process_durration_error(model)
 
@@ -1401,7 +1364,6 @@ class update_archive_std:
         return
 
     def get_last_model(self, ticker: str, periode: str):
-
         # get data.
         report = database_querys.database_querys.get_trend_kalman_data(
             ticker=ticker, periode=periode
@@ -1423,13 +1385,11 @@ class update_archive_std:
 
 class clean_archive_data:
     def __init__(self, ticker_name):
-
         data = database_querys.database_querys.get_trend_kalman_data(
             ticker=ticker_name
         )
 
         for i in range(0, len(data) - 1):
-
             list_of_trend = data.loc[1 + i : 2 + i].trend.to_list()
             if all(element == list_of_trend[0] for element in list_of_trend):
                 print("All elements in the list are the same")
@@ -1500,7 +1460,6 @@ class trend_fast_archive_update:
             return
 
         if self.check_if_trend_is_same(old_model, model) == True:
-
             # if not profiles are the same, the end date of the current model needs to be extended
             # accutally the old model not old then, its end date only expired because its still urgent.
             if not self.check_if_std_profile_is_same(old_model, model):
@@ -1516,7 +1475,6 @@ class trend_fast_archive_update:
 
                 return
             else:
-
                 status = database_querys.database_querys.update_analyses_trend_kamal_archive(
                     model
                 )
@@ -1543,13 +1501,11 @@ class trend_fast_archive_update:
             return
 
         else:
-
             return
 
         return
 
     def get_last_model(self, ticker: str, periode: str):
-
         # get data.
         report = database_querys.database_querys.get_trend_kalman_data(
             ticker=ticker, periode=periode
@@ -1605,7 +1561,6 @@ class update_trend_performance:
     """
 
     def __init__(self, ticker, periode):
-
         # get the data
         df = database_querys.database_querys.get_trend_kalman_data(
             ticker=ticker, periode=periode
@@ -1701,7 +1656,6 @@ class update_trend_performance:
             )
 
         except:
-
             ty_perctage_negative_trades = 0
 
         try:
@@ -1720,7 +1674,6 @@ class update_trend_performance:
             )
 
         except:
-
             ty_average_positive_trades = 0
         # set trades long
         ty_trades_long = len(df.loc[df["trend"] > 0])
@@ -1730,7 +1683,6 @@ class update_trend_performance:
         ty_expected_return = df.exp_return.mean()
 
         try:
-
             ty_exp_return_volatility = round(
                 self.get_expected_return_volatility(
                     ty_perctage_positive_trades,
@@ -1741,7 +1693,6 @@ class update_trend_performance:
                 2,
             )
         except:
-
             ty_exp_return_volatility = 0
 
         data["total_exp_volatility_" + name] = ty_exp_return_volatility
@@ -1790,7 +1741,6 @@ class update_trend_performance:
         return volatility
 
     def filter_pandas_years(self, df, amount_of_years=2):
-
         last_row = df.tail(1)
 
         start_year = int(last_row.year_end) - amount_of_years
@@ -1800,7 +1750,6 @@ class update_trend_performance:
         return df
 
     def aggegrate_data(self, df):
-
         # first remove all unneded columns
         # remove specified columns
         df = df.drop(
@@ -1924,25 +1873,20 @@ After that we will look at the Expected return and the volatility of expected re
 
 
 class create_correlation_matrix:
-
     data = None
 
     def __init__(self, tickers):
-
         data = []
         #
         for tickerA in tickers:
-
             #
             for tickerB in tickers:
-
                 #
                 if tickerA == tickerB:
                     continue
 
                 #
                 try:
-
                     #
                     new_data = {}
 
@@ -1998,7 +1942,6 @@ class create_correlation_matrix:
 
 
 class portfolio_constructor_manager:
-
     # low vol strats
     portfolio_strat_low_vol_stocks = None
     portfolio_strat_low_vol_details = None
@@ -2198,7 +2141,6 @@ class portfolio_constructor_manager:
         window = len(stock__data__frame)
 
         if position_side == 1:
-
             # Calculate the max drawdown in the past window days for each day in the series.
             # Use min_periods=1 if you want to let the first 252 days data have an expanding window
             Roll_Max = (
@@ -2239,7 +2181,6 @@ class portfolio_constructor_manager:
                 return Max_Daily_Drawdown
 
     def set_matrix(self):
-
         # sets vars
         self.low_vol_frame = self.portfolio_strat_low_vol_stocks
         self.high_sharp_frame = self.portfolio_strat_high_sharp_stocks
@@ -2257,7 +2198,6 @@ class portfolio_constructor_manager:
         self.avg_sharp: float = float(self.high_sharp_frame.balance.mean())
 
     def process__portfolio_specs__to__df(self, df: dict, UUid: str):
-
         df = df.reset_index()
 
         # sets uuID
@@ -2310,7 +2250,6 @@ class portfolio_constructor_manager:
         return df
 
     def process__stocks__to__df(self, df_stocks, UUid):
-
         # set df to var.
         df = df_stocks
 
@@ -2362,7 +2301,6 @@ class portfolio_constructor_manager:
         date_ = datetime.today()
 
         if amount_of_days != 0:
-
             date_ = date_ + timedelta(days=amount_of_days)
 
         # sets datestring.
@@ -2432,7 +2370,6 @@ class create_time_serie_with_kamalstrategie:
 
         # select mask = changevalue, df.update, finished
         for i in data_obj:
-
             if i["trend"] == 1:
                 continue
 
@@ -2491,7 +2428,6 @@ class create_time_serie_with_kamalstrategie:
         self.data = df_data
 
     def filter_pandas_years(self, df, amount_of_years=2):
-
         last_row = df.tail(1)
 
         start_year = int(last_row.year_end) - amount_of_years
@@ -2501,7 +2437,6 @@ class create_time_serie_with_kamalstrategie:
         return df
 
     def filter_pandas_stock_years(self, df, amount_of_years=2):
-
         last_row = df.tail(1)
 
         start_year = int(df.tail(1).index.year[0]) - amount_of_years
@@ -2512,7 +2447,6 @@ class create_time_serie_with_kamalstrategie:
 
 
 class portfolio_kamal:
-
     tickers: list
     volatiltiy: float
     sharp_ratio_max: float
@@ -2536,10 +2470,8 @@ class portfolio_kamal:
 
 
 if __name__ == "__main__":
-
     # archive
     try:
-
         """
         print("Starting up ...")
 
@@ -2590,5 +2522,4 @@ if __name__ == "__main__":
         update_kaufman_support.update_all_analyses_with_ticker(ticker="AAL")
 
     except Exception as e:
-
         raise Exception("Error with tickers", e)
