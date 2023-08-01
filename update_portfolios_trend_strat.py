@@ -23,7 +23,7 @@ from collections import Counter
 from math import sqrt
 from itertools import combinations
 from multiprocessing import Process
-
+import pytz
 
 # from finquant.portfolio import build_portfolio
 # from finquant.efficient_frontier import EfficientFrontier
@@ -76,9 +76,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 class update_trend_kamal_portfolio_selection:
     def __init__(self, methode_one: bool = True):
-
         if methode_one:
-
             """
             Methode one is basicly filterd on winrate, cutted and
             """
@@ -152,14 +150,12 @@ class update_trend_kamal_portfolio_selection:
 
             # loops true
             for i in tickers_out:
-
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
                 ticker_options[i] = ts_data.data
 
             # create dataframes that can be tested.
             for i in range(0, len(list_of_options)):
-
                 tickers_selected = list_of_options[i]
 
                 data = self.create_data_frame_of_tickers(
@@ -198,7 +194,6 @@ class update_trend_kamal_portfolio_selection:
         first: bool = True
         r_data = 0
         for i in tickers:
-
             #
             sdata = data[i]
 
@@ -216,37 +211,30 @@ class update_trend_kamal_portfolio_selection:
             xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
 
             if first:
-
                 r_data = xdf
                 first = False
 
             else:
-
                 r_data = pd.concat([r_data, xdf], axis=1)
 
         return r_data
 
 
 class create_correlation_matrix:
-
     data = None
 
     def __init__(self, tickers):
-
         data = []
         #
         for tickerA in tickers:
-
             #
             for tickerB in tickers:
-
                 #
                 if tickerA == tickerB:
                     continue
 
                 #
                 try:
-
                     #
                     new_data = {}
 
@@ -302,7 +290,6 @@ class create_correlation_matrix:
 
 
 class portfolio_constructor_manager:
-
     # low vol strats
     portfolio_strat_low_vol_stocks = None
     portfolio_strat_low_vol_details = None
@@ -393,7 +380,6 @@ class portfolio_constructor_manager:
 
                     print("THIRD VALUE ERRUR")
                 except Exception as e:
-
                     print(e)
                     self.error = True
                     return
@@ -534,7 +520,6 @@ class portfolio_constructor_manager:
         window = len(stock__data__frame)
 
         if position_side == 1:
-
             # Calculate the max drawdown in the past window days for each day in the series.
             # Use min_periods=1 if you want to let the first 252 days data have an expanding window
             Roll_Max = (
@@ -575,7 +560,6 @@ class portfolio_constructor_manager:
                 return Max_Daily_Drawdown
 
     def set_matrix(self):
-
         # sets vars
         self.low_vol_frame = self.portfolio_strat_low_vol_stocks
         self.high_sharp_frame = self.portfolio_strat_high_sharp_stocks
@@ -593,7 +577,6 @@ class portfolio_constructor_manager:
         self.avg_sharp: float = float(self.high_sharp_frame.balance.mean())
 
     def process__portfolio_specs__to__df(self, df: dict, UUid: str):
-
         df = df.reset_index()
 
         # sets uuID
@@ -646,7 +629,6 @@ class portfolio_constructor_manager:
         return df
 
     def process__stocks__to__df(self, df_stocks, UUid):
-
         # set df to var.
         df = df_stocks
 
@@ -698,7 +680,6 @@ class portfolio_constructor_manager:
         date_ = datetime.today()
 
         if amount_of_days != 0:
-
             date_ = date_ + timedelta(days=amount_of_days)
 
         # sets datestring.
@@ -736,11 +717,9 @@ class create_time_serie_with_kamalstrategie:
         itms = list(sdata.columns.to_list())
         # stock.data.change
         if "Change" not in itms:
-
             cdata = power_object.stock_data.Close
 
         else:
-
             cdata = power_object.stock_data.Change
 
         # set openprice
@@ -776,7 +755,6 @@ class create_time_serie_with_kamalstrategie:
 
         # select mask = changevalue, df.update, finished
         for i in data_obj:
-
             if i["trend"] == 1:
                 continue
 
@@ -835,7 +813,6 @@ class create_time_serie_with_kamalstrategie:
         self.data = df_data
 
     def filter_pandas_years(self, df, amount_of_years=2):
-
         last_row = df.tail(1)
 
         start_year = int(last_row.year_end) - amount_of_years
@@ -845,7 +822,6 @@ class create_time_serie_with_kamalstrategie:
         return df
 
     def filter_pandas_stock_years(self, df, amount_of_years=2):
-
         last_row = df.tail(1)
 
         start_year = int(df.tail(1).index.year[0]) - amount_of_years
@@ -866,7 +842,6 @@ class create_kko_portfolios:
         return
 
     def create_all_options(self, list_of_stocks: list, amount_of_stocks: int):
-
         tickers_out = list_of_stocks
         # create function that creates all kind off ticker combinations
         # 5 - 10.
@@ -880,14 +855,11 @@ class create_kko_portfolios:
 
         # loops true
         for i in tickers_out:
-
             try:
-
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
                 ticker_options[i] = ts_data.data
             except:
-
                 tickers_out.remove(i)
 
         # get the keys so only good stocks will stay ther
@@ -905,7 +877,6 @@ class create_kko_portfolios:
         round_ = 0
         # create dataframes that can be tested.
         for i in range(0, len(list_of_options)):
-
             round_ += 1
 
             tickers_selected = list_of_options[i]
@@ -919,7 +890,6 @@ class create_kko_portfolios:
             allowd_to_add = kko_portfolio_gardian(portfolio)
 
             if allowd_to_add.allowd:
-
                 execute = add_kko_portfolio(portfolio)
 
         return
@@ -948,7 +918,6 @@ class create_kko_portfolios:
         first: bool = True
         r_data = 0
         for i in tickers:
-
             #
             sdata = data[i]
 
@@ -966,25 +935,21 @@ class create_kko_portfolios:
             xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
 
             if first:
-
                 r_data = xdf
                 first = False
 
             else:
-
                 r_data = pd.concat([r_data, xdf], axis=1)
 
         return r_data
 
 
 class add_kko_portfolio:
-
     model = None
 
     def __init__(
         self, portfolio=None, portfolio_id=None, portfolio_strategy=None
     ):
-
         model = kko_strat_model()
 
         # create an UUID,
@@ -1017,7 +982,6 @@ class add_kko_portfolio:
         sides_list = []
         # set sides.
         for i in tickers:
-
             data = database_querys.database_querys.get_trend_kalman(i)
 
             trend = int(data.trend)
@@ -1060,11 +1024,9 @@ class add_kko_portfolio:
 
 
 class risk_managment_controllers:
-
     details = {}
 
     def __init__(self, model):
-
         self.details["id"] = model.portfolio_id
         self.details["prc_long"] = self.get_avg_side(model)
         self.details["marks"] = "Leo was here"
@@ -1081,7 +1043,6 @@ class risk_managment_controllers:
         return avg_side
 
     def get_daily_fillble(self, model):
-
         # get tickers
         a = model.list_of_tickers
         res = a.strip("][").split(", ")
@@ -1094,7 +1055,6 @@ class risk_managment_controllers:
         # avg price
 
         for i in res:
-
             power_object = stock_object.power_stock_object(stock_ticker=i)
             # 21 for on mondth
             data = power_object.stock_data.tail(21)
@@ -1119,7 +1079,6 @@ class risk_managment_controllers:
 
 
 class create_kko_tickers_selection:
-
     selected_tickers: list
 
     def __init__(
@@ -1148,7 +1107,6 @@ class create_kko_tickers_selection:
         """
 
         if methode_one:
-
             """
             Methode one is basicly filterd on winrate, cutted and
 
@@ -1225,7 +1183,6 @@ class create_kko_tickers_selection:
             return
 
         if methode_two:
-
             """
             Methode one is basicly filterd on winrate, cutted and
 
@@ -1298,7 +1255,6 @@ class create_kko_tickers_selection:
 
 
 class kko_portfolio_gardian:
-
     allowd: bool = False
 
     # allows portfolio's that have one stock that les than 50 of average.
@@ -1337,33 +1293,27 @@ class kko_portfolio_gardian:
 
         # route for 5 stocks
         if self.amount_stocks == 5:
-
             self.amount_5_stocks_criteria()
             return
 
         # route for 5 - 10 stocks
         if self.amount_stocks >= 5 and self.amount_stocks <= 10:
-
             self.amount_5_stocks_criteria()
             return
 
         # route for 10 and 20.
         if self.amount_stocks > 11 and self.amount_stocks <= 20:
-
             self.amount_20_stocks_criteria()
             return
         if self.amount_stocks > 21 and self.amount_stocks < 50:
-
             self.amount_50_stocks_criteria()
             return
 
         if self.amount_stocks > 51 and self.amount_stocks < 500:
-
             self.amount_100_stocks_criteria()
             return
 
     def amount_5_stocks_criteria(self):
-
         if self.min_balance > ((100 / (self.amount_stocks * 2)) / 100):
             if self.portfolio.Imax_sharp_sharp_ratio > 2.99:
                 if self.portfolio.Imax_sharp_expected_return > 0.15:
@@ -1419,7 +1369,6 @@ class kko_portfolio_gardian:
 
 
 class kko_portfolio_update_manager:
-
     kill_switch: bool = False
 
     def __init__(self, startup_is_allowd: bool = True):
@@ -1745,7 +1694,6 @@ class kko_portfolio_update_manager:
         pass
 
     def start_multi_thread(self, name_list_ticker):
-
         database_querys.database_querys.add_log_to_logbook(
             f"Generating portfolios for {name_list_ticker}"
         )
@@ -1813,14 +1761,12 @@ class kko_portfolio_update_manager:
         max_stocks: int = 50
 
         if support.check_if_today_is_first_the_month():
-
             database_querys.database_querys.add_log_to_logbook(
                 "Deleted all portfolio's and re-newd cycle"
             )
             self.remove_all_portfolios()
 
         else:
-
             # find last amount and sharp.
             details = self.get_last_details()
             # remove methode test befor deployment
@@ -2010,9 +1956,7 @@ class kko_portfolio_update_manager:
         # Join the threads before
         loop: bool = True
         while loop:
-
             for thread in threads:
-
                 if not thread.is_alive():
                     print("Doden threads in portfolio managment")
 
@@ -2091,7 +2035,6 @@ class kko_portfolio_update_manager:
         """
 
     def create_all_options(self, list_of_stocks: list, amount_of_stocks: int):
-
         tickers_out = list_of_stocks
         # create function that creates all kind off ticker combinations
         # 5 - 10.
@@ -2105,14 +2048,11 @@ class kko_portfolio_update_manager:
 
         # loops true
         for i in tickers_out:
-
             try:
-
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
                 ticker_options[i] = ts_data.data
             except:
-
                 tickers_out.remove(i)
 
         # get the keys so only good stocks will stay ther
@@ -2130,7 +2070,6 @@ class kko_portfolio_update_manager:
         round_ = 0
         # create dataframes that can be tested.
         for i in range(0, len(list_of_options)):
-
             round_ += 1
 
             tickers_selected = list_of_options[i]
@@ -2144,7 +2083,6 @@ class kko_portfolio_update_manager:
             allowd_to_add = kko_portfolio_gardian(portfolio)
 
             if allowd_to_add.allowd:
-
                 execute = add_kko_portfolio(portfolio)
 
         return
@@ -2174,7 +2112,6 @@ class kko_portfolio_update_manager:
         round_ = 0
         # create dataframes that can be tested.
         for i in range(0, len(list_of_options)):
-
             round_ += 1
             prc_ = round((round_ / total_len) * 100, 2)
             # print("we are running itteration ", round_)
@@ -2190,7 +2127,6 @@ class kko_portfolio_update_manager:
             allowd_to_add = kko_portfolio_gardian(portfolio)
 
             if allowd_to_add.allowd:
-
                 execute = add_kko_portfolio(portfolio)
 
             if self.kill_switch:
@@ -2267,7 +2203,6 @@ class kko_portfolio_update_manager:
 
         # while killswitch is off: run for ever.
         while not self.kill_switch:
-
             # sleep if there are troubles
             # self.sleep_between_hours(16, 4)
 
@@ -2279,7 +2214,6 @@ class kko_portfolio_update_manager:
 
             # if 10000 itterations have been and no sharp is updated
             if len(itterations_count) > amount_if_itterations_before_next_step:
-
                 itterations_count = []
                 sharp_ratios = []
                 amount_per_portfolio += 1
@@ -2296,7 +2230,6 @@ class kko_portfolio_update_manager:
 
             # loop runs untill the portfolio is full.
             while True:
-
                 # creates random number
                 number = rng.randint(0, max_nr)
 
@@ -2305,13 +2238,11 @@ class kko_portfolio_update_manager:
 
                 # if ticker is not in the portfolio' add.
                 if ticker not in pseudo_portfo:
-
                     # add stock to list of portfolio
                     pseudo_portfo.append(ticker)
 
                     # if the length is equal to max amount, break
                     if len(pseudo_portfo) >= amount_per_portfolio:
-
                         # set to selected portfolio and break.
                         suggested_portfolio = pseudo_portfo
 
@@ -2319,12 +2250,10 @@ class kko_portfolio_update_manager:
 
                 # if there is a kill in the thread. Exit.
                 if self.kill_switch:
-
                     break
 
             # if there is a kill in the thread, kill it.
             if self.kill_switch:
-
                 break
 
             # /|\ CREATES PSUEDO PORTFOLIO || \|/ CREATES OPTIONAL PORTFOLIO
@@ -2340,7 +2269,6 @@ class kko_portfolio_update_manager:
 
             # check if is contains error's
             if data.isna().values.any():
-
                 # amount of signals
                 amount_of_nas = data.isna().sum().sum()
                 amount_of_values = data.count().sum()
@@ -2357,7 +2285,6 @@ class kko_portfolio_update_manager:
 
             # if alowed
             if portfolio.is_allowed:
-
                 if "TRHEAD" not in thread_name.upper():
                     # add portfolio to the database.
                     execute = add_kko_portfolio(
@@ -2449,9 +2376,21 @@ class kko_portfolio_update_manager:
 
         # while killswitch is off: run for ever.
         while True:
-
             # sleep if there are troubles
             # self.sleep_between_hours(16, 4)
+            # Check if it's 17:00:00
+            newyork_tz = pytz.timezone("America/New_York")
+
+            current_time = datetime.datetime.now(newyork_tz).time()
+            if current_time.hour == 17 and 0 <= current_time.minute <= 30:
+                # Sleep for 10 hours
+                database_querys.database_querys.add_log_to_logbook(
+                    f"portfolio {thread_name}, halted for 10 hours"
+                )
+                time.sleep(10 * 60 * 60)
+                database_querys.database_querys.add_log_to_logbook(
+                    f"portfolio {thread_name}, restarted after halt"
+                )
 
             if self.check_days_passed(initial_date, 7):
                 break
@@ -2461,7 +2400,6 @@ class kko_portfolio_update_manager:
 
             # if 10000 itterations have been and no sharp is updated
             if len(itterations_count) > amount_if_itterations_before_next_step:
-
                 itterations_count = []
                 sharp_ratios = []
                 amount_per_portfolio += 1
@@ -2478,7 +2416,6 @@ class kko_portfolio_update_manager:
 
             # loop runs untill the portfolio is full.
             while True:
-
                 # creates random number
                 number = rng.randint(0, max_nr)
 
@@ -2487,13 +2424,11 @@ class kko_portfolio_update_manager:
 
                 # if ticker is not in the portfolio' add.
                 if ticker not in pseudo_portfo:
-
                     # add stock to list of portfolio
                     pseudo_portfo.append(ticker)
 
                     # if the length is equal to max amount, break
                     if len(pseudo_portfo) >= amount_per_portfolio:
-
                         # set to selected portfolio and break.
                         suggested_portfolio = pseudo_portfo
                         break
@@ -2511,7 +2446,6 @@ class kko_portfolio_update_manager:
 
             # check if is contains error's
             if data.isna().values.any():
-
                 # amount of signals
                 amount_of_nas = data.isna().sum().sum()
                 amount_of_values = data.count().sum()
@@ -2534,7 +2468,6 @@ class kko_portfolio_update_manager:
     def multi_add_portfolio_creation(
         self, portfolio_data, current_sharp_ratio, thread_name
     ):
-
         with lock:
             # print(f"{thread_name} is using fuction")
             # creates portfolio
@@ -2552,9 +2485,7 @@ class kko_portfolio_update_manager:
             # print(portfolio.Imax_sharp_sharp_ratio, " this is the sharp")
             # if alowed
             if portfolio.is_allowed:
-
                 if "TRHEAD" not in thread_name.upper():
-
                     # add portfolio to the database.
                     execute = add_kko_portfolio(
                         portfolio=portfolio,
@@ -2583,12 +2514,10 @@ class kko_portfolio_update_manager:
 
         # loops true
         for i in tickers_out:
-
             ti = tickers_out.index(i)
             #### check how me at
             # print("we are at ", ti, " of the ", len(tickers_out))
             try:
-
                 nr = tickers_out.index(i)
                 # prc = nr / len(tickers_out)
 
@@ -2597,7 +2526,6 @@ class kko_portfolio_update_manager:
                 ticker_options[i] = ts_data.data
 
             except:
-
                 tickers_out.remove(i)
 
         # get the keys so only good stocks will stay ther
@@ -2621,9 +2549,7 @@ class kko_portfolio_update_manager:
 
         # loops true
         for i in tickers_out:
-
             try:
-
                 nr = tickers_out.index(i)
                 # prc = nr / len(tickers_out)
 
@@ -2640,7 +2566,6 @@ class kko_portfolio_update_manager:
                 ticker_options[i] = ts_data.data
 
             except:
-
                 tickers_out.remove(i)
 
         # get the keys so only good stocks will stay ther
@@ -2677,7 +2602,6 @@ class kko_portfolio_update_manager:
         first: bool = True
         r_data = 0
         for i in tickers:
-
             #
             sdata = data[i]
 
@@ -2695,18 +2619,15 @@ class kko_portfolio_update_manager:
             xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
 
             if first:
-
                 r_data = xdf
                 first = False
 
             else:
-
                 r_data = pd.concat([r_data, xdf], axis=1)
 
         return r_data
 
     def return_equal_lists(self, data, amount_of_lists=3):
-
         amount_per_list = int(round(len(data) / amount_of_lists))
 
         chunks = [
@@ -2747,7 +2668,6 @@ class kko_portfolio_update_manager:
         pseudo_portfo = []
 
         while len(list_of_portfolios) < amount_portfoio:
-
             number = random.randint(0, (len(tickers_in) - 1))
 
             ticker = tickers_in[number]
@@ -2759,7 +2679,6 @@ class kko_portfolio_update_manager:
                     pseudo_portfo = []
 
             if len(list_of_portfolios) >= amount_portfoio:
-
                 break
 
     def get_last_details(self, name_strategie: str = ""):
@@ -2779,7 +2698,6 @@ class kko_portfolio_update_manager:
 
             # here filter on name_strategy.
             if name_strategie:
-
                 portfolios = portfolios[
                     portfolios["portfolio_strategy"] == name_strategie
                 ]
@@ -2797,7 +2715,6 @@ class kko_portfolio_update_manager:
 
             return 5, 3.1
         except:
-
             return (5, 3.1)
         """
         # this below is old code.
@@ -2903,7 +2820,6 @@ class kko_portfolio_update_manager:
 
             return
         else:
-
             amount_of_sleep = 10
 
             time.sleep(amount_of_sleep)
@@ -2952,30 +2868,25 @@ class kko_portfolio_update_manager:
             return
 
         for i in list_of_portfolios:
-
             database_querys.database_querys.delete_portfolio_with_id(i)
 
         return
 
     def remove_all_portfolios(self):
-
         portfolios = database_querys.database_querys.get_portfolio()
 
         portfolio_ids = list(portfolios.portfolio_id)
 
         for i in portfolio_ids:
-
             database_querys.database_querys.delete_portfolio_with_id(i)
             print("deleted portfolio : ", i)
 
     def check_portfolio_allowed(data):
-
         # Remove NA's
         data = data.tail(len(data) - 1)
 
         # check if is contains error's
         if data.isna().values.any():
-
             # amount of signals
             amount_of_nas = data.isna().sum().sum()
             amount_of_values = data.count().sum()
@@ -2996,7 +2907,6 @@ class kko_portfolio_update_manager:
         return True
 
     def create_basic_list(self):
-
         selection = create_kko_tickers_selection(methode_one=True)
 
         tickers_selected = tickers_above_85 = selection.selected_tickers
@@ -3167,9 +3077,7 @@ class kko_portfolio_update_manager:
 class kk_manager(object):
     @staticmethod
     def run_the_portfolio_update_system():
-
         while True:
-
             # start portfolio program, will take days before finish.
             portfolio_creator = kko_portfolio_update_manager()
 
@@ -3177,7 +3085,6 @@ class kk_manager(object):
 class create_stats(object):
     @staticmethod
     def return_backtest(tickers: list = []):
-
         tickers_out = tickers
         # create function that creates all kind off ticker combinations
         # 5 - 10.
@@ -3191,14 +3098,11 @@ class create_stats(object):
 
         # loops true
         for i in tickers_out:
-
             try:
-
                 ts_data = create_time_serie_with_kamalstrategie(i)
 
                 ticker_options[i] = ts_data.data
             except:
-
                 raise ValueError
 
         # get the keys so only good stocks will stay ther
@@ -3247,7 +3151,6 @@ class create_stats(object):
         first: bool = True
         r_data = 0
         for i in tickers:
-
             #
             sdata = data[i]
 
@@ -3265,19 +3168,16 @@ class create_stats(object):
             xdf = xdf.rename(columns={xdf.columns[0]: str(i)})
 
             if first:
-
                 r_data = xdf
                 first = False
 
             else:
-
                 r_data = pd.concat([r_data, xdf], axis=1)
 
         return r_data
 
 
 class PortfolioOptimizer:
-
     data = None
     num_assets = None
     risk_free_rate = 0.00
@@ -3368,7 +3268,6 @@ class PortfolioOptimizer:
 
 
 class portfolio_kamal:
-
     tickers: list
     volatiltiy: float
     sharp_ratio_max: float
@@ -3413,10 +3312,8 @@ class kko_strat_model:
 
 
 if __name__ == "__main__":
-
     # archive
     try:
-
         """
         print("Starting up ...")
         power_object = stock_object.power_stock_object(
@@ -3449,5 +3346,4 @@ if __name__ == "__main__":
         startup_ = kko_portfolio_update_manager()
         sleep(500000)
     except Exception as e:
-
         raise Exception("Error with tickers", e)
