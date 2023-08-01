@@ -2379,6 +2379,7 @@ class kko_portfolio_update_manager:
             # sleep if there are troubles
             # self.sleep_between_hours(16, 4)
             # Check if it's 17:00:00
+            time.sleep(0.5)
             newyork_tz = pytz.timezone("America/New_York")
 
             current_time = datetime.datetime.now(newyork_tz).time()
