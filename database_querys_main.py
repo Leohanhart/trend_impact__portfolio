@@ -2525,7 +2525,7 @@ if __name__ == "__main__":
         # x = database_querys.get_sector_trends()
         #### test
         print("test get liquidt tickers")
-        x = database_querys.get_trend_timeseries_data("Financial Services")
+        x = database_querys.get_all_trend_kalman()
 
         print("END")
 
