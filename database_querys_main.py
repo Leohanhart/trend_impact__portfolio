@@ -1410,6 +1410,7 @@ class database_querys:
                 existing_data.updatedAt = datetime.utcnow().strftime(
                     "%Y-%m-%d %H:%M:%S"
                 )
+
                 session.commit()
                 return "Data updated"
             else:
@@ -2522,10 +2523,10 @@ if __name__ == "__main__":
         model.max_yield = float(1.10)
         """
         # x = database_querys.get_trends_and_sector()
-        # x = database_querys.get_sector_trends()
+        x = database_querys.get_sector_trends()
         #### test
         print("test get liquidt tickers")
-        x = database_querys.get_all_trend_kalman()
+        # x = database_querys.get_all_trend_kalman()
 
         print("END")
 

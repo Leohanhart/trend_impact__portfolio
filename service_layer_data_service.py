@@ -208,6 +208,7 @@ class return_trend_analyses(object):
         return res_data
 
     def get_sector_analyses():
+        
         data = database_querys_main.database_querys.get_sector_trends()
 
         return data
