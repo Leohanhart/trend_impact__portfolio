@@ -314,6 +314,6 @@ if __name__ == "__main__":
         # print("LEETS GOOO")
         # sleep(432000)
         # x.pre_startup()
-        update_stats_trend_analyses.update_kaufman_support.update_all_analyse_medi()
+        service.return_trend_analyses.save_all_trend_analyses()
     except Exception as e:
         raise Exception("Error with tickers", e)
