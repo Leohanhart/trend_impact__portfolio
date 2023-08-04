@@ -426,6 +426,42 @@ class update_kaufman_support(object):
         except Exception as e:
             print(e)
 
+    def update_all_analyse_medi(amount_per_thread: int = 5):
+        # get tickers
+        tickers = database_querys.database_querys.get_all_active_tickers()
+
+        update_function = (
+            update_kaufman_support.update_all_analyses_with_ticker
+        )
+
+        update_tickers = tickers.copy()
+        up_t = []
+        threads = []
+        for ticker in tickers:
+            try:
+                # Set the start time
+                start_time = time.time()
+
+                # Sleep for a random amount between 1 and 3 seconds
+                update_function(ticker)
+
+                # Measure the end time
+                end_time = time.time()
+
+                # Calculate how long was slept
+                slept_duration = end_time - start_time
+
+                # Calculate the remaining time to sleep
+                remaining_time = 2.3 - slept_duration
+
+                if remaining_time > 0:
+                    time.sleep(remaining_time)
+
+            except Exception as e:
+                print(e)
+
+        return
+
     def return_full_analyses_dict(
         stock_data,
         ticker_name: str = "",
