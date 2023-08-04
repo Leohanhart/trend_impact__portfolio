@@ -141,7 +141,7 @@ class update_data:
         )
 
         # update archive
-        update_stats_trend_analyses.update_kaufman_support.update_all_analyse_multi()
+        update_stats_trend_analyses.update_kaufman_support.update_all_analyse_medi()
 
         database_querys.database_querys.add_log_to_logbook(
             "update-cycle: Update timeserie analyses analyses"
