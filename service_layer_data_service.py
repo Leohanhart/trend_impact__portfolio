@@ -56,7 +56,6 @@ class return_trend_analyses(object):
 
     @staticmethod
     def get_trade_performance(ticker: str):
-
         data = database_querys_main.database_querys.get_trend_kalman(ticker)
 
     @staticmethod
@@ -119,7 +118,6 @@ class return_trend_analyses(object):
 
     @staticmethod
     def get_all_trend_specs():
-
         data = database_querys_main.database_querys.get_all_trend_kalman()
 
         res_data = analyses_support.return_market_stats(data)
@@ -128,7 +126,6 @@ class return_trend_analyses(object):
 
     @staticmethod
     def get_all_tickers():
-
         data = database_querys_main.database_querys.get_all_trend_kalman()
 
         res_data = analyses_support.extract_all_tickers(data)
@@ -145,7 +142,6 @@ class return_trend_analyses(object):
         name_industry: str = "",
         name_sector: str = "",
     ):
-
         data = database_querys_main.database_querys.get_trends_and_sector()
 
         data = data.drop(
@@ -160,13 +156,11 @@ class return_trend_analyses(object):
         )
 
         if industry:
-
             data = data.groupby("industry")[
                 "trend", "exp_return", "duration"
             ].aggregate("mean", "count")
 
         elif sector:
-
             data = data.groupby("sector")[
                 "trend", "exp_return", "duration"
             ].aggregate("mean", "count")
@@ -214,7 +208,6 @@ class return_trend_analyses(object):
         return res_data
 
     def get_sector_analyses():
-
         data = database_querys_main.database_querys.get_sector_trends()
 
         return data
@@ -244,7 +237,6 @@ class return_trend_analyses(object):
         return json_data
 
     def get_all_types_of_trend_timeseries():
-
         items = [
             "ALL",
             "Technology",
@@ -266,7 +258,6 @@ class return_trend_analyses(object):
         return json_data
 
     def get_trend_analyses_sector(name: str = "ALL"):
-
         items = [
             "ALL",
             "Technology",
@@ -319,7 +310,6 @@ class return_trend_analyses(object):
         return json_data
 
     def save_all_trend_analyses():
-
         items = [
             "Technology",
             "Healthcare",
@@ -335,7 +325,7 @@ class return_trend_analyses(object):
         ]
         frame = None
 
-        ts_all = return_trend_analyses.get_trend_analyses("ALL")
+        ts_all = return_trend_analyses.get_trend_analyses_sector("ALL")
 
         ts_all.set_index("date", inplace=True)
 
@@ -346,8 +336,7 @@ class return_trend_analyses(object):
         main_frame = ts_data
 
         for i in items:
-
-            ts_all = return_trend_analyses.get_trend_analyses(i)
+            ts_all = return_trend_analyses.get_trend_analyses_sector(i)
 
             ts_all.set_index("date", inplace=True)
 
@@ -386,7 +375,6 @@ class return_trend_analyses(object):
         return loaded_df
 
     def get_all_trend_analyses_cache():
-
         # Get the data
         data = return_trend_analyses.load_all_trend_timeseries()
 
@@ -417,7 +405,6 @@ class trend_analyse_support(object):
         data = None
 
         for ticker in list_tickers:
-
             data_ticker = (
                 database_querys_main.database_querys.get_trend_kalman(ticker)
             )
@@ -427,7 +414,6 @@ class trend_analyse_support(object):
                 first_run = False
 
             else:
-
                 data = pd.concat([data, data_ticker])
 
         return data
@@ -492,12 +478,10 @@ class trend_analyse_support(object):
         # transform data to json
 
         try:
-
             data = data.to_dict(orient="records")
 
         # if packaging already done, dump and return.
         except AttributeError:
-
             resp = json.dumps(data)
 
             return resp
@@ -644,7 +628,6 @@ class return_portfolios_options(object):
         """
 
         try:
-
             data = database_querys_main.database_querys.subscribe_trading_portfolio(
                 id_=id_
             )
@@ -654,7 +637,6 @@ class return_portfolios_options(object):
             return data
 
         except Exception as e:
-
             return e
 
     @staticmethod
@@ -675,7 +657,6 @@ class return_portfolios_options(object):
         """
 
         try:
-
             data = database_querys_main.database_querys.unsubscribe_trading_portfolio(
                 id_=id_
             )
@@ -685,14 +666,12 @@ class return_portfolios_options(object):
             return data
 
         except Exception as e:
-
             return e
 
 
 class return_stats(object):
     @staticmethod
     def return_trading_backtest(portfolio_id):
-
         data = database_querys_main.database_querys.get_trading_portfolio(
             portfolio_id
         )
@@ -749,7 +728,6 @@ class return_logs(object):
 class crud_user_trades(object):
     @staticmethod
     def add_user_trade(uu_id_trader: str, ticker_name: str):
-
         database_querys_main.database_querys.add_user_trade(
             uu_id_trader, ticker_name
         )
@@ -758,7 +736,6 @@ class crud_user_trades(object):
 
     @staticmethod
     def remove_user_trade(uu_id_trader: str, ticker_name: str):
-
         database_querys_main.database_querys.delete_user_trade(
             uu_id_trader, ticker_name
         )
@@ -775,13 +752,11 @@ class return_trend_trade_options(object):
         amount_days_of_new_trend: int = 5,
         percentage_2y_profitble: float = 90,
     ):
-
         df = (
             database_querys_main.database_querys.get_trend_and_performance_kamal()
         )
 
         if long and not short:
-
             df = df.loc[
                 (df["trend"] > 0)
                 & (df["duration"] < amount_days_of_new_trend)
@@ -792,7 +767,6 @@ class return_trend_trade_options(object):
             ]
 
         elif short and not long:
-
             df = df.loc[
                 (df["trend"] < 0)
                 & (df["duration"] < amount_days_of_new_trend)
@@ -803,7 +777,6 @@ class return_trend_trade_options(object):
             ]
 
         elif long and short:
-
             df = df.loc[
                 (df["duration"] < amount_days_of_new_trend)
                 & (
@@ -1151,12 +1124,10 @@ class analyses_support(object):
         # transform data to json
 
         try:
-
             data = data.to_dict(orient="records")
 
         # if packaging already done, dump and return.
         except AttributeError:
-
             resp = json.dumps(data)
 
             return resp
@@ -1171,22 +1142,17 @@ class analyses_support(object):
 class maintenance_tickers(object):
     @staticmethod
     def add_or_remove_ticker(ticker: str = ""):
-
         if ticker:
-
             initializer_tickers_main.initiaze_singel_ticker(ticker)
 
             return 200
 
         else:
-
             return 404
 
 
 if __name__ == "__main__":
-
     try:
-
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
@@ -1194,7 +1160,6 @@ if __name__ == "__main__":
         print(x)
 
     except Exception as e:
-
         print(e)
 
 # print(data, "this is the data")

@@ -147,10 +147,10 @@ class update_data:
             "update-cycle: Update timeserie analyses analyses"
         )
 
-        # refresh timeseries.
+        # refresh/update timeseries.
         timeseries.update_trend_timeseries.update()
 
-        # Save trend analyses. #
+        # Save all trend analyses. #
         service.return_trend_analyses.save_all_trend_analyses()
 
         database_querys.database_querys.add_log_to_logbook(
