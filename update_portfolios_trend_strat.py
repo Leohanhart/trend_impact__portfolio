@@ -2388,7 +2388,7 @@ class kko_portfolio_update_manager:
                 database_querys.database_querys.add_log_to_logbook(
                     f"portfolio {thread_name}, halted for 10 hours"
                 )
-                time.sleep(12 * 60 * 60)
+                time.sleep(14 * 60 * 60)
                 database_querys.database_querys.add_log_to_logbook(
                     f"portfolio {thread_name}, restarted after halt"
                 )
