@@ -1488,37 +1488,13 @@ class database_querys:
 
         session.commit()
 
-
-def add_trend_timeserie(df):
-    db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
-    engine = create_engine(db_path, echo=True)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    for row in df.itertuples():
-        try:
-            existing_data = (
-                session.query(Trend_Analysis_Time_series)
-                .filter_by(date=row.Index, name=row.name)
-                .first()
-            )
-
-            if existing_data:
-                # Update existing data
-                existing_data.trend = row.trend
-                existing_data.duration = row.duration
-                existing_data.profile = row.profile
-                existing_data.profile_std = row.profile_std
-                existing_data.volatility = row.volatility
-                existing_data.current_yield = row.current_yield
-                existing_data.max_drawdown = row.max_drawdown
-                existing_data.exp_return = row.exp_return
-                existing_data.max_yield = row.max_yield
-                existing_data.longs = row.longs
-                existing_data.shorts = row.shorts
-                existing_data.total = row.total
-            else:
-                # Add new data
+    def add_trend_timeserie(df):
+        db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero
+        engine = create_engine(db_path, echo=True)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        for row in df.itertuples():
+            try:
                 new_data = Trend_Analysis_Time_series(
                     date=row.Index,
                     name=row.name,
@@ -1535,14 +1511,13 @@ def add_trend_timeserie(df):
                     shorts=row.shorts,
                     total=row.total,
                 )
+
                 session.add(new_data)
-
-            session.commit()
-        except IntegrityError:
-            session.rollback()
-        continue
-
-    session.close()
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+            continue
+        session.close()
 
     def add_log_to_logbook(text: str = ""):
         db_path = constants.SQLALCHEMY_DATABASE_URI_layer_zero

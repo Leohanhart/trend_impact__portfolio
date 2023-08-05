@@ -15,6 +15,7 @@ from datetime import timedelta
 import atexit
 import multiprocessing
 import yfinance as yf
+import numpy as np
 
 # import torch
 # import torch.nn as nn
@@ -165,6 +166,66 @@ class create_timeseries_manager:
 
         self.save_the_tts_dataframe(data)
 
+        # get missing data.
+        self.get_missing_data("ALL")
+
+        # update last 5 dates
+        self.update_last_days("ALL", date)
+
+    def update_last_days(self, name_, date):
+        days_to_subtract = 10
+
+        result_date = date - timedelta(days=days_to_subtract)
+
+        today_date = date.today()
+        # Generate a list of all business days between the given date and older date
+        business_days = pd.bdate_range(start=result_date, end=today_date)
+
+        dates = update_trend_support.return_dict_of_dates(business_days)
+
+        data = get_trend_analyses_timeseries.get_analyses_ts(
+            tickers=[], dates=dates, name_of_analyses=name_, return_all=True
+        )
+        self.save_the_tts_dataframe(data)
+
+    def get_missing_data(self, name_):
+        """
+
+        Retrieves all missing data, saves all missing data
+
+        Parameters
+        ----------
+        name_ : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        data = database_querys.database_querys.get_trend_timeseries_data(name_)
+        given_dates = data.date.to_list()
+
+        # Generate a list of all business days between a range
+        start_date = date(2000, 1, 1)
+        end_date = date.today()  # Replace this with your desired end date
+        business_days = pd.bdate_range(start=start_date, end=end_date)
+
+        # Convert the list of given dates to a set for faster lookup
+        given_dates_set = set(given_dates)
+
+        # Find missing business days
+        missing_dates = [
+            d.date() for d in business_days if d.date() not in given_dates_set
+        ]
+
+        dates = update_trend_support.return_dict_of_dates(missing_dates)
+
+        data = get_trend_analyses_timeseries.get_analyses_ts(
+            tickers=[], dates=dates, name_of_analyses=name_, return_all=True
+        )
+        self.save_the_tts_dataframe(data)
+
     def update_all_industrys(self):
         # first need to add data before fetch.
 
@@ -212,6 +273,10 @@ class create_timeseries_manager:
             )
 
             self.save_the_tts_dataframe(data)
+
+            self.get_missing_data(name)
+
+            self.update_last_days(name, date)
 
             continue
 
@@ -296,7 +361,10 @@ class get_trend_analyses_timeseries:
 
     @staticmethod
     def get_analyses_ts(
-        tickers: list = [], dates: list = [], name_of_analyses: str = ""
+        tickers: list = [],
+        dates: list = [],
+        name_of_analyses: str = "",
+        return_all: bool = False,
     ):
         tickers_all = []
 
@@ -334,6 +402,8 @@ class get_trend_analyses_timeseries:
                 # if it isn't, append the second DataFrame to the bottom of the first DataFrame
                 data_frame = pd.concat([data_frame, df])
 
+        if return_all:
+            data_frame
         # why is this done? Because the day of the update is on a business day on which
         # the data is not yet generated. On saturday, the only day left is friday, so lentgt is 1, ust push
         if len(data_frame) == 1:
