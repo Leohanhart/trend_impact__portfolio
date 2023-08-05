@@ -1156,7 +1156,7 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_analyses.get_sector_analyses()
+        x = return_trend_analyses.save_all_trend_analyses()
         print(x)
 
     except Exception as e:

@@ -25,10 +25,12 @@ import numpy as np
 class update_trend_timeseries:
     @staticmethod
     def update():
-        try: 
+        try:
             manager = create_timeseries_manager()
         except Exception as e:
-            database_querys.database_querys.add_log_to_logbook("Update Trend timeseries faild, or prevent blocking ", e)
+            database_querys.database_querys.add_log_to_logbook(
+                "Update Trend timeseries faild, or prevent blocking ", e
+            )
         # aggergate the timeseries (Ceprated functions)
         return
 
@@ -201,8 +203,8 @@ class create_timeseries_manager:
             )
 
             self.save_the_tts_dataframe(data)
-            
-            continue 
+
+            continue
 
     def save_the_tts_dataframe(self, df):
         """
@@ -1264,8 +1266,8 @@ atexit.register(get_trend_ts_support.cleanup)
 
 if __name__ == "__main__":
     try:
-        # x = update_trend_timeseries.update()
-        x = overall_trend_analyses()
+        x = update_trend_timeseries.update()
+        # x = overall_trend_analyses()
 
     except Exception as e:
         raise Exception("Error with tickers", e)
