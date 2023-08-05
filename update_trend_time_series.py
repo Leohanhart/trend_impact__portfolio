@@ -186,6 +186,7 @@ class create_timeseries_manager:
         data = get_trend_analyses_timeseries.get_analyses_ts(
             tickers=[], dates=dates, name_of_analyses=name_, return_all=True
         )
+
         self.save_the_tts_dataframe(data)
 
     def get_missing_data(self, name_):
@@ -224,6 +225,8 @@ class create_timeseries_manager:
         data = get_trend_analyses_timeseries.get_analyses_ts(
             tickers=[], dates=dates, name_of_analyses=name_, return_all=True
         )
+        if data is None:
+            return
         self.save_the_tts_dataframe(data)
 
     def update_all_industrys(self):
@@ -406,8 +409,10 @@ class get_trend_analyses_timeseries:
             data_frame
         # why is this done? Because the day of the update is on a business day on which
         # the data is not yet generated. On saturday, the only day left is friday, so lentgt is 1, ust push
-        if len(data_frame) == 1:
+        # Assuming data_frame is assigned somewhere before this point
+        if data_frame is not None and len(data_frame) == 1:
             return data_frame
+
         else:
             data_frame = data_frame.head(len(data_frame) - 1)
 
