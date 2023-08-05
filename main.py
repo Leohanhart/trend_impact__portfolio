@@ -59,7 +59,6 @@ acceptatie criteria
 
 
 def onstart_function():
-
     setup_server.initialize_server()
     #
     startup_support.create_path_for_stock_data()
@@ -88,7 +87,6 @@ async def generic_exception_handler(request, exc):
 
 @app.get("/")
 def read_root(request: Request):
-
     return {
         "Welcome to the trendimpact-core.. Build between Dec 29, 2022, and Jul 9 2023 in the name of Hanhart Trading Technologies "
     }
@@ -96,7 +94,6 @@ def read_root(request: Request):
 
 @app.post("/login")
 def login(user: str, pasword: str):
-
     token = login_user(user, pasword)
 
     return Response(token)
@@ -104,7 +101,6 @@ def login(user: str, pasword: str):
 
 @app.post("/verify_token")
 def verify_token_user(token: str):
-
     data = verify_token(token)
 
     return data
@@ -114,7 +110,6 @@ def verify_token_user(token: str):
 def create_new_user(
     token: str, username: str, password: str, role: str = "USER"
 ):
-
     data = protected_add_user(token, username, password, role)
 
     return data
@@ -122,7 +117,6 @@ def create_new_user(
 
 @app.post("/create_change_password")
 def delete_user(token: str, username: str):
-
     data = protected_delete_user(token, username)
 
     return data
@@ -130,7 +124,6 @@ def delete_user(token: str, username: str):
 
 @app.post("/create_delete_user")
 def create_user(token: str, username: str, password: str):
-
     data = protected_change_password(token, username, password)
 
     return data
@@ -138,7 +131,6 @@ def create_user(token: str, username: str, password: str):
 
 @app.get("/last_update")
 def return_last_update(token: str):
-
     verify_token(token)
 
     data = database_querys.get_last_update()
@@ -147,7 +139,6 @@ def return_last_update(token: str):
 
 @app.get("/trend_analyses")
 def return_trend_analyses(token: str, ticker: str, request: Request):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -162,7 +153,6 @@ def return_trend_analyses(token: str, ticker: str, request: Request):
 
 @app.get("/trend_analyses_archive_performance")
 def return_trend_archive_analyses(token: str, ticker: str):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -177,7 +167,6 @@ def return_trend_archive_analyses(token: str, ticker: str):
 
 @app.get("/trend_analyses_archive_history_trades")
 def return_trend_archive_trades(token: str, ticker: str):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -199,7 +188,6 @@ def return_all_trend_options(
     amount_days_of_new_trend: int = 5,
     percentage_2y_profitble: float = 90,
 ):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -220,7 +208,6 @@ def return_all_trend_options(
 
 @app.get("/trend_strategy_status")
 def return_all_trend_specs():
-
     data = services.return_trend_analyses.get_all_trend_specs()
 
     return Response(data)
@@ -235,7 +222,6 @@ def avalible_portfolios(
     min_amount_stocks: int = 5,
     max_amount_stocks: int = 6,
 ):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -256,7 +242,6 @@ def avalible_portfolios(
 
 @app.get("/trading_portfolios")
 def avalible_trading_portfolios(token: str, portfolio_id, request: Request):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -273,7 +258,6 @@ def avalible_trading_portfolios(token: str, portfolio_id, request: Request):
 
 @app.post("/add_portfolios")
 def add_portfolios(token: str, portfolio_id: str):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -290,7 +274,6 @@ def add_portfolios(token: str, portfolio_id: str):
 
 @app.post("/add_portfolios_manually")
 def add_manual_portfolios(token: str, portfolio_tickers: list):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -307,7 +290,6 @@ def add_manual_portfolios(token: str, portfolio_tickers: list):
 
 @app.delete("/remove_portfolio")
 def remove_portfolio(token: str, portfolio_id: str):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -324,7 +306,6 @@ def remove_portfolio(token: str, portfolio_id: str):
 
 @app.get("/show_portfolio_performance")
 def return_portfolio_performance(token: str, portfolio_id: str):
-
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -341,7 +322,6 @@ def return_portfolio_performance(token: str, portfolio_id: str):
 
 @app.get("/show_logs")
 def return_logs(token: str, page_number_in: int = 1):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN", "USER"],
@@ -363,7 +343,6 @@ def return_special_logs(
     page: int = 1,
     page_size: int = 100,
 ):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN"],
@@ -421,7 +400,6 @@ def return_logs(
     trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
     ticker: str = "",
 ):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN", "USER"],
@@ -440,7 +418,6 @@ def return_logs(
 def return_all_tickers(
     token: str,
 ):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN", "USER"],
@@ -455,7 +432,6 @@ def return_all_tickers(
 
 @app.post("/add_or_maintain_ticker")
 def add_or_maintain_ticker(token: str, ticker: str = ""):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN", "USER"],
@@ -472,7 +448,6 @@ def add_or_maintain_ticker(token: str, ticker: str = ""):
 def return_sector_strategy(
     token: str,
 ):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN", "USER"],
@@ -482,12 +457,11 @@ def return_sector_strategy(
 
     data = services.return_trend_analyses.get_sector_analyses()
 
-    return Response(data)
+    return data
 
 
 @app.post("/create_portfolio_strategys_list")
 def add_portofolio_strategys(token: str, name_strategy: str = ""):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN"],
@@ -524,7 +498,6 @@ def add_ticker_to_portofolio_strategys(
 def remove_list_portfolio_strategys(
     token: str, name_list: str = "", ticker_name: str = ""
 ):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN"],
@@ -546,7 +519,6 @@ def return_portofolio_strategys(
     ticker_name: str = "",
     return_all: bool = False,
 ):
-
     verify_token(
         token=token,
         expected_roles=["ADMIN"],
@@ -565,7 +537,6 @@ def return_portofolio_strategys(
 def return_all_sector_trend_analyses_data(
     token: str,
 ):
-
     verify_token(
         token,
         ["SIENTIST", "USER", "ADMIN"],
@@ -582,7 +553,6 @@ def return_all_sector_trend_analyses_data(
 def return_sector_trend_options(
     token: str,
 ):
-
     verify_token(
         token,
         ["SIENTIST", "USER", "ADMIN"],
@@ -597,7 +567,6 @@ def return_sector_trend_options(
 
 @app.post("/return_sector_trend_analyses")
 def return_sector_trend_analyses(token: str, name_analyses: str):
-
     verify_token(
         token,
         ["SIENTIST", "USER", "ADMIN"],
@@ -615,7 +584,6 @@ def return_sector_trend_analyses(token: str, name_analyses: str):
 handler = Mangum(app)
 
 if __name__ == "__main__":
-
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

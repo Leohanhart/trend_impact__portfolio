@@ -208,7 +208,6 @@ class return_trend_analyses(object):
         return res_data
 
     def get_sector_analyses():
-        
         data = database_querys_main.database_querys.get_sector_trends()
 
         return data
@@ -1157,7 +1156,7 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_analyses.save_all_trend_analyses()
+        x = return_trend_analyses.get_sector_analyses()
         print(x)
 
     except Exception as e:
