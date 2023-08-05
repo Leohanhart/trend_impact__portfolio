@@ -122,11 +122,20 @@ class create_timeseries_manager:
 
         self.sectors = database_querys.database_querys.get_all_active_sectors()
 
-        self.sectors = [item for item in self.sectors if item != "Unkown"]
-        self.industrys = [item for item in self.industrys if item != "Unkown"]
+        self.remove_bullshit()
 
         # load all sectors
         self.update_all()
+
+    def remove_bullshit(self):
+        self.sectors = [item for item in self.sectors if item != "Unkown"]
+        self.industrys = [item for item in self.industrys if item != "Unkown"]
+
+        self.sectors = [item for item in self.sectors if item != "nan"]
+        self.industrys = [item for item in self.industrys if item != "nan"]
+
+        self.sectors = [item for item in self.sectors if item != "ETF"]
+        self.industrys = [item for item in self.industrys if item != "ETF"]
 
     def update_all(self):
         """
