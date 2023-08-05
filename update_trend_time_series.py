@@ -122,8 +122,8 @@ class create_timeseries_manager:
 
         self.sectors = database_querys.database_querys.get_all_active_sectors()
 
-        self.sectors = [item for item in self.sectors if item != "Unknown"]
-        self.industrys = [item for item in self.industrys if item != "Unknown"]
+        self.sectors = [item for item in self.sectors if item != "Unkown"]
+        self.industrys = [item for item in self.industrys if item != "Unkown"]
 
         # load all sectors
         self.update_all()
