@@ -241,12 +241,12 @@ def avalible_portfolios(
 
 
 @app.get("/trading_portfolios")
-def avalible_trading_portfolios(token, portfolio_id, request: Request):
+def avalible_trading_portfolios(token: str, portfolio_id: str = ""):
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
         endpoint="trading_portfolios",
-        values=f"portfolio_id = {portfolio_id} host = {request.client.host}",
+        values=f"portfolio_id = {portfolio_id}",
     )
 
     data = services.return_portfolios_options.return_trading_portfolios(
