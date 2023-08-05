@@ -173,6 +173,14 @@ class create_timeseries_manager:
         self.update_last_days("ALL", date)
 
     def update_last_days(self, name_, date):
+        if name_ == "ALL":
+            tickers = []
+        else:
+            tickers = (
+                database_querys.database_querys.get_all_stocks_with_sector(
+                    name_sector=name_
+                )
+            )
         days_to_subtract = 10
 
         result_date = date - timedelta(days=days_to_subtract)
@@ -184,7 +192,10 @@ class create_timeseries_manager:
         dates = update_trend_support.return_dict_of_dates(business_days)
 
         data = get_trend_analyses_timeseries.get_analyses_ts(
-            tickers=[], dates=dates, name_of_analyses=name_, return_all=True
+            tickers=tickers,
+            dates=dates,
+            name_of_analyses=name_,
+            return_all=True,
         )
 
         self.save_the_tts_dataframe(data)
@@ -204,6 +215,14 @@ class create_timeseries_manager:
         None.
 
         """
+        if name_ == "ALL":
+            tickers = []
+        else:
+            tickers = (
+                database_querys.database_querys.get_all_stocks_with_sector(
+                    name_sector=name_
+                )
+            )
         data = database_querys.database_querys.get_trend_timeseries_data(name_)
         given_dates = data.date.to_list()
 
@@ -223,7 +242,10 @@ class create_timeseries_manager:
         dates = update_trend_support.return_dict_of_dates(missing_dates)
 
         data = get_trend_analyses_timeseries.get_analyses_ts(
-            tickers=[], dates=dates, name_of_analyses=name_, return_all=True
+            tickers=tickers,
+            dates=dates,
+            name_of_analyses=name_,
+            return_all=True,
         )
         if data is None:
             return
@@ -668,6 +690,12 @@ class extent_trend_analsyes:
         """
         # get sector data.
         self.sectors = database_querys.database_querys.get_all_active_sectors()
+
+        self.sectors = [item for item in self.sectors if item != "Unkown"]
+
+        self.sectors = [item for item in self.sectors if item != "nan"]
+
+        self.sectors = [item for item in self.sectors if item != "ETF"]
 
         # get all industry data.
         self.industrys = (
