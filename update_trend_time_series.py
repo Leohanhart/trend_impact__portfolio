@@ -149,7 +149,7 @@ class create_timeseries_manager:
 
         self.update_main_analyses()
         self.update_all_sectors()
-        self.update_all_industrys()
+        # self.update_all_industrys()
 
     def update_main_analyses(self):
         # recovers last date
