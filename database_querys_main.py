@@ -1516,7 +1516,7 @@ class database_querys:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-
+            continue
         session.close()
 
     def add_log_to_logbook(text: str = ""):
@@ -2526,6 +2526,7 @@ if __name__ == "__main__":
         x = database_querys.get_sector_trends()
         #### test
         print("test get liquidt tickers")
+        print(x)
         # x = database_querys.get_all_trend_kalman()
 
         print("END")

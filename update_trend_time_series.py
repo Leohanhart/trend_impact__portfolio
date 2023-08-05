@@ -25,8 +25,10 @@ import numpy as np
 class update_trend_timeseries:
     @staticmethod
     def update():
-        manager = create_timeseries_manager()
-
+        try: 
+            manager = create_timeseries_manager()
+        except Exception as e:
+            database_querys.database_querys.add_log_to_logbook("Update Trend timeseries faild, or prevent blocking ", e)
         # aggergate the timeseries (Ceprated functions)
         return
 
@@ -118,6 +120,9 @@ class create_timeseries_manager:
 
         self.sectors = database_querys.database_querys.get_all_active_sectors()
 
+        self.sectors = [item for item in self.sectors if item != "Unknown"]
+        self.industrys = [item for item in self.industrys if item != "Unknown"]
+
         # load all sectors
         self.update_all()
 
@@ -196,6 +201,8 @@ class create_timeseries_manager:
             )
 
             self.save_the_tts_dataframe(data)
+            
+            continue 
 
     def save_the_tts_dataframe(self, df):
         """
@@ -618,7 +625,6 @@ class extent_trend_analsyes:
         database_querys.database_querys.add_sector_trends(slide)
 
         for sector in self.sectors:
-
             print(sector)
 
             # check if exsist
@@ -790,7 +796,6 @@ class extent_trend_analsyes:
         return trade_stats
 
     def add_perofmance_indicator(self, df, ticker):
-
         stock_ticker_performance = self.sector_tickers[ticker]
 
         # load the stock data using yfinance
@@ -1090,7 +1095,6 @@ class extent_trend_support:
 
 class overall_trend_analyses:
     def __init__(self):
-
         # load all sectors
         self.sectors = database_querys.database_querys.get_all_active_sectors()
 
@@ -1102,7 +1106,6 @@ class overall_trend_analyses:
         # x = self.create_model("ALL", "ALLPTG", data)
 
     def create_trend_dataframe(self):
-
         frame = None
         ts_all = self.retreive_trend_timeserie("ALL")
 
@@ -1115,7 +1118,6 @@ class overall_trend_analyses:
         main_frame = ts_data
 
         for i in self.sectors:
-
             ts_all = self.retreive_trend_timeserie(i)
 
             ts_all.set_index("date", inplace=True)
