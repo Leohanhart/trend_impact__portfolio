@@ -335,8 +335,11 @@ class get_trend_analyses_timeseries:
                 data_frame = pd.concat([data_frame, df])
 
         # why is this done? Because the day of the update is on a business day on which
-        # the data is not yet generated.
-        data_frame = data_frame.head(len(data_frame) - 1)
+        # the data is not yet generated. On saturday, the only day left is friday, so lentgt is 1, ust push
+        if len(data_frame) == 1:
+            return data_frame
+        else:
+            data_frame = data_frame.head(len(data_frame) - 1)
 
         return data_frame
 
