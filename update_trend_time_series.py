@@ -185,7 +185,7 @@ class create_timeseries_manager:
 
         result_date = date - timedelta(days=days_to_subtract)
 
-        today_date = date.today()
+        today_date = date.today() - timedelta(days=1)
         # Generate a list of all business days between the given date and older date
         business_days = pd.bdate_range(start=result_date, end=today_date)
 
@@ -228,7 +228,9 @@ class create_timeseries_manager:
 
         # Generate a list of all business days between a range
         start_date = date(2000, 1, 1)
-        end_date = date.today()  # Replace this with your desired end date
+        end_date = date.today() - timedelta(
+            days=1
+        )  # Replace this with your desired end date
         business_days = pd.bdate_range(start=start_date, end=end_date)
 
         # Convert the list of given dates to a set for faster lookup
@@ -432,6 +434,7 @@ class get_trend_analyses_timeseries:
         # why is this done? Because the day of the update is on a business day on which
         # the data is not yet generated. On saturday, the only day left is friday, so lentgt is 1, ust push
         # Assuming data_frame is assigned somewhere before this point
+
         if data_frame is not None and len(data_frame) == 1:
             return data_frame
         elif data_frame is not None:
