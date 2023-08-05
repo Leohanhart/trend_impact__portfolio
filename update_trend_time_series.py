@@ -334,6 +334,8 @@ class get_trend_analyses_timeseries:
                 # if it isn't, append the second DataFrame to the bottom of the first DataFrame
                 data_frame = pd.concat([data_frame, df])
 
+        # why is this done? Because the day of the update is on a business day on which
+        # the data is not yet generated.
         data_frame = data_frame.head(len(data_frame) - 1)
 
         return data_frame
