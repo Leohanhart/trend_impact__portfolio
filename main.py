@@ -241,7 +241,7 @@ def avalible_portfolios(
 
 
 @app.get("/trading_portfolios")
-def avalible_trading_portfolios(token: str, portfolio_id, request: Request):
+def avalible_trading_portfolios(token, portfolio_id, request: Request):
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
