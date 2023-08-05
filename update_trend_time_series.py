@@ -412,11 +412,10 @@ class get_trend_analyses_timeseries:
         # Assuming data_frame is assigned somewhere before this point
         if data_frame is not None and len(data_frame) == 1:
             return data_frame
-
-        else:
+        elif data_frame is not None:
             data_frame = data_frame.head(len(data_frame) - 1)
-
-        return data_frame
+        else:
+            return data_frame
 
 
 class get_trend_ts_support:
