@@ -406,7 +406,7 @@ class get_trend_analyses_timeseries:
                 data_frame = pd.concat([data_frame, df])
 
         if return_all:
-            data_frame
+            return data_frame
         # why is this done? Because the day of the update is on a business day on which
         # the data is not yet generated. On saturday, the only day left is friday, so lentgt is 1, ust push
         # Assuming data_frame is assigned somewhere before this point
