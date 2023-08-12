@@ -389,15 +389,17 @@ class return_trend_analyses(object):
     def get_analyse_trend_ts_data(ticker: str, amount_of_days=1250):
         data = create_ts(ticker)
 
+        df = data.data.returns.tail(amount_of_days).diff().cumsum()
+
+        df = df.fillna(0)
+
         # return signals
         power_object = stock_object.power_stock_object(stock_ticker=ticker)
 
         # stockdata
-        sdata = power_object.stock_data
+        sdata = power_object.stock_data.Close.tail(amount_of_days)
 
-        df = data.data.returns.tail(amount_of_days).diff().cumsum()
-
-        df = df.fillna(0)
+        df = pd.merge(df, sdata, how="left", left_index=True, right_index=True)
 
         # Convert DataFrame to JSON with proper orientation
         json_data = df.to_json(orient="index", date_format="iso")
