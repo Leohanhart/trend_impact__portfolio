@@ -179,6 +179,37 @@ def return_trend_archive_trades(token: str, ticker: str):
     return Response(data)
 
 
+@app.get("/trend_analyses_ts")
+def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trend_analyses_ts",
+        values=f"ticker = {ticker}",
+    )
+
+    data = services.return_trend_analyses.get_analyse_trend_ts_data(ticker)
+
+    # stockdata
+    sdata = power_object.stock_data
+
+    return data
+
+
+@app.get("/get_stock_ts")
+def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
+    verify_token(
+        token=token,
+        expected_roles=["USER", "ADMIN"],
+        endpoint="trend_analyses_ts",
+        values=f"ticker = {ticker}",
+    )
+
+    data = services.return_trend_analyses.get_analyse_trend_ts_data(ticker)
+
+    return data
+
+
 @app.get("/trend_analyses_trade_options")
 def return_all_trend_options(
     token: str,

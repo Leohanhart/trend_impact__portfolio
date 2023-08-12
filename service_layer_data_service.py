@@ -13,7 +13,7 @@ IMPORTANT NOTES:
 import database_querys_main
 import json
 import uuid
-from core_scripts.stock_data_download import power_stock_object
+from core_scripts.stock_data_download import power_stock_object as stock_object
 import update_portfolios_trend_strat
 import datetime
 import constants
@@ -25,6 +25,9 @@ import initializer_tickers_main
 from multiprocessing import Process
 import update_trend_time_series
 import database_connection
+from update_portfolios_trend_strat import (
+    create_time_serie_with_kamalstrategie as create_ts,
+)
 
 
 class return_trend_analyses(object):
@@ -380,6 +383,24 @@ class return_trend_analyses(object):
 
         # Convert the DataFrame to JSON with orient='index'
         json_data = data.to_json(orient="index", date_format="iso")
+
+        return json_data
+
+    def get_analyse_trend_ts_data(ticker: str, amount_of_days=1250):
+        data = create_ts(ticker)
+
+        # return signals
+        power_object = stock_object.power_stock_object(stock_ticker=ticker)
+
+        # stockdata
+        sdata = power_object.stock_data
+
+        df = data.data.returns.tail(amount_of_days).diff().cumsum()
+
+        df = df.fillna(0)
+
+        # Convert DataFrame to JSON with proper orientation
+        json_data = df.to_json(orient="index", date_format="iso")
 
         return json_data
 
@@ -1156,7 +1177,7 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_analyses.save_all_trend_analyses()
+        x = return_trend_analyses.get_analyse_trend_ts_data("AAPL")
         print(x)
 
     except Exception as e:

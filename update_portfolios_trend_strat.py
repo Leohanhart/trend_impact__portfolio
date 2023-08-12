@@ -1637,6 +1637,10 @@ class kko_portfolio_update_manager:
 
         # Wait for all processes to complete
         pool.join()
+
+        database_querys.database_querys.add_log_to_logbook(
+            "portfolio creation killed threads"
+        )
         """
         self.procs = []
 
