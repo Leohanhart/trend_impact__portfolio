@@ -33,7 +33,7 @@ from contextlib import contextmanager
 import constants
 import json
 from core_utils.database_tables.tabels import User, UserActivity
-from jwt import encode
+
 
 app = FastAPI()
 
@@ -113,7 +113,6 @@ def get_user_activity_data(
 
 
 def log_user_activity(username: str, endpoint: str, values: str):
-
     if endpoint == "" or endpoint is None:
         return
     # Get the database session using the context manager
@@ -195,13 +194,11 @@ def verify_token(
     values: str = "",
 ) -> tuple:
     try:
-
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("username")
         roles = payload.get("roles")
         if username:
             if roles in expected_roles:
-
                 log_user_activity(username, endpoint, values)
 
                 return username, roles
@@ -269,12 +266,10 @@ def verify_token_endpoint(token: str):
 
 
 if __name__ == "__main__":
-
     try:
         x = get_user_activity_data(search_user="LEODEADMIN")
         # add_user("LEODEADMIN", "QWERTY12345...LEOISADMIN", "ADMIN")
         print("est", x)
 
     except Exception as e:
-
         raise Exception("Database could not be created", e)
