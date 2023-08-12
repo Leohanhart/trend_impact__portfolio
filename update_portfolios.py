@@ -67,6 +67,7 @@ from initializer_tickers_main import InitializeTickers
 import subprocess
 import os
 import atexit
+import platform
 
 
 class update_data:
@@ -266,7 +267,7 @@ class update_data:
 
     def start_update_schedule(self):
         database_querys.database_querys.add_log_to_logbook(
-            "System passed: Startup scedual"
+            "System passed: Startup schedule"
         )
         if self._check_lock_file():
             database_querys.database_querys.add_log_to_logbook(
@@ -277,13 +278,25 @@ class update_data:
 
         try:
             self._create_lock_file()
-            subprocess.Popen(
-                [
+
+            os_name = platform.system()
+            if os_name == "Windows":
+                command = [
                     "python",
                     "-c",
                     "from update_portfolios import update_data; update_data().startup_data_transformation()",
                 ]
-            )
+            elif os_name == "Linux":
+                command = [
+                    "python3",  # Use python3 for Linux
+                    "-c",
+                    "from update_portfolios import update_data; update_data().startup_data_transformation()",
+                ]
+            else:
+                print("Unsupported operating system:", os_name)
+                return
+
+            subprocess.Popen(command)
         except Exception as e:
             print(f"Failed to start subprocess: {e}")
             self._remove_lock_file()
