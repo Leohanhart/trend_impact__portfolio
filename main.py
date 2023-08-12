@@ -190,9 +190,6 @@ def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
 
     data = services.return_trend_analyses.get_analyse_trend_ts_data(ticker)
 
-    # stockdata
-    sdata = power_object.stock_data
-
     return data
 
 
