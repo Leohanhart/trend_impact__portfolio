@@ -1635,59 +1635,39 @@ class kko_portfolio_update_manager:
         # Close the Pool to prevent any new tasks from being submitted
         pool.close()
 
+        database_querys.database_querys.add_log_to_logbook(
+            "Proceses started, waiting for restart"
+        )
+
+        ny_timezone = pytz.timezone("America/New_York")
+
+        while True:
+            current_time_ny = datetime.datetime.now(ny_timezone)
+
+            if (
+                current_time_ny.weekday() == 5
+                and 13 <= current_time_ny.hour < 14
+            ):
+                database_querys.database_querys.add_log_to_logbook(
+                    "Its time to reset the Portfolio update module, this will take 61 minuts"
+                )
+                break
+
+            else:
+                print("Sleep untill saturday afternoon")
+            time.sleep(600)  # Sleep 10 minutes
+
+        time.sleep(3600)
         # Wait for all processes to complete
+        # terminat all treads
+        pool.terminate()
+        # join all threads.
         pool.join()
 
         database_querys.database_querys.add_log_to_logbook(
             "portfolio creation killed threads"
         )
-        """
-        self.procs = []
 
-        for tickers_list_name in data_list:
-            # print(name)
-            proc = Process(
-                target=self.start_multi_thread, args=(tickers_list_name,)
-            )
-            sleep(20)
-            database_querys.database_querys.add_log_to_logbook(
-                f"portfolio {tickers_list_name} is started"
-            )
-            self.procs.append(proc)
-            proc.start()
-
-            # complete the processes
-        for proc in self.procs:
-            proc.join()
-        
-        for tickers_list_name in data_list:
-            tickers_list_name = tickers_list_name.replace("_", "")
-            print(tickers_list_name)
-
-            in_arg = [tickers_list_name]
-            thread = Process(target=self.start_multi_thread, args=(in_arg,))
-
-            self.threads.append(thread)
-
-            try:
-                thread.start()
-            except Exception as e:
-                print(e)
-
-            del thread
-            database_querys.database_querys.add_log_to_logbook(
-                f"portfolio {tickers_list_name} is started"
-            )
-
-        if not self.threads:
-            database_querys.database_querys.add_log_to_logbook(
-                "List was empty for the list_portfolio's"
-            )
-            return
-
-        for thread in self.threads:
-            thread.join()
-        """
         database_querys.database_querys.add_log_to_logbook(
             "All portfolio update threads have stoped"
         )
