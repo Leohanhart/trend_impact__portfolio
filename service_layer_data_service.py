@@ -406,6 +406,18 @@ class return_trend_analyses(object):
 
         return json_data
 
+    def get_stock_ts_data(ticker: str, amount_of_days=1250):
+        # return signals
+        power_object = stock_object.power_stock_object(stock_ticker=ticker)
+
+        # stockdata
+        df = power_object.stock_data.tail(amount_of_days)
+
+        # Convert DataFrame to JSON with proper orientation
+        json_data = df.to_json(orient="index", date_format="iso")
+
+        return json_data
+
 
 class trend_analyse_support(object):
     def return_trend_data_multiple(list_tickers: list = []):
@@ -1179,7 +1191,7 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_analyses.get_analyse_trend_ts_data("AAPL")
+        x = return_trend_analyses.get_stock_ts_data("AAPL")
         print(x)
 
     except Exception as e:

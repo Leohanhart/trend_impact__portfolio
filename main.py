@@ -180,7 +180,7 @@ def return_trend_archive_trades(token: str, ticker: str):
 
 
 @app.get("/trend_analyses_ts")
-def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
+def trend_analyses_ts(token: str, ticker: str, periode: int = 1250):
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -194,7 +194,7 @@ def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
 
 
 @app.get("/get_stock_ts")
-def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
+def get_stock_ts(token: str, ticker: str, periode: int = 1250):
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
@@ -202,7 +202,7 @@ def return_trend_archive_trades(token: str, ticker: str, periode: int = 1250):
         values=f"ticker = {ticker}",
     )
 
-    data = services.return_trend_analyses.get_analyse_trend_ts_data(ticker)
+    data = services.return_trend_analyses.get_stock_ts_data(ticker, periode)
 
     return data
 
