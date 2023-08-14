@@ -21,6 +21,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project directory to the container
 COPY . .
 
+# Run the delete_lock_file Python script
+RUN python delete_lock_file.py
+
 # Expose the port on which the FastAPI app will run
 EXPOSE 8000
 
