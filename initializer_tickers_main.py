@@ -41,7 +41,6 @@ class InitializeTickers:
 
     @classmethod
     def initialize_all_tickers(cls):
-
         database_connection.test_postgresql_connection()
 
         db_connection = database_connection.get_db_connection()
@@ -106,7 +105,6 @@ class InitializeTickers:
                     )
 
                     if data == {} or not data:
-
                         if stocks_object.stock_data.empty:
                             # Get the ticker with id "AAPL" from the database
                             ticker_aapl = (
@@ -117,7 +115,6 @@ class InitializeTickers:
 
                             # Check if the ticker exists and update its active status
                             if ticker_aapl:
-
                                 ticker_aapl.active = False  # Set active to False for the specified ticker
 
                                 # Commit the changes to the database
@@ -180,7 +177,6 @@ class InitializeTickers:
                         )
                         session.add(new_market_data)
                 except:
-
                     continue
 
                 # Commit the session to persist the changes
@@ -222,11 +218,10 @@ class initiaze_singel_ticker:
         self.main_ticker = stock_ticker
 
         if auto_modus:
-
             try:
                 self.add_ticker_to_db()
             except:
-                self.delete_ticker_from_db()
+                print("No entrance for ticker {stock_ticker}")
 
     def check_if_ticker_is_capable(self):
         """
@@ -248,7 +243,6 @@ class initiaze_singel_ticker:
         stock = self.main_ticker
 
         try:
-
             # global stocks_object
 
             # try:
@@ -279,41 +273,32 @@ class initiaze_singel_ticker:
             """
             # check if sector is legid
             if not stocks_object.sector:
-
                 sector_in = "NA"
 
             else:
-
                 sector_in = stocks_object.sector
 
             # check if industry is legid
             if not stocks_object.industry:
-
                 industry_in = "NA"
 
             else:
-
                 industry_in = stocks_object.industry
 
             # check if stockexchange is legid.
             if not stocks_object.all_stock_data == False:
-
                 exchange_in = "NA"
 
             else:
-
                 exchange_in = stocks_object.all_stock_data["exchange"]
 
             # tries manipulation on time serie, if fails, problem with time serie, stock is inactive.
             if sector_in != "NA":
-
                 return True
             else:
-
                 return False
 
         except:
-
             raise ValueError
 
     def check_if_ticker_exsist(self):
@@ -337,15 +322,12 @@ class initiaze_singel_ticker:
 
             # check if data is new.
             if data == None:
-
                 return False
 
             else:
-
                 return True
 
         except Exception as e:
-
             print("Error ")
 
             pass
@@ -371,7 +353,6 @@ class initiaze_singel_ticker:
         )
 
         if not self.check_if_ticker_exsist():
-
             ticker = Ticker(
                 id=str(stock),
                 sector="ETF",
@@ -415,16 +396,14 @@ class initiaze_singel_ticker:
 
 
 if __name__ == "__main__":
-
     try:
         pass
         # NOT DELETE: DELISTED TICKER : FRTA
         # x = initiaze_tickers()
         #
-        # infile_ = initiaze_singel_ticker("AAPL")
+        infile_ = initiaze_singel_ticker("VIX")
         # print(infile_.check_if_ticker_is_capable() , "this is false or good.")
         # infile_.add_ticker_to_db()
-        InitializeTickers.initialize_all_tickers()
+        # InitializeTickers.initialize_all_tickers()
     except Exception as e:
-
         raise Exception("Error with tickers", e)
