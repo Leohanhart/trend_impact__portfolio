@@ -25,7 +25,6 @@ import database_connection
 
 
 def initialization():
-
     #
     engine = database_connection.get_db_engine()
 
@@ -66,7 +65,6 @@ def initialization():
         error_code = Column(String, nullable=True)
 
     class logbook(Base):
-
         __tablename__ = "logbook"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
@@ -241,17 +239,17 @@ def initialization():
         total_sharp_y2 = Column(Float)
         total_volatility_y2 = Column(Float)
 
-    class user_trades(Base):
-
+    class User_trades(Base):
         __tablename__ = "user_trades"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
         user_id = Column(String)
         ticker = Column(String)
+        createdAt = Column(String)
 
         __table_args__ = (
             UniqueConstraint(
-                "user_id", "ticker", name="_tickers_uniqueodeo_value"
+                "user_id", "ticker", name="_tickers_unique_value"
             ),
         )
 
@@ -341,11 +339,8 @@ def initialization():
 
 
 if __name__ == "__main__":
-
     try:
-
         initialization()
 
     except Exception as e:
-
         raise Exception("Database could not be created", e)
