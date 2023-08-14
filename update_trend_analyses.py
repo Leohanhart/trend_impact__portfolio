@@ -320,6 +320,9 @@ class update_kaufman_support(object):
         performance_specs = update_trend_performance(ticker, "D")
 
         logger.info(f"Finished update {ticker}")
+
+        performance_specs = archive_data = model = power_object = None
+
         return True
 
     def update_full_with_ticker(ticker: str):
@@ -430,10 +433,6 @@ class update_kaufman_support(object):
         # get tickers
         tickers = database_querys.database_querys.get_all_active_tickers()
 
-        update_function = (
-            update_kaufman_support.update_all_analyses_with_ticker
-        )
-
         update_tickers = tickers.copy()
         up_t = []
         threads = []
@@ -443,7 +442,7 @@ class update_kaufman_support(object):
                 start_time = time.time()
 
                 # Sleep for a random amount between 1 and 3 seconds
-                update_function(ticker)
+                update_kaufman_support.update_all_analyses_with_ticker(ticker)
 
                 # Measure the end time
                 end_time = time.time()
@@ -456,6 +455,10 @@ class update_kaufman_support(object):
 
                 if remaining_time > 0:
                     time.sleep(remaining_time)
+
+                start_time = None
+                end_time = None
+                remaining_time = slept_duration = None
 
             except Exception as e:
                 print(e)
