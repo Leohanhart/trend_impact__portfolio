@@ -68,6 +68,7 @@ def onstart_function():
 
 @app.on_event("startup")
 async def startup_event():
+
     onstart_function()
 
 
@@ -216,13 +217,14 @@ def return_all_trend_options(
     amount_days_of_new_trend: int = 5,
     percentage_2y_profitble: float = 90,
 ):
+    
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
         endpoint="trend_analyses_trade_options",
         values=f"page = {page},long = {long}, short = {short}",
     )
-
+    
     data = services.return_trend_trade_options.return_trade_options(
         page=page,
         long=long,
@@ -231,7 +233,7 @@ def return_all_trend_options(
         percentage_2y_profitble=percentage_2y_profitble,
     )
 
-    return Response(data)
+    return JSONResponse(content=data)
 
 
 @app.get("/trend_strategy_status")
@@ -405,7 +407,7 @@ def return_user_trades(
 @app.post("/add_user_trades")
 def add_user_trade(
     token: str,
-    trader_id: str = "49a55c9c-8dbd-11ed-8abb-001a7dda7110",
+    trader_id: str = "",
     ticker: str = "",
 ):
     verify_token(
