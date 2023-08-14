@@ -787,7 +787,27 @@ class update_kaufman_support(object):
             current_time = datetime.datetime.now(newyork_tz).time()
 
             # Check if it's 17:00:00
-            if current_time.hour == 17 and 0 <= current_time.minute <= 30:
+            if current_time.hour == 16 and 0 <= current_time.minute <= 30:
+                break
+            time.sleep(60)
+            print("Standby for update")
+
+        print("It's 17:00 New York time now!")
+
+    def wait_until_5000():
+        # Get the New York time zone
+        newyork_tz = pytz.timezone("America/New_York")
+
+        print(
+            f"Waiting until 04:00 New York time. Current New York time: {datetime.datetime.now(newyork_tz).strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+
+        while True:
+            # Get the current time in the New York time zone
+            current_time = datetime.datetime.now(newyork_tz).time()
+
+            # Check if it's 17:00:00
+            if current_time.hour == 4 and 0 <= current_time.minute <= 30:
                 break
             time.sleep(60)
             print("Standby for update")
