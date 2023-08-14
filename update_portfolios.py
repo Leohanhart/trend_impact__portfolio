@@ -123,7 +123,7 @@ class update_data:
             "daily update: cycle started init"
         )
 
-        update_stats_trend_analyses.update_kaufman_support.wait_until_1700()
+        # update_stats_trend_analyses.update_kaufman_support.wait_until_1700()
 
         # started #
         database_querys.database_querys.add_log_to_logbook(
