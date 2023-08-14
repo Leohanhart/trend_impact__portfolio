@@ -790,11 +790,11 @@ class return_trend_trade_options(object):
         df = (
             database_querys_main.database_querys.get_trend_and_performance_kamal()
         )
-        
+
         df.replace([np.nan, np.inf, -np.inf], 0, inplace=True)
 
         # apply pagenagtion
-        df = analyses_support.apply_pagination(df, 20, page)
+        # df = analyses_support.apply_pagination(df, 20, page)
 
         # drop columns with troubles.
         df = df.drop(columns=["last_update", "id_1"])
