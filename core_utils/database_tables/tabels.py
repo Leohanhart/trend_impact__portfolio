@@ -244,7 +244,6 @@ class unit_tests_and_errors(Base):
 
 
 class Logbook(Base):
-
     __tablename__ = "logbook"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -253,7 +252,6 @@ class Logbook(Base):
 
 
 class log(Base):
-
     __tablename__ = "logs_and_reports"
 
     id = Column(Integer, primary_key=True)
@@ -263,7 +261,6 @@ class log(Base):
 
 
 class Analyses_archive_flowimpact(Base):
-
     __tablename__ = "analyses_archive_flowimpact"
 
     id = Column(Integer, primary_key=True)
@@ -286,7 +283,6 @@ class Analyses_archive_flowimpact(Base):
 
 
 class Analyses_archive_performance(Base):
-
     __tablename__ = "analyses_archive_performance"
 
     id = Column(Integer, primary_key=True)
@@ -485,12 +481,12 @@ class closed_portfolio(Base):
 
 
 class User_trades(Base):
-
     __tablename__ = "user_trades"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String)
     ticker = Column(String)
+    createdAt = Column(String)
 
     __table_args__ = (
         UniqueConstraint("user_id", "ticker", name="_tickers_unique_value"),

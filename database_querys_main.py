@@ -1558,7 +1558,11 @@ class database_querys:
         )
 
         if x == None:
-            trade = User_trades(user_id=str(user_id), ticker=str(user_ticker))
+            trade = User_trades(
+                user_id=str(user_id),
+                ticker=str(user_ticker),
+                createdAt=datetime.now(),
+            )
 
             session.add(trade)
             session.commit()
