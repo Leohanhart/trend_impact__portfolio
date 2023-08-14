@@ -1590,6 +1590,7 @@ class kko_portfolio_update_manager:
         database_querys.database_querys.add_log_to_logbook(
             "removing old portfolios"
         )
+
         portfolio_ids = (
             database_querys.database_querys.get_expired_portfolio_archives(31)
         )
@@ -1615,6 +1616,7 @@ class kko_portfolio_update_manager:
         )
 
         data_list = json.loads(list_tickers)
+
         database_querys.database_querys.add_log_to_logbook(
             "Startingup portfolio creation threads"
         )
@@ -2446,6 +2448,8 @@ class kko_portfolio_update_manager:
 
                 itterations_count = []
             else:
+                data = None
+                pseudo_portfo = None
                 continue
 
         return
@@ -2457,11 +2461,13 @@ class kko_portfolio_update_manager:
             # print(f"{thread_name} is using fuction")
             # creates portfolio
             if portfolio_data.isna().any().any():
+                portfolio_data = None
                 return False
             try:
                 portfolio = PortfolioOptimizer(portfolio_data)
-
             except:
+                portfolio = None
+
                 return False
 
             if portfolio.sharpe_ratio < current_sharp_ratio:
@@ -2478,9 +2484,13 @@ class kko_portfolio_update_manager:
                         portfolio_strategy=thread_name,
                     )
 
+                    execute = None
+
                     return True
                 else:
                     execute = add_kko_portfolio(portfolio=portfolio)
+
+                    execute = None
 
                     return True
                 # creates portfolio
