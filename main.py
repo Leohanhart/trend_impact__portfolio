@@ -68,7 +68,6 @@ def onstart_function():
 
 @app.on_event("startup")
 async def startup_event():
-
     onstart_function()
 
 
@@ -217,14 +216,13 @@ def return_all_trend_options(
     amount_days_of_new_trend: int = 5,
     percentage_2y_profitble: float = 90,
 ):
-    
     verify_token(
         token=token,
         expected_roles=["USER", "ADMIN"],
         endpoint="trend_analyses_trade_options",
         values=f"page = {page},long = {long}, short = {short}",
     )
-    
+
     data = services.return_trend_trade_options.return_trade_options(
         page=page,
         long=long,
