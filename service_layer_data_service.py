@@ -790,35 +790,8 @@ class return_trend_trade_options(object):
         df = (
             database_querys_main.database_querys.get_trend_and_performance_kamal()
         )
-
-        if long and not short:
-            df = df.loc[
-                (df["trend"] > 0)
-                & (df["duration"] < amount_days_of_new_trend)
-                & (
-                    df["total_profitible_trades_y2"]
-                    > float(percentage_2y_profitble)
-                )
-            ]
-
-        elif short and not long:
-            df = df.loc[
-                (df["trend"] < 0)
-                & (df["duration"] < amount_days_of_new_trend)
-                & (
-                    df["total_profitible_trades_y2"]
-                    > float(percentage_2y_profitble)
-                )
-            ]
-
-        elif long and short:
-            df = df.loc[
-                (df["duration"] < amount_days_of_new_trend)
-                & (
-                    df["total_profitible_trades_y2"]
-                    > float(percentage_2y_profitble)
-                )
-            ]
+        
+        df.replace([np.nan, np.inf, -np.inf], 0, inplace=True)
 
         # apply pagenagtion
         df = analyses_support.apply_pagination(df, 20, page)
@@ -827,7 +800,7 @@ class return_trend_trade_options(object):
         df = df.drop(columns=["last_update", "id_1"])
 
         # package data
-        res_data = trend_analyse_support.package_data(df)
+        res_data = df.to_dict(orient="records")
 
         return res_data
 
@@ -1191,7 +1164,7 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_analyses.get_stock_ts_data("AAPL")
+        x = return_trend_trade_options.return_trade_options()
         print(x)
 
     except Exception as e:
