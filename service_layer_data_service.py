@@ -13,9 +13,10 @@ IMPORTANT NOTES:
 import database_querys_main
 import json
 import uuid
+
 from core_scripts.stock_data_download import power_stock_object as stock_object
 import update_portfolios_trend_strat
-import datetime
+from datetime import datetime
 import constants
 from core_utils.save_temp_data import save_and_load_temp_data
 import pandas
@@ -200,13 +201,78 @@ class return_trend_analyses(object):
 
         tickers = list(data.ticker.values)
 
-        data = trend_analyse_support.return_trend_data_multiple(
+        data_trades = df = trend_analyse_support.return_trend_data_multiple(
             list_tickers=tickers
         )
 
-        data[["last_update"]] = data[["last_update"]].astype(str)
+        # Rename 'current_yield' to 'signal_yield'
+        df.rename(columns={"current_yield": "signal_yield"}, inplace=True)
 
-        res_data = trend_analyse_support().package_data(data)
+        # Add 'trade_yield' column with all values set to 0
+        df["trade_yield"] = 0
+
+        for index, row in df.iterrows():
+            # dowloads stock data.
+            power_object = stock_object.power_stock_object(
+                stock_ticker=row["id"]
+            )
+
+            # gets data from stockobject
+            s_data = power_object.stock_data
+
+            # selects matching ticker from user trades
+            selected_rows = data[data["ticker"] == row["id"]]
+
+            # sets startdate in the right way
+            start_date = selected_rows.createdAt[0]
+
+            # sets start object
+            start_date_obj = datetime.strptime(
+                start_date, "%Y-%m-%d %H:%M:%S.%f"
+            )
+
+            # Use the strftime method to format the datetime object
+            formatted_start_date = start_date_obj.strftime(
+                "%Y-%m-%d %H:%M:%S.%f"
+            )
+
+            # Get the current date and time
+            current_datetime = datetime.now()
+
+            # Format the current datetime as a string in the desired format
+            current_datetime_str = current_datetime.strftime(
+                "%Y-%m-%d %H:%M:%S.%f"
+            )
+
+            # selects data
+            selected_data = s_data.loc[start_date_obj:current_datetime]
+
+            # sums return
+            returns = selected_data.Change.sum()
+
+            df.at[index, "trade_yield"] = returns * row.trend
+
+        # Reorder columns
+        desired_order = [
+            "id",
+            "periode",
+            "trend",
+            "duration",
+            "profile",
+            "profile_std",
+            "volatility",
+            "signal_yield",
+            "max_drawdown",
+            "exp_return",
+            "max_yield",
+            "trade_yield",
+            "last_update",
+        ]
+        df = df[desired_order]
+
+        df[["last_update"]] = df[["last_update"]].astype(str)
+
+        res_data = trend_analyse_support().package_data(df)
 
         return res_data
 
@@ -762,7 +828,7 @@ class return_logs(object):
 
 class crud_user_trades(object):
     @staticmethod
-    def add_user_trade(uu_id_trader: str, ticker_name: str):
+    def add_user_trade(uu_id_trader: str, ticker_name: str, user_name: str):
         database_querys_main.database_querys.add_user_trade(
             uu_id_trader, ticker_name
         )
@@ -1164,7 +1230,7 @@ if __name__ == "__main__":
         # x = return_portfolios_options.add_trading_portfolio_manual(
         #    ["XLK", "AAPL", "AAL"]
         # )
-        x = return_trend_trade_options.return_trade_options()
+        x = return_trend_analyses.get_user_trades(uuid_portfolio="LEODEADMIN")
         print(x)
 
     except Exception as e:
