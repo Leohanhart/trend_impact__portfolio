@@ -210,6 +210,8 @@ class return_trend_analyses(object):
 
         # Add 'trade_yield' column with all values set to 0
         df["trade_yield"] = 0
+        df["open_price"] = 0
+        df["close_price"] = 0
 
         for index, row in df.iterrows():
             # dowloads stock data.
@@ -250,6 +252,8 @@ class return_trend_analyses(object):
             # sums return
             returns = selected_data.Change.sum()
 
+            df.at[index, "open_price"] = float(selected_data.Close.head(1))
+            df.at[index, "close_price"] = float(selected_data.Close.tail(1))
             df.at[index, "trade_yield"] = returns * row.trend
 
         # Reorder columns
@@ -262,10 +266,12 @@ class return_trend_analyses(object):
             "profile_std",
             "volatility",
             "signal_yield",
+            "trade_yield",
+            "open_price",
+            "trade_yield",
             "max_drawdown",
             "exp_return",
             "max_yield",
-            "trade_yield",
             "last_update",
         ]
         df = df[desired_order]

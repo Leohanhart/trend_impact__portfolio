@@ -189,7 +189,8 @@ class update_data:
         while True:
             # report a message
             try:
-                update = update_portfolio_trends.kko_portfolio_update_manager()
+                sleep(680000)
+                #update = update_portfolio_trends.kko_portfolio_update_manager()
             except Exception as e:
                 print("Error in thread = ", e)
                 database_querys.database_querys.add_log_to_logbook(
