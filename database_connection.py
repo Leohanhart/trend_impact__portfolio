@@ -9,7 +9,7 @@ def get_db_connection():
     # Configure the database connection
     db_username = "root"
     db_password = "root"
-    db_host = "localhost"
+    db_host = "85.215.215.209"
     db_port = "5432"
     db_name = "trend_impact_postgres"
 
@@ -31,7 +31,7 @@ def get_db_engine():
     # Configure the database connection
     db_username = "root"
     db_password = "root"
-    db_host = "localhost"
+    db_host = "85.215.215.209"
     db_port = "5432"
     db_name = "trend_impact_postgres"
 
@@ -65,14 +65,14 @@ def test_postgresql_connection():
     """
     db_username = "root"
     db_password = "root"
-    db_host = "localhost"
+    db_host = "85.215.215.209"
     db_port = "5432"
     db_name = "trend_impact_postgres"
 
     # Create the database connection URL
     db_url = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
     engine = create_engine(
-        "postgresql://root:root@localhost:5432/trend_impact_postgres"
+        "postgresql://root:root@85.215.212.222:5432/trend_impact_postgres"
     )
 
     try:

@@ -78,7 +78,7 @@ SQLALCHEMY_DATABASE_URI_layer_one = "sqlite:///" + os.path.abspath(
 
 db_dir = "core_data/flowimpact_api_db.db"
 SQLALCHEMY_DATABASE_URI_layer_zero = (
-    "postgresql://root:root@localhost:5432/trend_impact_postgres"
+    "postgresql://root:root@85.215.212.222:5432/trend_impact_postgres"
 )
 
 # removed : after sqlite "sqlite://"
